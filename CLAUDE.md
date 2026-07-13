@@ -21,6 +21,7 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 - `docs/API_SPEC.md` — endpointy
 - `docs/PAYMENTS.md` — flow płatności, split, prowizje
 - `docs/DESIGN_PRINCIPLES.md` — **zasady designu i UX. Obowiązkowe przed dotknięciem czegokolwiek wizualnego.**
+- `docs/DESIGN_SYSTEM.md` — tokeny i komponenty (szkielet — wypełni się po wyborze kierunku wizualnego)
 - `docs/ROADMAP.md` — fazy wdrożenia
 - `docs/RISKS.md` — ryzyka
 
@@ -84,6 +85,10 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 
 *(aktualizuj tę sekcję po każdej ukończonej fazie)*
 
+- [x] Faza projektowa — komplet dokumentów w `docs/` (2026-07-13)
+  - Płatności: rekomendacja Stripe Connect Express złożona w `docs/PAYMENTS.md` — **czeka na decyzję właściciela**
+  - Design: kierunek niewybrany — czeka na feedback z 12 makiet (proces w `docs/DESIGN_SYSTEM.md`)
+- [ ] Faza 0 — scaffolding (Next.js, Docker, Drizzle, seed)
 - [ ] Faza 1 — Auth + model parkingu + formularz + mapa
 - [ ] Faza 2 — Eventy + nakładka na mapę + deklaracja dostępności hosta
 - [ ] Faza 3 — Rezerwacje + płatności + QR + powiadomienia

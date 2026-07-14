@@ -1,0 +1,45 @@
+{
+  "name": "ParkSpot — skaner hosta",
+  "short_name": "ParkSpot",
+  "description": "Skaner kodów przy bramie. Działa bez internetu, jeśli kody na event zostały pobrane wcześniej.",
+  "lang": "pl",
+  "dir": "ltr",
+  "start_url": "/panel/skaner",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1918",
+  "theme_color": "#1a1918",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Skaner",
+      "short_name": "Skaner",
+      "url": "/panel/skaner"
+    },
+    {
+      "name": "Rezerwacje na dziś",
+      "short_name": "Rezerwacje",
+      "url": "/panel/rezerwacje"
+    }
+  ]
+}

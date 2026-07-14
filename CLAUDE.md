@@ -118,9 +118,14 @@ CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego sa
 
 **Co NIE jest zrobione — nie udawaj, że jest:**
 
-- [ ] **Docker nie został uruchomiony ani razu.** `Dockerfile` i oba `docker-compose*.yml` istnieją
-      i `docker compose config` je waliduje, ale demon Dockera nie wstaje w tym środowisku.
-      Obraz nigdy się nie zbudował. To jest **niezweryfikowana ścieżka deploymentu.**
+- [ ] **Obraz Dockera nigdy się nie zbudował.** Nie ma już `docker-compose*.yml` — jednostką
+      deploymentu jest jeden obraz produkcyjny z `Dockerfile` (baza stoi na VPS-ie, poza obrazem).
+      Demon Dockera nie wstaje w tym środowisku: usługa `com.docker.service` jest zatrzymana,
+      a jej uruchomienie wymaga podniesionych uprawnień, których sesja nie ma. **`docker build`
+      nie przeszedł ani razu — to niezweryfikowana ścieżka deploymentu.** Pierwszy build na
+      maszynie z działającym Dockerem jest jednocześnie pierwszym testem.
+      Zweryfikowane *jest* natomiast to, co obraz odpala przy starcie: `scripts/migrate.mjs`
+      i zbundlowany `dist/seed.mjs` przejechane na żywym PostGIS-ie, bez `tsx`.
 - [ ] **Brak `PATCH /api/me`** → „Moje dane" na `/konto` są read-only. Telefon da się ustawić tylko
       przy zakupie. Zły numer = brak SMS-a z kodem i brak sposobu, żeby to naprawić.
 - [ ] **Seed nie zawiera ani jednej deklaracji hosta na event** (`event_parking_availability` = 0 wierszy).

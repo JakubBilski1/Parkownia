@@ -1,0 +1,140 @@
+# ParkSpot — full stack: app + db + minio.
+#
+# PORTS (jeden ustalony zestaw, patrz db/README.md):
+#   Postgres  -> localhost:5432
+#   MinIO S3  -> localhost:9000, konsola -> localhost:9001
+#   App       -> localhost:3000
+#
+# Jeśli masz WŁASNEGO Postgresa na 5432 (albo na 5433, jak przy instalacji w WSL),
+# NIE uruchamiaj usługi `db` — ustaw tylko DATABASE_URL na swoją bazę.
+# Szczegóły i rozwiązywanie konfliktów portów: db/README.md.
+#
+# Infrastruktura bez aplikacji (typowy dev: `npm run dev` na hoście):
+#   docker compose -f docker-compose.dev.yml up -d
+# Całość w kontenerach:
+#   cp .env.example .env && docker compose up -d --build
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: parkspot
+      POSTGRES_PASSWORD: parkspot
+      POSTGRES_DB: parkspot
+    ports:
+      - "5432:5432"
+    volumes:
+      - parkspot-db-data:/var/lib/postgresql/data
+      # Runs once, on first init of an empty volume: postgis, citext, pgcrypto.
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parkspot -d parkspot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: parkspot
+      MINIO_ROOT_PASSWORD: parkspot-dev-secret
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # web console
+    volumes:
+      - parkspot-minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # One-shot: creates the photo bucket and makes objects readable by URL
+  # (S3_PUBLIC_URL points straight at them). Exits after it is done.
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 parkspot parkspot-dev-secret &&
+      mc mb --ignore-existing local/parkspot-dev &&
+      mc anonymous set download local/parkspot-dev
+      "
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Baked into the client bundle at build time — set this to the public
+        # origin before building for production.
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    restart: unless-stopped
+    # Values come from .env in this directory — Compose loads it automatically
+    # (cp .env.example .env). Listed explicitly rather than via `env_file:` so
+    # that `docker compose config` still validates when .env is absent, and so
+    # that it is obvious what the container actually needs.
+    environment:
+      # Infra: inside the compose network the app talks to services by NAME,
+      # never to localhost. Hardcoded on purpose — they must not be overridable
+      # by a stray host value in .env (which points at localhost:5432).
+      DATABASE_URL: postgresql://parkspot:parkspot@db:5432/parkspot
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: parkspot
+      S3_SECRET_KEY: parkspot-dev-secret
+      S3_BUCKET: parkspot-dev
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/parkspot-dev}
+      NODE_ENV: production
+
+      # Secrets — must come from .env. No fallback value is provided: the app
+      # throws on startup if they are empty (src/modules/auth/jwt.ts), which is
+      # exactly what should happen. Never bake a default secret in here.
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-}
+      ACTION_TOKEN_SECRET: ${ACTION_TOKEN_SECRET:-}
+      CRON_SECRET: ${CRON_SECRET:-}
+
+      # Payments (docs/PAYMENTS.md)
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-mock}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+
+      # Email / SMS
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      SMTP_URL: ${SMTP_URL:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-ParkSpot <no-reply@parkspot.pl>}
+      SMS_ENABLED: ${SMS_ENABLED:-false}
+      SMSAPI_TOKEN: ${SMSAPI_TOKEN:-}
+      SMSAPI_SENDER: ${SMSAPI_SENDER:-ParkSpot}
+
+      # Geocoding (docs/RISKS.md R13)
+      GEOCODER: ${GEOCODER:-nominatim}
+      GEOAPIFY_KEY: ${GEOAPIFY_KEY:-}
+      NOMINATIM_URL: ${NOMINATIM_URL:-https://nominatim.openstreetmap.org}
+      GUS_API_KEY: ${GUS_API_KEY:-}
+
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+volumes:
+  parkspot-db-data:
+    name: parkspot-db-data
+  parkspot-minio-data:
+    name: parkspot-minio-data

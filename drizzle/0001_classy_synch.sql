@@ -1,0 +1,2 @@
+DROP INDEX "bookings_occupancy_idx";--> statement-breakpoint
+CREATE INDEX "bookings_occupancy_idx" ON "bookings" USING btree ("parking_id","starts_at","ends_at") WHERE "bookings"."status" IN ('PENDING', 'CONFIRMED', 'USED');

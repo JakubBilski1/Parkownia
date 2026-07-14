@@ -31,15 +31,13 @@ blob-report
 coverage
 vitest.config.ts
 
-# docs and local infra
+# docs. db/ itself stays: db/extensions.sql is applied by the migration runner,
+# and drizzle/ (the migration SQL) is likewise part of the image.
 docs
-db/init
 *.md
 !README.md
 Dockerfile
 .dockerignore
-docker-compose.yml
-docker-compose.dev.yml
 
 # editor / OS
 .vscode

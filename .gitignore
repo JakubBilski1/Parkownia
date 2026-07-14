@@ -37,7 +37,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-# docker volumes are named, not bind-mounted; nothing to ignore there
+# docker: the image is built from the Dockerfile and carries no state; the
+# database lives outside it. Nothing to ignore here.
 
 # IDE
 .vscode/*

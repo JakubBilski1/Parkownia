@@ -1,0 +1,8 @@
+# Shell scripts must keep LF endings. This repo is developed on Windows, where
+# git would otherwise check them out with CRLF — and a `#!/bin/sh\r` shebang is
+# not a valid interpreter path inside the Linux container, so docker-entrypoint.sh
+# would fail with "no such file or directory" on a line that looks perfectly fine.
+*.sh text eol=lf
+
+# Same reasoning for the SQL the migration runner feeds to Postgres.
+*.sql text eol=lf

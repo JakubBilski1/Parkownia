@@ -171,13 +171,15 @@ Link działa bez logowania (token identyfikuje hosta i event) — każde dodatko
 
 ## 7. PWA
 
-- `manifest.json` + Service Worker (Workbox przez `serwist`): precache shellu skanera i panelu hosta.
+- `public/manifest.json` + **własnoręcznie napisany Service Worker (`public/sw.js`)**. Bez `serwist`/Workbox — precache shellu skanera to kilkanaście linii, a zależność, która generuje SW w buildzie, kosztowałaby więcej niż daje. Rejestracja tylko przy `NODE_ENV=production` (`src/components/pwa-register.tsx`).
 - IndexedDB: manifesty skanów per event + kolejka wyników do synchronizacji.
 - Offline dotyczy **skanera hosta**. Mapa i zakup wymagają sieci — nie udajemy, że nie.
 
 ## 8. i18n
 
-- `next-intl`, PL jako jedyny język w MVP; wszystkie stringi w plikach tłumaczeń od pierwszego komponentu (dopisanie EN dla targów MTP = dodanie pliku, nie refaktor).
+- **Brak warstwy i18n. Polskie stringi siedzą wprost w komponentach.** MVP jest jednojęzyczny, a `next-intl` postawiony „na zapas" to dziś koszt bez korzyści.
+- Furtka: copy jest skupione w komponentach i w `src/modules/*/reasons.ts` / `errors.ts`, więc dodanie EN (targi MTP) to wyciągnięcie stringów, nie przepisanie logiki.
+- **Odmiana liczby mnogiej idzie przez `pluralPl()` (`src/lib/format.ts`)** — polski ma trzy formy i „3 miejsc" jest błędem gramatycznym, nie literówką. Nie interpoluj rzeczownika po liczbie ręcznie.
 
 ---
 

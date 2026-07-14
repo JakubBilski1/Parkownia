@@ -209,7 +209,9 @@ Pokryte przez `event_parking_availability.price_gr` — **nie tworzymy osobnej t
 | pending_expires_at | timestamptz | TTL 15 min dla PENDING |
 | cancelled_at | timestamptz, refund_gr integer | wynik polityki zwrotów |
 
-Indeksy: `(parking_id, starts_at, ends_at) WHERE status IN ('PENDING','CONFIRMED')` — zapytanie o zajętość; `(user_id)`, `(event_id)`, UNIQUE `(code)`.
+Indeksy: `(parking_id, starts_at, ends_at) WHERE status IN ('PENDING','CONFIRMED','USED')` — zapytanie o zajętość; `(user_id)`, `(event_id)`, UNIQUE `(code)`.
+
+**`USED` należy do tego indeksu.** Auto, które już stoi na placu, zajmuje miejsce najbardziej ze wszystkich. Zapytanie o zajętość liczy `PENDING + CONFIRMED + USED`, a indeks częściowy, którego predykat nie pokrywa zapytania, to indeks, z którego Postgres nie skorzysta — czyli seq scan na ścieżce, która ma nie dopuścić do sprzedania miejsca dwa razy.
 
 ### Strategia transakcyjna (nienaruszalna)
 
@@ -219,14 +221,21 @@ SELECT id FROM parkings WHERE id = $1 FOR UPDATE;         -- serializacja per pa
 -- zajętość w oknie [starts, ends):
 SELECT COALESCE(SUM(spots),0) FROM bookings
  WHERE parking_id = $1
-   AND status = 'CONFIRMED'
-    OR (status = 'PENDING' AND pending_expires_at > now())
-   AND starts_at < $ends AND ends_at > $starts;
+   AND starts_at < $ends AND ends_at > $starts
+   AND (
+     status IN ('CONFIRMED', 'USED')
+     OR (status = 'PENDING' AND pending_expires_at > now())
+   );
 -- limit: LEAST(capacity, spots z event_parking_availability jeśli rezerwacja eventowa)
 -- jeśli wolne < żądane → ROLLBACK, 409
 INSERT INTO bookings (status='PENDING', pending_expires_at = now() + interval '15 min', ...);
 COMMIT;
 ```
+
+Dwie rzeczy w tym zapytaniu są nieoczywiste i obie kosztowałyby pieniądze:
+
+1. **Nawiasy wokół `OR` nie są kosmetyką.** W poprzedniej wersji tego dokumentu warunek brzmiał `AND status = 'CONFIRMED' OR (status = 'PENDING' AND …) AND …`. `AND` wiąże mocniej niż `OR`, więc całość rozpadała się na „(cokolwiek CONFIRMED, z dowolnego parkingu, z dowolnego okna) OR (…)” — zapytanie liczyłoby cudze rezerwacje i blokowało sprzedaż. Kod (`src/modules/bookings/availability.ts`) był poprawny; błąd był w dokumencie.
+2. **`USED` liczy się jako zajęte.** Pominięcie go pozwala przesprzedać parking w trakcie trwania meczu — dokładnie wtedy, gdy komplet aut już stoi za szlabanem.
 
 Blokada wiersza **parkingu** (nie tabeli bookings) serializuje konkurencyjne zakupy tego samego parkingu, a różne parkingi nie czekają na siebie. `EXPIRED` rozstrzygane leniwie warunkiem `pending_expires_at > now()` + cron sprzątający statusy.
 

@@ -86,11 +86,46 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 *(aktualizuj tę sekcję po każdej ukończonej fazie)*
 
 - [x] Faza projektowa — komplet dokumentów w `docs/` (2026-07-13)
-  - Płatności: rekomendacja Stripe Connect Express złożona w `docs/PAYMENTS.md` — **czeka na decyzję właściciela**
-  - Design: kierunek niewybrany — czeka na feedback z 12 makiet (proces w `docs/DESIGN_SYSTEM.md`)
-- [ ] Faza 0 — scaffolding (Next.js, Docker, Drizzle, seed)
-- [ ] Faza 1 — Auth + model parkingu + formularz + mapa
-- [ ] Faza 2 — Eventy + nakładka na mapę + deklaracja dostępności hosta
-- [ ] Faza 3 — Rezerwacje + płatności + QR + powiadomienia
-- [ ] Faza 4 — Panel hosta (skaner offline) + panel admina
-- [ ] Faza 5 — Hardening, testy e2e, deployment
+  - Design: motyw jasny „Bilet", ciemny „Zmierzch" — wybrany, tokeny w `tailwind.config.ts`
+- [x] Faza 0 — scaffolding (Next.js, Docker, Drizzle, seed)
+- [x] Faza 1 — Auth + model parkingu + formularz + mapa
+- [x] Faza 2 — Eventy + nakładka na mapę + deklaracja dostępności hosta
+- [x] Faza 3 — Rezerwacje + płatności + QR + powiadomienia
+- [x] Faza 4 — Panel hosta (skaner offline) + panel admina
+- [ ] Faza 5 — Hardening, testy e2e, deployment ← **TU JESTEŚMY**
+
+**Bramka jakości (stan na 2026-07-14, wszystko uruchomione, nie zadeklarowane):**
+
+| | |
+|---|---|
+| `npx tsc --noEmit` | ✅ |
+| `npm run lint` | ✅ |
+| `npm run build` | ✅ |
+| `npx vitest run` (unit) | ✅ 77/77 |
+| `npm run test:integration` | ✅ 27/27 na żywym PostGIS |
+| `npm run test:e2e` | ✅ 10/10 (Playwright) |
+
+**Baza DZIAŁA i ma dane.** PostgreSQL 16 + PostGIS 3.6 (WSL, `localhost:5433`). Migracje i seed
+wykonane: 26 tabel, 17 eventów (mecze Lecha + targi MTP), 20 parkingów, 4 konta testowe
+(`admin@` / `host@` / `firma@` / `kierowca@parkspot.pl`, hasło `parkspot123`).
+Ścieżka zakupu przejechana end-to-end na żywym serwerze: rezerwacja → intent → webhook →
+CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego samego kodu → odrzucony.
+
+- [x] Strona `/konto` — zgody, eksport, usunięcie konta (**luka RODO zamknięta**)
+- [x] `users.stripe_account_id` / `charges_enabled` / `payouts_enabled` + `@stripe/stripe-js`;
+      publikacja parkingu zablokowana, dopóki host nie przejdzie KYC (tylko na `PAYMENT_PROVIDER=stripe`)
+- [x] Testy integracyjne i e2e istnieją i przechodzą
+
+**Co NIE jest zrobione — nie udawaj, że jest:**
+
+- [ ] **Docker nie został uruchomiony ani razu.** `Dockerfile` i oba `docker-compose*.yml` istnieją
+      i `docker compose config` je waliduje, ale demon Dockera nie wstaje w tym środowisku.
+      Obraz nigdy się nie zbudował. To jest **niezweryfikowana ścieżka deploymentu.**
+- [ ] **Brak `PATCH /api/me`** → „Moje dane" na `/konto` są read-only. Telefon da się ustawić tylko
+      przy zakupie. Zły numer = brak SMS-a z kodem i brak sposobu, żeby to naprawić.
+- [ ] **Seed nie zawiera ani jednej deklaracji hosta na event** (`event_parking_availability` = 0 wierszy).
+      Sprzedaż eventowa działa (parking z `availability_mode` pokrywającym okno sprzedaje się bez
+      deklaracji), ale panel hosta „Wydarzenia", quick-declare z maila i skaner są po seedzie puste.
+- [ ] Stripe przetestowany wyłącznie na mocku — brak testu na prawdziwym koncie testowym Stripe.
+
+**Wymagany Node ≥ 22** (Vitest 4 potrzebuje `util.styleText`). Na Node 21 testy nie wystartują.

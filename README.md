@@ -11,66 +11,119 @@ Pełny kontekst projektu: `CLAUDE.md`. Dokumenty źródłowe: `docs/`.
 
 - **Node.js >= 22** (`engines.node` w `package.json`; `npm run build` na
   starszym Node nie przejdzie)
-- **PostgreSQL 14+ z PostGIS** — z Dockera albo własny (patrz niżej)
-- Docker + Docker Compose — opcjonalnie, tylko dla ścieżki A
+- **PostgreSQL 14+ z PostGIS** — własny: WSL, lokalna instalacja, kontener,
+  managed. Nie ma compose'a, więc bazę przynosisz swoją.
+- Docker — tylko do zbudowania obrazu produkcyjnego („Wdrożenie na VPS”)
 
 ## Szybki start
 
-Aplikację uruchamiasz na hoście (`npm run dev`); różnica między ścieżkami
-dotyczy wyłącznie tego, **skąd bierzesz bazę**.
-
-### Ścieżka A — baza z Dockera (najprostsza)
+Bazy nie dostaniesz z repo — **przynosisz własnego Postgresa**. Aplikację
+uruchamiasz na hoście (`npm run dev`).
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d   # Postgres+PostGIS (5432) + MinIO (9000/9001)
-cp .env.example .env.local                       # DATABASE_URL już wskazuje na localhost:5432
-npm install
-npm run db:migrate
-npm run db:seed
-npm run dev
-```
+# 1. Postgres 14+ z rozszerzeniami: postgis, citext, pgcrypto.
+#    Raz, jako superuser, na docelowej bazie:
+psql "postgresql://user:pass@localhost:5433/parkspot" -f db/extensions.sql
 
-### Ścieżka B — własny Postgres (np. WSL, lokalna instalacja)
-
-```bash
-# 1. Baza musi mieć rozszerzenia: postgis, citext, pgcrypto  (db/README.md §2)
-# 2. Skonfiguruj połączenie:
+# 2. Konfiguracja
 cp .env.example .env.local
-# 3. PODMIEŃ DATABASE_URL w .env.local na swój host/port, np. Postgres w WSL na 5433:
+#    PODMIEŃ DATABASE_URL na swój host/port — np. Postgres w WSL na 5433:
 #    DATABASE_URL="postgresql://parkspot:parkspot@localhost:5433/parkspot"
+
 npm install
 npm run db:migrate
 npm run db:seed
 npm run dev
 ```
 
-`.env.example` pokazuje port **5432**, bo taki wystawia `docker-compose.yml`.
-Jeśli Twój Postgres słucha gdzie indziej (typowo **5433**, żeby nie kolidować
-z 5432), **musisz podmienić `DATABASE_URL` w swoim `.env.local`**. To jedyna
-wartość, którą trzeba ruszyć.
+`DATABASE_URL` to jedyna wartość, którą trzeba ruszyć. `.env.example` pokazuje
+port **5432**; baza tego repo chodzi w WSL na **5433** (żeby nie kolidować
+z 5432) — wpisz to, na czym faktycznie słucha Twój Postgres.
 
-Aplikacja: http://localhost:3000. Konta testowe (po `db:seed` z `SEED_DEV=1`):
+`db:migrate` sam próbuje wykonać `db/extensions.sql` przed migracjami, ale
+`CREATE EXTENSION` wymaga superusera — na bazie, gdzie rola aplikacji go nie ma,
+zrobisz to krokiem 1 i tylko raz.
+
+Aplikacja: http://localhost:3000. `db:seed` wgrywa dane referencyjne
+(`commission_rules`, polityka zwrotów, 2 obiekty, 17 eventów), a przy
+`SEED_DEV=1` (domyślnie w `.env.example`) dokłada parkingi demo i konta testowe:
 `admin@parkspot.pl`, `host@parkspot.pl`, `firma@parkspot.pl`,
 `kierowca@parkspot.pl` — hasło `parkspot123`.
 
-Pełny opis obu ścieżek + Postgres zarządzany (Neon/Supabase/RDS) i
-rozwiązywanie problemów: **`db/README.md`**.
-
-## Uruchomienie w kontenerach (app + db + minio)
-
-> ⚠️ **Ta ścieżka nie została ani razu uruchomiona.** `docker compose config`
-> waliduje oba pliki, ale demon Dockera nie wstaje w środowisku, w którym
-> powstawał ten kod — **obraz nigdy się nie zbudował**. Traktuj poniższe jako
-> nieprzetestowane, dopóki nie zbudujesz go u siebie.
+**MinIO (zdjęcia parkingów) nie wstaje już z compose'a.** Storage jest
+S3-kompatybilny i konfiguruje się wyłącznie zmiennymi `S3_*`. Chcesz uploadu
+zdjęć lokalnie — uruchamiasz MinIO sam:
 
 ```bash
-cp .env.example .env             # docker-compose czyta .env, nie .env.local
-docker compose up -d --build     # app na :3000, db na :5432, minio na :9000/:9001
-npm run db:migrate               # migracje odpalasz z hosta, na localhost:5432
+docker run -p 9000:9000 -p 9001:9001 minio/minio server /data --console-address ":9001"
 ```
 
-Obraz produkcyjny buduje się z `Dockerfile` (multi-stage, Next.js standalone,
-non-root). To ta sama ścieżka, którą ma deployować Coolify na VPS.
+Bez niego działa wszystko **poza** uploadem zdjęć.
+
+Postgres zarządzany (Neon/Supabase/RDS) i rozwiązywanie problemów:
+**`db/README.md`**.
+
+## Wdrożenie na VPS
+
+Jednostką deploymentu jest **jeden obraz produkcyjny** z `Dockerfile`. Nie ma
+compose'a i nie ma osobnego joba migracyjnego. **Bazy nie ma w obrazie** —
+aplikacja łączy się przez `DATABASE_URL` do Postgresa, który już stoi na VPS-ie.
+
+> **Warunek konieczny:** ta zewnętrzna baza musi mieć rozszerzenia **postgis,
+> citext, pgcrypto**. Bez PostGIS wywala się pierwsza migracja — całe wyszukiwanie
+> geo stoi na `geography(Point,4326)` i indeksie GiST. Raz, jako superuser:
+> `psql "$DATABASE_URL" -f db/extensions.sql`.
+
+```bash
+docker build -t parkspot --build-arg NEXT_PUBLIC_APP_URL=https://parkspot.pl .
+
+docker run -d --name parkspot -p 3000:3000 \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/parkspot" \
+  -e JWT_ACCESS_SECRET="..." \
+  -e JWT_REFRESH_SECRET="..." \
+  -e ACTION_TOKEN_SECRET="..." \
+  -e PAYMENT_PROVIDER="stripe" \
+  -e STRIPE_SECRET_KEY="..." \
+  -e STRIPE_WEBHOOK_SECRET="..." \
+  parkspot
+```
+
+**`NEXT_PUBLIC_APP_URL` jest build-argiem, nie zmienną runtime'u.** Next wkleja
+`NEXT_PUBLIC_*` do bundla przeglądarki na etapie builda. Zły adres przy budowaniu
+= złe linki absolutne (powroty z płatności, linki w mailach) w wysłanym JS-ie,
+a żadne `-e` przy `docker run` już tego nie odkręci — trzeba przebudować obraz.
+
+Reszta zmiennych (S3, e-mail, SMS, geokoder, `CRON_SECRET`) — pełna lista
+z opisami w `.env.example`.
+
+### Co robi kontener przy starcie
+
+`docker-entrypoint.sh`, zanim odda ruch do `node server.js`:
+
+1. **przerywa start**, jeśli `DATABASE_URL` nie jest ustawione;
+2. aplikuje migracje — `node scripts/migrate.mjs` (wyłącznik: `RUN_MIGRATIONS=false`);
+3. wgrywa dane referencyjne — `node dist/seed.mjs` (wyłącznik: `RUN_SEED=false`).
+
+Oba kroki są idempotentne. Seed **nie jest** devowym hałasem: bez
+`commission_rules` `resolveCommissionRatePct` (`src/modules/payouts/service.ts`)
+rzuca wyjątkiem, więc na bazie z samymi migracjami **każda** rezerwacja by padła.
+Seed wgrywa reguły prowizji (50% os. prywatne / 30% firmy), politykę zwrotów,
+2 obiekty i 17 eventów. `SEED_DEV` nie jest tu ustawiane nigdy — konta testowe
+i parkingi demo nie trafiają na produkcję.
+
+Efekt uboczny, wprost: seed przelatuje przy **każdym** starcie, więc event
+skasowany w panelu admina wróci po restarcie. Gdy zaczniesz zarządzać eventami
+z panelu, ustaw `RUN_SEED=false`.
+
+Obraz: multi-stage (`deps` → `builder` → `runner`, wysyłany jest tylko `runner`),
+Next.js standalone, non-root (uid 1001), `EXPOSE 3000`, HEALTHCHECK na `/`.
+
+> Skalujesz ponad jedną replikę? Dwa kontenery startujące równocześnie migrowałyby
+> jednocześnie. Wtedy `RUN_MIGRATIONS=false` i migracja jako osobny krok.
+
+> Obraz nie został zbudowany w środowisku, w którym powstawał ten kod (demon
+> Dockera tam nie wstaje). Pierwszy `docker build` u siebie jest jednocześnie
+> pierwszą weryfikacją tej ścieżki.
 
 ## Struktura katalogów
 
@@ -87,8 +140,10 @@ src/
     map/              # MapLibre GL
 drizzle/              # migracje SQL wygenerowane przez drizzle-kit
 db/
-  init/               # SQL uruchamiany raz przy pierwszym starcie kontenera Postgresa
-scripts/              # runnery migrate/seed (tsx)
+  extensions.sql      # postgis, citext, pgcrypto — raz, na docelowej bazie
+scripts/              # migrate.mjs (goły ESM — jedzie też w kontenerze), seed.ts
+Dockerfile            # obraz produkcyjny (deps → builder → runner)
+docker-entrypoint.sh  # migracje + seed przed startem serwera w kontenerze
 tests/
   unit/               # Vitest, bez bazy
   integration/        # Vitest na żywym PostGIS (osobna baza parkspot_test)
@@ -104,12 +159,13 @@ bezpośrednio. Szczegóły: `docs/ARCHITECTURE.md` §4.
 |---|---|
 | `npm run dev` | Next.js dev server |
 | `npm run build` / `npm run start` | build produkcyjny / start |
+| `npm run build:seed` | bunduje `scripts/seed.ts` do `dist/seed.mjs` (esbuild, ESM bez `tsx`) — używa tego obraz, żeby seed dał się odpalić na produkcji |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:generate` | generuje migrację SQL z `src/db/schema.ts` |
-| `npm run db:migrate` | aplikuje migracje na `DATABASE_URL` |
+| `npm run db:migrate` | `node --env-file=.env.local scripts/migrate.mjs` — aplikuje migracje na `DATABASE_URL` |
 | `npm run db:push` | pcha schemat bez migracji (szybka iteracja lokalnie) |
-| `npm run db:seed` | seeduje dane dev (venues, eventy, `commission_rules`) |
+| `npm run db:seed` | dane referencyjne (obiekty, eventy, `commission_rules`); z `SEED_DEV=1` także konta testowe i parkingi demo |
 | `npm test` / `npm run test:watch` | Vitest — **tylko unit**, bez bazy |
 | `npm run test:integration` | Vitest na **żywym Postgresie** (osobna baza `parkspot_test`, patrz `TEST_DATABASE_URL`) |
 | `npm run test:e2e` | Playwright (własny serwer na :3200, nie dotyka Twojego `npm run dev`) |
@@ -131,4 +187,5 @@ wymagałoby bazy do przejścia czegoś, co ma być szybkie i offline.
 
 Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS · MapLibre GL JS
 + OpenStreetMap · PostgreSQL 16 + PostGIS · Drizzle ORM · własny JWT (Argon2id)
-· MinIO (S3 API) · Stripe · Docker + docker-compose · Vitest + Playwright.
+· storage S3-kompatybilny (lokalnie MinIO) · Stripe · Docker (jeden obraz
+produkcyjny) · Vitest + Playwright.

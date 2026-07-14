@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — ParkSpot
 
-Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: faza projektowa, przed pierwszą linią kodu produkcyjnego.
+Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: system zbudowany (Fazy 0–4), trwa Faza 5 — hardening i wdrożenie.
 
 ---
 
@@ -20,17 +20,17 @@ Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: faza projek
                             └──────────────┬──────────────┘
                                            │ HTTPS
 ┌──────────────────────────────────────────┴──────────────────────────────────────┐
-│  VPS Hetzner CX33 · Docker (Coolify)                                            │
+│  VPS Hetzner CX33 · Coolify                                                     │
 │                                                                                 │
 │  ┌───────────────────────────────────────────────┐   ┌──────────────────────┐  │
-│  │  Next.js 15 (App Router) — monolit            │   │  PostgreSQL 16       │  │
+│  │  Next.js 15 — monolit (obraz prod, :3000)     │   │  PostgreSQL 16       │  │
 │  │                                               │   │  + PostGIS           │  │
-│  │  app/            UI (RSC, PL)                 │──▶│                      │  │
+│  │  app/            UI (RSC, PL)                 │──▶│  poza obrazem — VPS  │  │
 │  │  app/api/        API Routes (webhooki, scan)  │   │  GiST: location,     │  │
 │  │  src/modules/    logika domenowa:             │   │        entrance      │  │
 │  │    auth/  parkings/  events/  bookings/       │   └──────────────────────┘  │
 │  │    payments/  payouts/  notifications/        │   ┌──────────────────────┐  │
-│  │    scan/  admin/                              │──▶│  MinIO (S3 API)      │  │
+│  │    scan/  admin/                              │──▶│  Storage S3 (S3_*)   │  │
 │  │  src/db/         Drizzle schema + migracje    │   │  zdjęcia parkingów   │  │
 │  └───────┬───────────────┬───────────────┬───────┘   └──────────────────────┘  │
 └──────────┼───────────────┼───────────────┼─────────────────────────────────────┘
@@ -42,6 +42,8 @@ Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: faza projek
    │  docs/PAYMENTS│ └──────────────┘ │ Geokoder: Nominatim → Geoapify │
    └───────────────┘                  └────────────────────────────────┘
 ```
+
+**Bazy nie ma w obrazie.** Kontener ParkSpot to sam Next.js (standalone, non-root, port 3000) i to on jest całą jednostką wdrożenia — nie ma docker-compose. PostgreSQL 16 + PostGIS stoi obok, na VPS-ie, i jest osiągalny przez `DATABASE_URL`; rozszerzenia (`postgis`, `citext`, `pgcrypto` — `db/extensions.sql`) i migracje nakłada `docker-entrypoint.sh` przy starcie kontenera. Storage zdjęć też jest poza obrazem: S3-compatible, konfigurowany wyłącznie zmiennymi `S3_*`.
 
 ---
 
@@ -56,10 +58,10 @@ Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: faza projek
 | Auth | Własny JWT: access 15 min (pamięć klienta) + refresh 7 dni (httpOnly cookie, rotowany), Argon2id | **Nie NextAuth:** potrzebujemy tablicy ról na koncie (DRIVER + host jednocześnie), upgrade'u konta do hosta i flow rejestracji firmowej z NIP — w NextAuth to walka z frameworkiem. Rotacja refresh tokenów z detekcją ponownego użycia (kradziony token unieważnia rodzinę). |
 | Mapa | MapLibre GL JS + kafelki OSM | **Nie Google Maps:** koszt przy skali i licencyjny zakaz cache'owania kafelków. MapLibre = open source, styl kafelków pod kontrolą (istotne dla przyszłego designu). Klastrowanie: `supercluster`. |
 | Geokoder | Nominatim (dev) → Geoapify/LocationIQ (prod) | Nominatim ma limit 1 req/s i zakaz użycia produkcyjnego przy ruchu — wystarczy do developmentu. Wywołania za wspólnym interfejsem `Geocoder`, podmiana = konfiguracja. |
-| Pliki | MinIO (S3 API) w Dockerze | Zdjęcia parkingów. S3-compatible od dnia 1 — jak urośniemy, wskaźnik na prawdziwe S3/R2 bez zmiany kodu. Upload przez presigned URL (pliki nie przechodzą przez proces Next). |
+| Pliki | Storage S3-compatible, konfigurowany przez `S3_*` | Zdjęcia parkingów. S3-compatible od dnia 1 — lokalnie MinIO uruchamiany osobno, na produkcji prawdziwe S3/R2, bez zmiany kodu. Upload przez presigned URL (pliki nie przechodzą przez proces Next). **Storage nie jest częścią obrazu** — bez skonfigurowanego `S3_*` działa wszystko poza uploadem zdjęć. |
 | Płatności | Decyzja otwarta — porównanie w `docs/PAYMENTS.md` | Schemat bazy provider-agnostyczny (tabele `payments`, `payouts` istnieją od początku), więc wybór PSP nie zmienia modelu danych. |
 | E-mail / SMS | Resend + React Email; SMS przez SMSAPI za feature flagą | SMS ~0,08–0,12 zł/szt. przy prowizji ~6 zł to widoczny koszt — tylko potwierdzenie rezerwacji i przypomnienie 2 h przed, wyłączalne globalnie. |
-| Deploy | Docker + docker-compose; Coolify na Hetzner CX33 | `Dockerfile` (standalone output Next), `docker-compose.yml` (app + postgres/postgis + minio) od pierwszego dnia — środowisko dev = prod. |
+| Deploy | Jeden obraz produkcyjny Docker (Next standalone, non-root, `EXPOSE 3000`); Coolify na Hetzner CX33 | Obraz jest **całą** jednostką wdrożenia — dlatego **nie ma docker-compose**. Baza (PostgreSQL + PostGIS) stoi poza obrazem, na VPS-ie, i jest wskazywana przez `DATABASE_URL`; `NEXT_PUBLIC_APP_URL` to build-arg (wchodzi do bundla klienta w czasie buildu). Schemat i dane referencyjne doprowadza do stanu `docker-entrypoint.sh` przy starcie: migracje (`scripts/migrate.mjs`), potem idempotentny seed (`dist/seed.mjs`) — bez reguł prowizji każda rezerwacja poleciałaby wyjątkiem. Oba kroki wyłączalne: `RUN_MIGRATIONS=false` / `RUN_SEED=false`. |
 | Testy | Vitest (unit: ceny, prowizje, dostępność, NIP) + Playwright (e2e: rejestracja → parking → zakup → skan) | Logika pieniędzy i dostępności ma testy jednostkowe **zanim** dostanie UI. |
 
 ---

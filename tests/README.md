@@ -173,11 +173,9 @@ dostawałby 429, który nie mówi nic o produkcie. To odpowiednik odczekania min
 
 ## Uruchamianie bazy
 
-Docker (docelowo):
+Nie ma compose'a — bazę przynosisz swoją: Postgres 14+ (u nas 16) z PostGIS, w WSL,
+lokalnie, we własnym kontenerze albo zarządzany. Instalacja krok po kroku:
+`db/README.md`.
 
-```bash
-docker compose -f docker-compose.dev.yml up -d
-```
-
-Bez Dockera (WSL/lokalny Postgres 16 + PostGIS 3) — patrz `db/README.md`. Rola musi
-mieć `CREATEDB`, resztę robi `global-setup`.
+Rola z `TEST_DATABASE_URL` musi mieć `CREATEDB` i prawo tworzenia rozszerzeń —
+bazę `parkspot_test`, rozszerzenia i migracje `global-setup` zakłada sam.

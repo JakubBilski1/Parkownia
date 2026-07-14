@@ -57,7 +57,9 @@ Nominatim: 1 req/s, zakaz produkcyjnego wolumenu. **Mitygacja:** Nominatim tylko
 **Mitygacja:** bounding-box + GiST od dnia 1, limit 500 pinów, lekkie payloady pinów, debounce 300 ms; EXPLAIN w testach jako regresja (Faza 1 „done").
 
 ### R15. Jeden VPS = pojedynczy punkt awarii
-Awaria w dniu meczu = utrata sprzedaży szczytu. **Mitygacja (adekwatna do skali):** nocne backupy Postgresa z testem odtworzenia (Faza 5), monitoring uptime z alertem, docker-compose odtwarzalny w godzinę na świeżym VPS; skaner hosta działa offline nawet przy awarii backendu (manifest pobrany wcześniej). HA odkładamy świadomie — koszt nieuzasadniony przy MVP.
+Awaria w dniu meczu = utrata sprzedaży szczytu. **Mitygacja (adekwatna do skali):** monitoring uptime z alertem; odtworzenie na świeżym VPS w około godzinę: `docker build` z jednego `Dockerfile` (obraz produkcyjny, EXPOSE 3000) + Postgres postawiony na VPS-ie i wskazany przez `DATABASE_URL`; skaner hosta działa offline nawet przy awarii backendu (manifest pobrany wcześniej). HA odkładamy świadomie — koszt nieuzasadniony przy MVP.
+
+**Backup jest teraz krytyczny, nie pomocniczy.** Baza nie jest opisana żadnym plikiem w repo — to Postgres, który operator utrzymuje na VPS-ie. Odtwarza ją wyłącznie: nocny `pg_dump` z **testem odtworzenia** (Faza 5) + rozszerzenia z `db/extensions.sql` (postgis, citext, pgcrypto — bez PostGIS pierwsza migracja pada). Migracje i dane referencyjne (reguły prowizji, polityka zwrotów, venues, eventy) nakłada entrypoint kontenera przy starcie. Bez świeżego dumpa tracimy rezerwacje i parkingi — kod odtworzy się sam, dane nie.
 
 ### R16. Koszty SMS zjadają prowizję
 0,08–0,12 zł/SMS przy prowizji ~6 zł. **Mitygacja:** SMS za feature flagą, tylko potwierdzenie + przypomnienie 2 h przed; mail zawsze; monitorowanie kosztu per transakcja w dashboardzie admina.

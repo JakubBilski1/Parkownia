@@ -1,0 +1,46 @@
+{
+  "version": 8,
+  "name": "ParkSpot — Bilet (light)",
+  "metadata": {
+    "parkspot:note": "Raster OSM to rozwiazanie deweloperskie. Polityka tile.openstreetmap.org zabrania ruchu produkcyjnego. Przed startem: kafelki wektorowe (MapTiler / Protomaps) i styl wyprowadzony z tokenow, nie z filtra na rastrze. Patrz docs/DESIGN_SYSTEM.md.",
+    "parkspot:tokens": {
+      "bg": "#EEEEEB",
+      "accent": "#8E2B2B"
+    }
+  },
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "sources": {
+    "osm": {
+      "type": "raster",
+      "tiles": [
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "minzoom": 0,
+      "maxzoom": 19,
+      "attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#EEEEEB"
+      }
+    },
+    {
+      "id": "osm",
+      "type": "raster",
+      "source": "osm",
+      "paint": {
+        "raster-saturation": -0.75,
+        "raster-contrast": -0.05,
+        "raster-brightness-min": 0.06,
+        "raster-brightness-max": 0.96,
+        "raster-opacity": 0.9,
+        "raster-fade-duration": 200
+      }
+    }
+  ]
+}

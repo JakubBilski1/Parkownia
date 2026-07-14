@@ -1,0 +1,46 @@
+{
+  "version": 8,
+  "name": "ParkSpot — Zmierzch (dark)",
+  "metadata": {
+    "parkspot:note": "Ciemny wariant powstaje przez odbarwienie i przyciemnienie rastra OSM — to proteza, nie docelowy styl. Raster nie da sie odwrocic tonalnie bez zamiany napisow w papke. Produkcja: kafelki wektorowe (MapTiler / Protomaps) ze stylem na tokenach Zmierzchu. Patrz docs/DESIGN_SYSTEM.md.",
+    "parkspot:tokens": {
+      "bg": "#1A1918",
+      "accent": "#E0C9A6"
+    }
+  },
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "sources": {
+    "osm": {
+      "type": "raster",
+      "tiles": [
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "minzoom": 0,
+      "maxzoom": 19,
+      "attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#1A1918"
+      }
+    },
+    {
+      "id": "osm",
+      "type": "raster",
+      "source": "osm",
+      "paint": {
+        "raster-saturation": -0.9,
+        "raster-contrast": -0.15,
+        "raster-brightness-min": 0,
+        "raster-brightness-max": 0.42,
+        "raster-opacity": 0.85,
+        "raster-fade-duration": 200
+      }
+    }
+  ]
+}

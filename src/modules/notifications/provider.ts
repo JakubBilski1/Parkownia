@@ -1,19 +1,19 @@
-export type EmailAttachment = {
-  filename: string;
-  contentType: string;
-  /** Base64, without a data-URI prefix. */
-  content: string;
-  /** Set to reference the attachment inline as <img src="cid:…">. */
-  contentId?: string;
-};
-
 export type EmailMessage = {
   to: string;
-  subject: string;
-  html: string;
-  /** Every email ships a plain-text body: inboxes that strip CSS still read. */
-  text: string;
-  attachments?: EmailAttachment[];
+  /**
+   * Name of a template defined in the mail service (pbdevs: MJML + Handlebars,
+   * rendered server-side). The app no longer renders HTML — it names a template
+   * and hands over the variables. Same string as the notification's TemplateId.
+   */
+  template: string;
+  /** Handlebars variables for the template. Display-ready: dates and money are
+   * already formatted here, because the renderer cannot do Polish locale. */
+  data: Record<string, unknown>;
+  /**
+   * Stripe-style idempotency key for the mail API. We already dedupe in
+   * notification_log; this is a second line so a retried send cannot double-mail.
+   */
+  idempotencyKey?: string;
 };
 
 export type SmsMessage = {

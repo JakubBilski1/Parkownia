@@ -1,85 +1,146 @@
-import { createElement, type ReactElement } from "react";
-import QRCode from "qrcode";
-import { formatDatePL, formatDateTimePL, formatMoney } from "@/lib/format";
-import BookingCancelled, { type BookingCancelledProps } from "../../../emails/booking-cancelled";
-import BookingConfirmed, { type BookingConfirmedProps } from "../../../emails/booking-confirmed";
-import BookingReminder, { type BookingReminderProps } from "../../../emails/booking-reminder";
-import DataExport, { type DataExportProps } from "../../../emails/data-export";
-import HostEventPrompt, { type HostEventPromptProps } from "../../../emails/host-event-prompt";
-import HostPayout, { type HostPayoutProps } from "../../../emails/host-payout";
-import ParkingApproved, { type ParkingApprovedProps } from "../../../emails/parking-approved";
-import ParkingRejected, { type ParkingRejectedProps } from "../../../emails/parking-rejected";
-import PasswordReset, { type PasswordResetProps } from "../../../emails/password-reset";
-import PaymentFailed, { type PaymentFailedProps } from "../../../emails/payment-failed";
-import type { EmailAttachment } from "./provider";
+import { pl } from "date-fns/locale";
+import { formatInTimeZone } from "date-fns-tz";
+import {
+  APP_TIME_ZONE,
+  formatBookings,
+  formatDatePL,
+  formatDateTimePL,
+  formatMoney,
+  formatSpots,
+  formatTimePL,
+  formatWalkDistance,
+} from "@/lib/format";
+import { bookingQrUrl } from "./qr";
+import type { NotificationPayloads, TemplateId } from "./payloads";
 
-export type NotificationPayloads = {
-  "booking-confirmed": BookingConfirmedProps;
-  "booking-reminder": BookingReminderProps;
-  "booking-cancelled": BookingCancelledProps;
-  "payment-failed": PaymentFailedProps;
-  "host-event-prompt": HostEventPromptProps;
-  "host-payout": HostPayoutProps;
-  "parking-approved": ParkingApprovedProps;
-  "parking-rejected": ParkingRejectedProps;
-  "password-reset": PasswordResetProps;
-  "data-export": DataExportProps;
-};
+export type { NotificationPayloads, TemplateId } from "./payloads";
 
-export type TemplateId = keyof NotificationPayloads;
-
+/**
+ * A template no longer renders anything. It turns a typed payload into the flat,
+ * display-ready `data` that the mail API's MJML + Handlebars template interpolates
+ * ({ template, to, data } → rendered server-side). Two rules keep the templates in
+ * the pbdevs dashboard dumb, so they work with plain Handlebars and no helpers:
+ *
+ *   - every value is final: dates are Europe/Warsaw strings, money is "35 zł",
+ *     because the renderer cannot do Polish locale;
+ *   - every branch is resolved here: an enum becomes a boolean or a ready sentence,
+ *     never `{{#if (eq x "HOST")}}`. The template needs only {{var}} and {{#if bool}}.
+ */
 type Template<K extends TemplateId> = {
-  subject: (payload: NotificationPayloads[K]) => string;
-  email: (payload: NotificationPayloads[K]) => ReactElement;
-  attachments?: (payload: NotificationPayloads[K]) => Promise<EmailAttachment[]>;
+  data: (payload: NotificationPayloads[K]) => EmailData | Promise<EmailData>;
   /**
    * Only two templates may ever define this. An SMS costs 0.08–0.12 zł against a
-   * ~6 zł commission (docs/RISKS.md R16): it buys us a code in the hand of someone
-   * standing at a barrier, and nothing else is worth the money.
+   * ~6 zł commission (docs/RISKS.md R16): it buys a code in the hand of someone at
+   * a barrier, and nothing else is worth the money.
    */
   sms?: (payload: NotificationPayloads[K]) => string;
   /**
    * true  — send at most once per (user, template, relatedId); a repeat is a no-op.
-   *         The host must not be invited to the same event twice.
-   * false — a repeat is allowed (a payment can fail twice, a parking can be rejected
-   *         twice); the log row is overwritten rather than duplicated, because the
-   *         unique key in the schema leaves no room for a second row.
+   * false — a repeat is allowed (a payment can fail twice); the log row is updated.
    */
   dedupe: boolean;
 };
 
-const QR_CID = "qr";
+type EmailData = Record<string, unknown>;
 
-async function bookingQr(code: string): Promise<EmailAttachment[]> {
-  const png = await QRCode.toBuffer(code, {
-    errorCorrectionLevel: "M",
-    margin: 1,
-    scale: 8,
-    color: { dark: "#191A1C", light: "#FFFFFF" },
-  });
+/* -------------------------------------------------------------------------- */
+/* helpers                                                                    */
+/* -------------------------------------------------------------------------- */
 
-  return [
-    {
-      filename: `parkspot-${code}.png`,
-      contentType: "image/png",
-      content: png.toString("base64"),
-      contentId: QR_CID,
-    },
-  ];
+function appUrl(path = ""): string {
+  const base = process.env.NEXT_PUBLIC_APP_URL || "https://parkspot.pl";
+  return `${base.replace(/\/$/, "")}${path}`;
 }
 
-/** Hosts usually write "Wjazd od ul. Górczyńskiej" themselves — do not label it twice. */
+/** Nawigacja prowadzi do wjazdu, nie do środka placu (CLAUDE.md). */
+function entranceDirectionsUrl(lat: number, lng: number): string {
+  return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=;${lat}%2C${lng}`;
+}
+
+/** Where the driver's CTA points: the entrance if we have it, else the booking. */
+function navOrBooking(
+  bookingUrl: string,
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+): { ctaUrl: string; ctaLabel: string } {
+  if (lat != null && lng != null) {
+    return { ctaUrl: entranceDirectionsUrl(lat, lng), ctaLabel: "Nawiguj do wjazdu" };
+  }
+  return { ctaUrl: bookingUrl, ctaLabel: "Otwórz rezerwację" };
+}
+
+const WEEKDAY_ACCUSATIVE: Record<string, string> = {
+  "1": "poniedziałek",
+  "2": "wtorek",
+  "3": "środę",
+  "4": "czwartek",
+  "5": "piątek",
+  "6": "sobotę",
+  "7": "niedzielę",
+};
+
+/** "sobotę, 25 lipca" — the accusative that follows "w" in the host prompt. */
+function formatEventDayPL(value: string): string {
+  const date = new Date(value);
+  const isoDay = formatInTimeZone(date, APP_TIME_ZONE, "i");
+  const dayMonth = formatInTimeZone(date, APP_TIME_ZONE, "d MMMM", { locale: pl });
+  return `${WEEKDAY_ACCUSATIVE[isoDay] ?? ""}, ${dayMonth}`.replace(/^, /, "");
+}
+
+function cancelledSentence(cancelledBy: "DRIVER" | "HOST" | "ADMIN", code: string): string {
+  switch (cancelledBy) {
+    case "DRIVER":
+      return `Anulowałeś rezerwację ${code}.`;
+    case "HOST":
+      return `Właściciel parkingu wycofał miejsce, więc anulowaliśmy rezerwację ${code}.`;
+    case "ADMIN":
+      return `Anulowaliśmy rezerwację ${code}.`;
+  }
+}
+
+function refundNote(priceGr: number, refundGr: number): string {
+  if (refundGr === 0) {
+    return "Anulowanie na mniej niż 2 godziny przed startem nie daje zwrotu — tak działa polityka, którą zaakceptowałeś przy zakupie.";
+  }
+  if (refundGr >= priceGr) {
+    return "Pieniądze wracają tą samą drogą, którą przyszły (BLIK lub karta). Zwykle 1–3 dni robocze, maksymalnie 10.";
+  }
+  return "Zwrot częściowy wynika z polityki anulowania obowiązującej przy zakupie. Pieniądze wracają tą samą drogą, którą przyszły — zwykle 1–3 dni robocze, maksymalnie 10.";
+}
+
 function entranceLine(notes: string | null | undefined): string {
   if (!notes) return "";
   const trimmed = notes.trim().replace(/\.$/, "");
   return /^wjazd/i.test(trimmed) ? `${trimmed}.` : `Wjazd: ${trimmed}.`;
 }
 
+/* -------------------------------------------------------------------------- */
+/* templates                                                                  */
+/* -------------------------------------------------------------------------- */
+
 export const templates: { [K in TemplateId]: Template<K> } = {
   "booking-confirmed": {
-    subject: (p) => `Twoja rezerwacja: ${p.code}`,
-    email: (p) => createElement(BookingConfirmed, { ...p, qrCid: QR_CID }),
-    attachments: (p) => bookingQr(p.code),
+    data: async (p) => {
+      const bookingUrl = appUrl(`/rezerwacja/${p.bookingId}`);
+      return {
+        firstName: p.firstName ?? "",
+        code: p.code,
+        parkingTitle: p.parkingTitle,
+        address: p.address,
+        startsAt: formatDateTimePL(p.startsAt),
+        endsAt: formatDateTimePL(p.endsAt),
+        spots: formatSpots(p.spots),
+        price: formatMoney(p.priceGr),
+        eventTitle: p.eventTitle ?? "",
+        entranceNotes: p.entranceNotes ?? "",
+        accessInstructions: p.accessInstructions ?? "",
+        // Empty string when the upload fails or storage is unconfigured; the
+        // template hides the <img> and leans on the code text. See qr.ts.
+        qrUrl: (await bookingQrUrl(p.code)) ?? "",
+        bookingUrl,
+        ...navOrBooking(bookingUrl, p.entranceLat, p.entranceLng),
+      };
+    },
     sms: (p) =>
       [
         `ParkSpot. Kod: ${p.code}.`,
@@ -92,8 +153,20 @@ export const templates: { [K in TemplateId]: Template<K> } = {
   },
 
   "booking-reminder": {
-    subject: (p) => `Za 2 godziny: ${p.parkingTitle}`,
-    email: (p) => createElement(BookingReminder, p),
+    data: (p) => {
+      const bookingUrl = appUrl(`/rezerwacja/${p.bookingId}`);
+      return {
+        firstName: p.firstName ?? "",
+        code: p.code,
+        parkingTitle: p.parkingTitle,
+        address: p.address,
+        startsAt: formatDateTimePL(p.startsAt),
+        entranceNotes: p.entranceNotes ?? "",
+        accessInstructions: p.accessInstructions ?? "",
+        bookingUrl,
+        ...navOrBooking(bookingUrl, p.entranceLat, p.entranceLng),
+      };
+    },
     sms: (p) =>
       [
         `ParkSpot. Za 2 h: ${p.parkingTitle}, ${formatDateTimePL(p.startsAt)}.`,
@@ -106,51 +179,110 @@ export const templates: { [K in TemplateId]: Template<K> } = {
   },
 
   "booking-cancelled": {
-    subject: (p) => `Rezerwacja ${p.code} anulowana`,
-    email: (p) => createElement(BookingCancelled, p),
+    data: (p) => ({
+      firstName: p.firstName ?? "",
+      code: p.code,
+      parkingTitle: p.parkingTitle,
+      startsAt: formatDateTimePL(p.startsAt),
+      price: formatMoney(p.priceGr),
+      refund: formatMoney(p.refundGr),
+      whatHappened: cancelledSentence(p.cancelledBy, p.code),
+      // Reason is shown only when someone other than the driver cancelled.
+      reason: p.cancelledBy !== "DRIVER" ? (p.reason ?? "") : "",
+      refundNote: refundNote(p.priceGr, p.refundGr),
+      byHost: p.cancelledBy === "HOST",
+      mapUrl: appUrl("/mapa"),
+    }),
     dedupe: true,
   },
 
   "payment-failed": {
-    subject: () => "Płatność nie przeszła",
-    email: (p) => createElement(PaymentFailed, p),
+    data: (p) => ({
+      firstName: p.firstName ?? "",
+      parkingTitle: p.parkingTitle,
+      price: formatMoney(p.priceGr),
+      charged: p.charged,
+      holdUntil: p.holdExpiresAt ? formatDateTimePL(p.holdExpiresAt) : "",
+      retryUrl: appUrl(`/rezerwacja/${p.bookingId}/platnosc`),
+      mapUrl: appUrl("/mapa"),
+    }),
     dedupe: false,
   },
 
   "host-event-prompt": {
-    subject: (p) => `${p.eventTitle} — ${formatDatePL(p.eventStartsAt)}. Udostępnisz miejsca?`,
-    email: (p) => createElement(HostEventPrompt, p),
+    data: (p) => {
+      const shareUrl = appUrl(`/udostepnij/${p.actionToken}`);
+      return {
+        firstName: p.firstName ?? "",
+        eventTitle: p.eventTitle,
+        // eventDate — nominative "sob., 25 lipca" for the subject line; eventDay is
+        // the accusative "sobotę, 25 lipca" the body sentence needs after "w".
+        eventDate: formatDatePL(p.eventStartsAt),
+        eventDay: formatEventDayPL(p.eventStartsAt),
+        eventTime: formatTimePL(p.eventStartsAt),
+        venueName: p.venueName,
+        parkingTitle: p.parkingTitle,
+        walkDistance: formatWalkDistance(p.straightLineMeters),
+        suggestion: `${formatSpots(p.suggestedSpots)} po ${formatMoney(p.suggestedPriceGr)}`,
+        payout: formatMoney(p.estimatedPayoutGr),
+        shareUrl,
+        declineUrl: `${shareUrl}?odpowiedz=nie`,
+      };
+    },
     dedupe: true,
   },
 
   "host-payout": {
-    subject: (p) => `Wypłata ${formatMoney(p.amountGr)}`,
-    email: (p) => createElement(HostPayout, p),
+    data: (p) => ({
+      firstName: p.firstName ?? "",
+      amount: formatMoney(p.amountGr),
+      bookings: formatBookings(p.bookingsCount),
+      periodStart: formatDatePL(p.periodStart),
+      periodEnd: formatDatePL(p.periodEnd),
+      accountLast4: p.accountLast4 ?? "",
+      earningsUrl: appUrl("/panel/zarobki"),
+    }),
     dedupe: true,
   },
 
   "parking-approved": {
-    subject: (p) => `${p.parkingTitle} jest na mapie`,
-    email: (p) => createElement(ParkingApproved, p),
+    data: (p) => ({
+      firstName: p.firstName ?? "",
+      parkingTitle: p.parkingTitle,
+      hasEvent: p.nextEvent != null,
+      eventLine: p.nextEvent
+        ? `${p.nextEvent.title}, ${formatDatePL(p.nextEvent.startsAt)} o ${formatTimePL(p.nextEvent.startsAt)} na ${p.nextEvent.venueName}`
+        : "",
+      availabilityUrl: appUrl(`/panel/parkingi/${p.parkingId}`),
+    }),
     dedupe: true,
   },
 
   "parking-rejected": {
-    subject: (p) => `Parking nie przeszedł weryfikacji: ${p.parkingTitle}`,
-    email: (p) => createElement(ParkingRejected, p),
+    data: (p) => ({
+      firstName: p.firstName ?? "",
+      parkingTitle: p.parkingTitle,
+      reason: p.reason,
+      fixUrl: appUrl(`/panel/parkingi/${p.parkingId}`),
+    }),
     dedupe: false,
   },
 
   "password-reset": {
-    subject: () => "Ustaw nowe hasło",
-    email: (p) => createElement(PasswordReset, p),
+    data: (p) => ({
+      firstName: p.firstName ?? "",
+      expiresInMinutes: p.expiresInMinutes,
+      resetUrl: appUrl(`/haslo/reset/${p.actionToken}`),
+    }),
     dedupe: false,
   },
 
   "data-export": {
-    subject: () => "Twoje dane są gotowe",
-    email: (p) => createElement(DataExport, p),
+    data: (p) => ({
+      firstName: p.firstName ?? "",
+      expiresAt: formatDateTimePL(p.expiresAt),
+      downloadUrl: appUrl(`/konto/eksport/${p.actionToken}`),
+    }),
     dedupe: false,
   },
 };
-

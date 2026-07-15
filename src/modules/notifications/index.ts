@@ -6,11 +6,10 @@ export type {
   SendNotificationInput,
 } from "./service";
 export { templates } from "./templates";
-export type { NotificationPayloads, TemplateId } from "./templates";
+export type { NotificationPayloads, TemplateId } from "./payloads";
 export { getEmailProvider, setEmailProvider } from "./email";
 export { getSmsProvider, setSmsProvider, isSmsEnabled, normalizePhone, prepareSmsBody } from "./sms";
 export type {
-  EmailAttachment,
   EmailMessage,
   EmailProvider,
   SendResult,

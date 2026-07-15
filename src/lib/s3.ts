@@ -90,6 +90,30 @@ export async function createUploadUrl(
   return getSignedUrl(client(), command, { expiresIn: UPLOAD_URL_TTL_SECONDS });
 }
 
+/**
+ * Server-side PUT of a buffer we produced ourselves (not a browser upload) —
+ * used for the booking QR, which the mail template references by URL because the
+ * mail API carries no attachments. Returns the object's public URL.
+ */
+export async function putObject(
+  objectKey: string,
+  body: Buffer | Uint8Array,
+  contentType: string,
+): Promise<string> {
+  await client().send(
+    new PutObjectCommand({
+      Bucket: bucket(),
+      Key: objectKey,
+      Body: body,
+      ContentType: contentType,
+      // The mail client fetches this straight from storage, so it has to be
+      // readable without a signature.
+      CacheControl: "public, max-age=31536000, immutable",
+    }),
+  );
+  return publicUrl(objectKey);
+}
+
 export type ObjectHead = {
   contentType: string | undefined;
   contentLength: number;

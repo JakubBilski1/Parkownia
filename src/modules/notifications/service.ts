@@ -1,4 +1,3 @@
-import { render } from "@react-email/components";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -57,18 +56,13 @@ export async function sendNotification<K extends TemplateId>(
   if (!emailClaim) {
     result.reasons.email = "already sent";
   } else {
-    const element = template.email(input.payload);
-    const [html, text] = await Promise.all([
-      render(element),
-      render(element, { plainText: true }),
-    ]);
-
     const sent = await getEmailProvider().send({
       to: recipient.email,
-      subject: template.subject(input.payload),
-      html,
-      text,
-      attachments: await template.attachments?.(input.payload),
+      template: input.template,
+      data: await template.data(input.payload),
+      // Second line of defence over notification_log: pbdevs dedupes on this key,
+      // so even a re-fired send cannot double-mail the same event to the same user.
+      idempotencyKey: `${input.template}:${recipient.userId}:${relatedId}`,
     });
 
     result.email = await settle(emailClaim, sent, "email", recipient.email);

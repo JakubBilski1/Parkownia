@@ -101,15 +101,19 @@ describe("webhook idempotency: the same event, delivered twice", () => {
     expect(paymentAfterFirst?.amountGr).toBe(booking.priceGr);
 
     // The mail is the product: it carries the code and the QR the driver shows at
-    // the barrier. Asserting it was *sent* is not enough — it has to have rendered.
-    // Passing the template a pre-formatted date made it parse "25.07.2026, 20:00"
-    // back with new Date(), throw RangeError, and send nothing at all.
+    // the barrier. Asserting it was *sent* is not enough — the data has to be built.
+    // Handing the builder a pre-formatted date would make formatDateTimePL parse
+    // "25.07.2026, 20:00" back with new Date() and yield "Invalid Date"; the caller
+    // must pass ISO, and this is where that regression is caught.
     const mail = mailbox.sent[0]!;
-    expect(mail.subject).toContain(bookingAfterFirst.code);
-    expect(mail.text).toContain(bookingAfterFirst.code);
-    expect(mail.text).toContain(formatDateTimePL(booking.startsAt));
-    expect(mail.text).not.toMatch(/Invalid Date/i);
-    expect(mail.attachments?.[0]?.contentType).toBe("image/png");
+    expect(mail.template).toBe("booking-confirmed");
+    expect(mail.data.code).toBe(bookingAfterFirst.code);
+    expect(mail.data.startsAt).toBe(formatDateTimePL(booking.startsAt));
+    expect(String(mail.data.startsAt)).not.toMatch(/Invalid Date/i);
+    // The QR is a URL in `data` now (the mail API carries no attachments). Object
+    // storage is unconfigured in the test env, so it degrades to "" — but the field
+    // is part of the contract either way.
+    expect(typeof mail.data.qrUrl).toBe("string");
 
     /* ----------------------------- second delivery ------------------------ */
 

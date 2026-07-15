@@ -5,7 +5,8 @@ import { createAdminRefunder } from "@/modules/payments/admin-refunder";
 /**
  * Node-only half of the boot wiring. It lives in its own module because
  * instrumentation.ts is compiled for the Edge runtime as well, and everything
- * below reaches the database and nodemailer — neither of which exists on Edge.
+ * below reaches the database and native deps (@node-rs/argon2, postgres) —
+ * none of which exist on Edge.
  *
  * The admin module talks to payments and notifications through ports
  * (src/modules/admin/ports.ts) so the two never import each other; this is the

@@ -2,10 +2,9 @@ import { sendNotification } from "@/modules/notifications";
 
 /**
  * The two transactional mails auth owns — the password-reset link and the
- * data-export link — sent through the notifications module (Resend + React
- * Email + notification_log). This used to be a console stub; it is now the real
- * sender, and it still logs no recipient, because e-mail addresses are personal
- * data.
+ * data-export link — sent through the notifications module (the pbdevs mail API
+ * renders the template; notification_log dedupes). It still logs no recipient,
+ * because e-mail addresses are personal data.
  *
  * `tokenId` (not `userId`) is the dedup key: keyed on the user, a second
  * password reset would collide with the first row in notification_log and never

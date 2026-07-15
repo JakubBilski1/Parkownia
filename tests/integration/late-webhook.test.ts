@@ -107,7 +107,9 @@ describe("late webhook: the money arrived after the hold died", () => {
     expect(await occupiedSpots(parking.id)).toBe(1);
 
     await waitFor(async () => mailbox.sent.length === 1);
-    expect(mailbox.sent[0]?.subject).toContain(confirmed.code);
+    const mail = mailbox.sent[0]!;
+    expect(mail.template).toBe("booking-confirmed");
+    expect(mail.data.code).toBe(confirmed.code);
   });
 
   it("refunds in full when the spot went to somebody else", async () => {

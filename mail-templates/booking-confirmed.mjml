@@ -1,0 +1,78 @@
+<mjml>
+  <mj-head>
+    <mj-title>ParkSpot</mj-title>
+    <mj-preview>Twój kod: {{code}}. {{parkingTitle}}, {{startsAt}}.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" />
+      <mj-text color="#191A1C" font-size="16px" line-height="24px" padding="0 0 16px" />
+    </mj-attributes>
+    <mj-style>
+      .muted div { color:#70747A !important; font-size:14px !important; line-height:20px !important; }
+      .mono div  { font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace !important; }
+      a { color:#8E2B2B; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#EEEEEB" width="560px">
+    <mj-wrapper background-color="#FFFFFF" border="1px solid #DEDEDA" border-radius="14px" padding="32px 28px">
+      <mj-section padding="0">
+        <mj-column>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18px" font-weight="800" letter-spacing="-0.01em" padding="0 0 24px">ParkSpot</mj-text>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28px" font-weight="700" line-height="34px" letter-spacing="-0.02em" padding="0 0 16px">Twoja rezerwacja</mj-text>
+          <mj-text padding="0 0 16px">{{#if firstName}}{{firstName}}, masz{{else}}Masz{{/if}} opłacone miejsce{{#if eventTitle}} na wydarzenie {{eventTitle}}{{/if}}. Pokaż ten kod przy wjeździe.</mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#F3F3F0" border="1px solid #DEDEDA" border-radius="14px" padding="20px">
+        <mj-column>
+          <mj-text css-class="muted" padding="0 0 4px">Twój kod</mj-text>
+          <mj-text css-class="mono" font-size="28px" font-weight="600" line-height="34px" letter-spacing="0.06em" padding="0 0 16px">{{code}}</mj-text>
+          {{#if qrUrl}}
+          <mj-image src="{{qrUrl}}" alt="Kod QR rezerwacji {{code}}" width="160px" align="left" padding="0" />
+          {{/if}}
+          <mj-text css-class="muted" padding="12px 0 0">Jeśli kod QR się nie wyświetla, podaj kod hostowi — wpisze go ręcznie.</mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0">
+        <mj-column>
+          <mj-text css-class="muted" padding="0 0 2px">Parking</mj-text>
+          <mj-text padding="0 0 14px">{{parkingTitle}}</mj-text>
+          <mj-text css-class="muted" padding="0 0 2px">Adres</mj-text>
+          <mj-text padding="0 0 14px">{{address}}</mj-text>
+          <mj-text css-class="muted" padding="0 0 2px">Od</mj-text>
+          <mj-text css-class="mono" padding="0 0 14px">{{startsAt}}</mj-text>
+          <mj-text css-class="muted" padding="0 0 2px">Do</mj-text>
+          <mj-text css-class="mono" padding="0 0 14px">{{endsAt}}</mj-text>
+          <mj-text css-class="muted" padding="0 0 2px">Miejsca</mj-text>
+          <mj-text padding="0 0 14px">{{spots}}</mj-text>
+          <mj-text css-class="muted" padding="0 0 2px">Zapłacono</mj-text>
+          <mj-text css-class="mono" padding="0 0 14px">{{price}}</mj-text>
+          {{#if entranceNotes}}
+          <mj-text css-class="muted" padding="0 0 2px">Wjazd</mj-text>
+          <mj-text padding="0 0 14px">{{entranceNotes}}</mj-text>
+          {{/if}}
+          {{#if accessInstructions}}
+          <mj-text css-class="muted" padding="0 0 2px">Jak wjechać na teren</mj-text>
+          <mj-text padding="0 0 14px">{{accessInstructions}}</mj-text>
+          {{/if}}
+          <mj-text css-class="muted" padding="6px 0 16px">Wjazd bywa w innym miejscu niż sam parking. Nawiguj do wjazdu, nie do adresu.</mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0">
+        <mj-column>
+          <mj-button href="{{ctaUrl}}" background-color="#8E2B2B" color="#FFFFFF" border-radius="12px" font-size="16px" font-weight="600" align="left" inner-padding="12px 24px" padding="0 0 20px">{{ctaLabel}}</mj-button>
+          <mj-text padding="0 0 4px"><a href="{{bookingUrl}}" style="color:#191A1C;text-decoration:underline;">Rezerwacja, kod QR i anulowanie</a></mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0">
+        <mj-column>
+          <mj-divider border-color="#DEDEDA" border-width="1px" padding="28px 0 20px" />
+          <mj-text css-class="muted" padding="0 0 6px">Ten e-mail dostajesz, bo zarezerwowałeś miejsce w ParkSpot.</mj-text>
+          <mj-text css-class="muted" padding="0"><a href="https://parkspot.pl/konto" style="color:#70747A;">Ustawienia powiadomień</a></mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

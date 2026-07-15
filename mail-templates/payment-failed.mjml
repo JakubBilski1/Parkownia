@@ -1,0 +1,52 @@
+<mjml>
+  <mj-head>
+    <mj-title>ParkSpot</mj-title>
+    <mj-preview>{{#if charged}}Płatność nie doszła do skutku. Zwracamy {{price}}.{{else}}Płatność nie przeszła. Środki nie zostały pobrane.{{/if}}</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" />
+      <mj-text color="#191A1C" font-size="16px" line-height="24px" padding="0 0 16px" />
+    </mj-attributes>
+    <mj-style>
+      .muted div { color:#70747A !important; font-size:14px !important; line-height:20px !important; }
+      .mono div  { font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace !important; }
+      a { color:#8E2B2B; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#EEEEEB" width="560px">
+    <mj-wrapper background-color="#FFFFFF" border="1px solid #DEDEDA" border-radius="14px" padding="32px 28px">
+      <mj-section padding="0">
+        <mj-column>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18px" font-weight="800" letter-spacing="-0.01em" padding="0 0 24px">ParkSpot</mj-text>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28px" font-weight="700" line-height="34px" letter-spacing="-0.02em" padding="0 0 16px">Płatność nie przeszła</mj-text>
+          <mj-text padding="0 0 16px">{{#if firstName}}{{firstName}}, płatność{{else}}Płatność{{/if}} za miejsce na {{parkingTitle}} nie doszła do skutku.</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#F3F3F0" border="1px solid #DEDEDA" border-radius="14px" padding="20px">
+        <mj-column>
+          <mj-text css-class="muted" padding="0 0 2px">Kwota</mj-text>
+          <mj-text css-class="mono" padding="0 0 14px">{{price}}</mj-text>
+          <mj-text padding="0">{{#if charged}}Pieniądze zostały pobrane, ale miejsce w międzyczasie zajął ktoś inny. Zwracamy całą kwotę tą samą drogą, którą przyszła — zwykle 1–3 dni robocze, maksymalnie 10.{{else}}Środki nie zostały pobrane. Na Twoim koncie nic się nie zmieniło.{{/if}}</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0">
+        <mj-column>
+          {{#if charged}}
+          <mj-text padding="0 0 16px">Miejsce trzeba wybrać od nowa.</mj-text>
+          <mj-button href="{{mapUrl}}" background-color="#8E2B2B" color="#FFFFFF" border-radius="12px" font-size="16px" font-weight="600" align="left" inner-padding="12px 24px" padding="0 0 20px">Znajdź inne miejsce</mj-button>
+          {{else}}
+          <mj-text padding="0 0 16px">Trzymamy dla Ciebie miejsce{{#if holdUntil}} do {{holdUntil}}{{/if}}. Spróbuj ponownie — BLIK-iem albo kartą.</mj-text>
+          <mj-button href="{{retryUrl}}" background-color="#8E2B2B" color="#FFFFFF" border-radius="12px" font-size="16px" font-weight="600" align="left" inner-padding="12px 24px" padding="0 0 20px">Zapłać ponownie</mj-button>
+          <mj-text css-class="muted" padding="0 0 20px">Po tym czasie miejsce wraca do sprzedaży i rezerwacja przepada.</mj-text>
+          {{/if}}
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0">
+        <mj-column>
+          <mj-divider border-color="#DEDEDA" border-width="1px" padding="28px 0 20px" />
+          <mj-text css-class="muted" padding="0 0 6px">Ten e-mail dostajesz, bo próbowałeś opłacić rezerwację w ParkSpot.</mj-text>
+          <mj-text css-class="muted" padding="0"><a href="https://parkspot.pl/konto" style="color:#70747A;">Ustawienia powiadomień</a></mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

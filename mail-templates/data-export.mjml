@@ -1,0 +1,40 @@
+<mjml>
+  <mj-head>
+    <mj-title>ParkSpot</mj-title>
+    <mj-preview>Twoje dane z ParkSpot są gotowe do pobrania.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" />
+      <mj-text color="#191A1C" font-size="16px" line-height="24px" padding="0 0 16px" />
+    </mj-attributes>
+    <mj-style>
+      .muted div { color:#70747A !important; font-size:14px !important; line-height:20px !important; }
+      .mono div  { font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace !important; }
+      a { color:#8E2B2B; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#EEEEEB" width="560px">
+    <mj-wrapper background-color="#FFFFFF" border="1px solid #DEDEDA" border-radius="14px" padding="32px 28px">
+      <mj-section padding="0">
+        <mj-column>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18px" font-weight="800" letter-spacing="-0.01em" padding="0 0 24px">ParkSpot</mj-text>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28px" font-weight="700" line-height="34px" letter-spacing="-0.02em" padding="0 0 16px">Twoje dane są gotowe</mj-text>
+          <mj-text padding="0 0 16px">{{#if firstName}}{{firstName}}, przygotowaliśmy{{else}}Przygotowaliśmy{{/if}} plik JSON z Twoimi danymi: kontem, rezerwacjami, parkingami i zgodami.</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0">
+        <mj-column>
+          <mj-button href="{{downloadUrl}}" background-color="#8E2B2B" color="#FFFFFF" border-radius="12px" font-size="16px" font-weight="600" align="left" inner-padding="12px 24px" padding="0 0 20px">Pobierz swoje dane</mj-button>
+          <mj-text css-class="muted" padding="0 0 16px">Link działa do {{expiresAt}} i tylko raz. Potem poproś o eksport ponownie.</mj-text>
+          <mj-text css-class="muted" padding="0 0 16px">Plik zawiera Twoje dane osobowe. Nie przesyłaj go dalej.</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0">
+        <mj-column>
+          <mj-divider border-color="#DEDEDA" border-width="1px" padding="28px 0 20px" />
+          <mj-text css-class="muted" padding="0 0 6px">Ten e-mail dostajesz, bo poprosiłeś o kopię swoich danych z ParkSpot.</mj-text>
+          <mj-text css-class="muted" padding="0"><a href="https://parkspot.pl/konto" style="color:#70747A;">Ustawienia powiadomień</a></mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

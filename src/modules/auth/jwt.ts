@@ -40,8 +40,8 @@ export async function signAccessToken(claims: AccessTokenClaims): Promise<string
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setSubject(claims.userId)
     .setIssuedAt()
-    .setIssuer("parkspot")
-    .setAudience("parkspot")
+    .setIssuer("parkownia")
+    .setAudience("parkownia")
     .setExpirationTime(`${ACCESS_TOKEN_TTL_SECONDS}s`)
     .sign(accessSecret());
 }
@@ -50,8 +50,8 @@ export async function signAccessToken(claims: AccessTokenClaims): Promise<string
 export async function verifyAccessToken(token: string): Promise<AccessTokenClaims | null> {
   try {
     const { payload } = await jwtVerify(token, accessSecret(), {
-      issuer: "parkspot",
-      audience: "parkspot",
+      issuer: "parkownia",
+      audience: "parkownia",
     });
 
     if (!payload.sub) return null;

@@ -1,4 +1,4 @@
-# PAYMENTS.md — ParkSpot
+# PAYMENTS.md — Parkownia
 
 Najtrudniejszy moduł systemu. To są **marketplace payments (split payments)**, nie zwykły checkout: platforma pobiera prowizję (50% INDIVIDUAL / 30% BUSINESS), resztę dostaje host. Research: lipiec 2026, źródła przy każdej liczbie.
 
@@ -34,7 +34,7 @@ Taniej na transakcji (~1 zł mniej na 30 zł), ale każda opcja = tygodnie negoc
 
 ### Opcja C — jedno konto + ręczne wypłaty (odrzucona)
 
-Prawnie: operator wchodzący w posiadanie cudzych środków „choćby na chwilę" świadczy usługę płatniczą i wymaga statusu **MIP/KIP** (ustawa o usługach płatniczych). Wyłączenie agenta handlowego (art. 6 pkt 2 UUP / art. 3(b) PSD2) po PSD2 działa tylko przy reprezentowaniu **jednej** strony transakcji — marketplace działa w imieniu obu, więc wyłączenie nie obejmuje ParkSpot (interpretacja rynkowa + motyw 11 PSD2; PSR ma je dalej zawęzić). Wpis MIP: 616 zł opłaty, ustawowo 3 mies., realnie 3–6 mies., obowiązki sprawozdawcze KNF/NBP. Działalność bez statusu: **kara do 5 mln zł, do 2 lat pozbawienia wolności, lista ostrzeżeń KNF.** Przy skali MVP prawdopodobieństwo egzekucji niskie, ale sankcje zaporowe, a procedura MIP zabija timeline. Źródła: [legalgeek.pl/blog/mip-czy-go-potrzebujesz-marketplace](https://legalgeek.pl/blog/mip-czy-go-potrzebujesz-marketplace/), [knf.gov.pl — MIP](https://www.knf.gov.pl/dla_rynku/procesy_licencyjne/platniczy/MIP/Informacje_Ogolne).
+Prawnie: operator wchodzący w posiadanie cudzych środków „choćby na chwilę" świadczy usługę płatniczą i wymaga statusu **MIP/KIP** (ustawa o usługach płatniczych). Wyłączenie agenta handlowego (art. 6 pkt 2 UUP / art. 3(b) PSD2) po PSD2 działa tylko przy reprezentowaniu **jednej** strony transakcji — marketplace działa w imieniu obu, więc wyłączenie nie obejmuje Parkownia (interpretacja rynkowa + motyw 11 PSD2; PSR ma je dalej zawęzić). Wpis MIP: 616 zł opłaty, ustawowo 3 mies., realnie 3–6 mies., obowiązki sprawozdawcze KNF/NBP. Działalność bez statusu: **kara do 5 mln zł, do 2 lat pozbawienia wolności, lista ostrzeżeń KNF.** Przy skali MVP prawdopodobieństwo egzekucji niskie, ale sankcje zaporowe, a procedura MIP zabija timeline. Źródła: [legalgeek.pl/blog/mip-czy-go-potrzebujesz-marketplace](https://legalgeek.pl/blog/mip-czy-go-potrzebujesz-marketplace/), [knf.gov.pl — MIP](https://www.knf.gov.pl/dla_rynku/procesy_licencyjne/platniczy/MIP/Informacje_Ogolne).
 
 ### Koszt na transakcji 30 zł BLIK (Stripe)
 

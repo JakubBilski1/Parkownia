@@ -1,6 +1,6 @@
 {
-  "name": "ParkSpot — skaner hosta",
-  "short_name": "ParkSpot",
+  "name": "Parkownia — skaner hosta",
+  "short_name": "Parkownia",
   "description": "Skaner kodów przy bramie. Działa bez internetu, jeśli kody na event zostały pobrane wcześniej.",
   "lang": "pl",
   "dir": "ltr",

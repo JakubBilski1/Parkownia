@@ -83,7 +83,7 @@ test.describe("Skaner offline — brak zasięgu pod stadionem", () => {
     // The package is on the device, not in a variable: a reload at the barrier
     // (dead battery, backgrounded tab) must not lose it.
     const stored = await page.evaluate(async () => {
-      const open = indexedDB.open("parkspot-scan", 1);
+      const open = indexedDB.open("parkownia-scan", 1);
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
         open.onsuccess = () => resolve(open.result);
         open.onerror = () => reject(open.error);
@@ -158,7 +158,7 @@ test.describe("Skaner offline — brak zasięgu pod stadionem", () => {
 
     // The queue is empty: nothing is waiting, and nothing was sent twice.
     const queued = await page.evaluate(async () => {
-      const open = indexedDB.open("parkspot-scan", 1);
+      const open = indexedDB.open("parkownia-scan", 1);
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
         open.onsuccess = () => resolve(open.result);
         open.onerror = () => reject(open.error);

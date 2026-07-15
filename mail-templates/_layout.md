@@ -1,8 +1,8 @@
 # pbdevs mail templates — shared layout & building blocks
 
-These are the MJML + Handlebars sources for the ParkSpot transactional e-mails.
+These are the MJML + Handlebars sources for the Parkownia transactional e-mails.
 Paste each `<name>.mjml` into the matching template in the pbdevs dashboard
-(app: ParkSpot), set the **subject** listed in `README.md`, and the app will render
+(app: Parkownia), set the **subject** listed in `README.md`, and the app will render
 them by POSTing `{ template: "<name>", to, data }` to the mail API.
 
 The app never sends HTML — it sends the variables below. Every value arrives
@@ -32,7 +32,7 @@ Fonts (stacks, no web-font loading — system fallback):
 ```mjml
 <mjml>
   <mj-head>
-    <mj-title>ParkSpot</mj-title>
+    <mj-title>Parkownia</mj-title>
     <mj-preview>{{! per-template preview text }}</mj-preview>
     <mj-attributes>
       <mj-all font-family="'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" />
@@ -48,7 +48,7 @@ Fonts (stacks, no web-font loading — system fallback):
     <mj-wrapper background-color="#FFFFFF" border="1px solid #DEDEDA" border-radius="14px" padding="32px 28px">
       <mj-section padding="0">
         <mj-column>
-          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18px" font-weight="800" letter-spacing="-0.01em" padding="0 0 24px">ParkSpot</mj-text>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18px" font-weight="800" letter-spacing="-0.01em" padding="0 0 24px">Parkownia</mj-text>
           <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28px" font-weight="700" line-height="34px" letter-spacing="-0.02em" padding="0 0 16px">{{! per-template heading }}</mj-text>
         </mj-column>
       </mj-section>
@@ -59,7 +59,7 @@ Fonts (stacks, no web-font loading — system fallback):
         <mj-column>
           <mj-divider border-color="#DEDEDA" border-width="1px" padding="28px 0 20px" />
           <mj-text css-class="muted" padding="0 0 6px">{{! per-template footer note }}</mj-text>
-          <mj-text css-class="muted" padding="0"><a href="https://parkspot.pl/konto" style="color:#70747A;">Ustawienia powiadomień</a></mj-text>
+          <mj-text css-class="muted" padding="0"><a href="https://parkownia.com/konto" style="color:#70747A;">Ustawienia powiadomień</a></mj-text>
         </mj-column>
       </mj-section>
     </mj-wrapper>

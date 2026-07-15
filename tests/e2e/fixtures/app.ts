@@ -149,7 +149,7 @@ export async function waitForRow<T>(
 
 /** A unique address per run, inside the domain cleanup sweeps. */
 export function e2eEmail(prefix: string): string {
-  return `e2e-${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e4)}@parkspot.test`;
+  return `e2e-${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e4)}@parkownia.test`;
 }
 
 export { sql };

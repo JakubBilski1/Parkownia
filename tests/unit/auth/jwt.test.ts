@@ -53,8 +53,8 @@ describe("access token", () => {
       JSON.stringify({
         sub: "u1",
         roles: ["ADMIN"],
-        iss: "parkspot",
-        aud: "parkspot",
+        iss: "parkownia",
+        aud: "parkownia",
         exp: Math.floor(Date.now() / 1000) + 600,
       }),
     ).toString("base64url");

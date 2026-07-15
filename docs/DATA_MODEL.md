@@ -1,4 +1,4 @@
-# DATA_MODEL.md — ParkSpot
+# DATA_MODEL.md — Parkownia
 
 Pełny schemat bazy: PostgreSQL 16 + PostGIS, Drizzle ORM (typy `geography` przez `customType` + raw SQL).
 

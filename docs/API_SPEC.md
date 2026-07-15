@@ -1,4 +1,4 @@
-# API_SPEC.md — ParkSpot
+# API_SPEC.md — Parkownia
 
 Kontrakt API. Dwie ścieżki wejścia (obie przez te same moduły domenowe i tę samą walidację Zod):
 - **Server Actions** — formularze naszego frontu (rejestracja, dodanie parkingu, deklaracja hosta).

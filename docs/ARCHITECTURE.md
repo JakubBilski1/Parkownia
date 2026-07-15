@@ -1,4 +1,4 @@
-# ARCHITECTURE.md — ParkSpot
+# ARCHITECTURE.md — Parkownia
 
 Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: system zbudowany (Fazy 0–4), trwa Faza 5 — hardening i wdrożenie.
 
@@ -36,14 +36,14 @@ Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: system zbud
 └──────────┼───────────────┼───────────────┼─────────────────────────────────────┘
            │               │               │
    ┌───────▼──────┐ ┌──────▼───────┐ ┌─────▼──────────────────────────┐
-   │ PSP           │ │ E-mail: Resend│ │ API rządowe:                  │
+   │ PSP           │ │ E-mail: pbdevs│ │ API rządowe:                  │
    │ (BLIK, karty, │ │ SMS: SMSAPI   │ │  Biała Lista VAT (bez klucza) │
    │  webhooki —   │ │ (feature flag)│ │  GUS REGON BIR1 (opcjonalne)  │
    │  docs/PAYMENTS│ └──────────────┘ │ Geokoder: Nominatim → Geoapify │
    └───────────────┘                  └────────────────────────────────┘
 ```
 
-**Bazy nie ma w obrazie.** Kontener ParkSpot to sam Next.js (standalone, non-root, port 3000) i to on jest całą jednostką wdrożenia — nie ma docker-compose. PostgreSQL 16 + PostGIS stoi obok, na VPS-ie, i jest osiągalny przez `DATABASE_URL`; rozszerzenia (`postgis`, `citext`, `pgcrypto` — `db/extensions.sql`) i migracje nakłada `docker-entrypoint.sh` przy starcie kontenera. Storage zdjęć też jest poza obrazem: S3-compatible, konfigurowany wyłącznie zmiennymi `S3_*`.
+**Bazy nie ma w obrazie.** Kontener Parkownia to sam Next.js (standalone, non-root, port 3000) i to on jest całą jednostką wdrożenia — nie ma docker-compose. PostgreSQL 16 + PostGIS stoi obok, na VPS-ie, i jest osiągalny przez `DATABASE_URL`; rozszerzenia (`postgis`, `citext`, `pgcrypto` — `db/extensions.sql`) i migracje nakłada `docker-entrypoint.sh` przy starcie kontenera. Storage zdjęć też jest poza obrazem: S3-compatible, konfigurowany wyłącznie zmiennymi `S3_*`.
 
 ---
 
@@ -60,7 +60,7 @@ Architektura systemu i decyzje technologiczne z uzasadnieniem. Stan: system zbud
 | Geokoder | Nominatim (dev) → Geoapify/LocationIQ (prod) | Nominatim ma limit 1 req/s i zakaz użycia produkcyjnego przy ruchu — wystarczy do developmentu. Wywołania za wspólnym interfejsem `Geocoder`, podmiana = konfiguracja. |
 | Pliki | Storage S3-compatible, konfigurowany przez `S3_*` | Zdjęcia parkingów. S3-compatible od dnia 1 — lokalnie MinIO uruchamiany osobno, na produkcji prawdziwe S3/R2, bez zmiany kodu. Upload przez presigned URL (pliki nie przechodzą przez proces Next). **Storage nie jest częścią obrazu** — bez skonfigurowanego `S3_*` działa wszystko poza uploadem zdjęć. |
 | Płatności | Decyzja otwarta — porównanie w `docs/PAYMENTS.md` | Schemat bazy provider-agnostyczny (tabele `payments`, `payouts` istnieją od początku), więc wybór PSP nie zmienia modelu danych. |
-| E-mail / SMS | Resend + React Email; SMS przez SMSAPI za feature flagą | SMS ~0,08–0,12 zł/szt. przy prowizji ~6 zł to widoczny koszt — tylko potwierdzenie rezerwacji i przypomnienie 2 h przed, wyłączalne globalnie. |
+| E-mail / SMS | Zewnętrzne API pocztowe (pbdevs) renderujące szablony MJML+Handlebars po swojej stronie — apka wysyła `{ template, to, data }`, nie HTML; SMS przez SMSAPI za feature flagą | Apka nie renderuje maili u siebie (usługa trzyma szablony, tematy i nadawcę), więc `docs`/szablony żyją w panelu pbdevs (`mail-templates/`). SMS ~0,08–0,12 zł/szt. przy prowizji ~6 zł to widoczny koszt — tylko potwierdzenie rezerwacji i przypomnienie 2 h przed, wyłączalne globalnie. |
 | Deploy | Jeden obraz produkcyjny Docker (Next standalone, non-root, `EXPOSE 3000`); Coolify na Hetzner CX33 | Obraz jest **całą** jednostką wdrożenia — dlatego **nie ma docker-compose**. Baza (PostgreSQL + PostGIS) stoi poza obrazem, na VPS-ie, i jest wskazywana przez `DATABASE_URL`; `NEXT_PUBLIC_APP_URL` to build-arg (wchodzi do bundla klienta w czasie buildu). Schemat i dane referencyjne doprowadza do stanu `docker-entrypoint.sh` przy starcie: migracje (`scripts/migrate.mjs`), potem idempotentny seed (`dist/seed.mjs`) — bez reguł prowizji każda rezerwacja poleciałaby wyjątkiem. Oba kroki wyłączalne: `RUN_MIGRATIONS=false` / `RUN_SEED=false`. |
 | Testy | Vitest (unit: ceny, prowizje, dostępność, NIP) + Playwright (e2e: rejestracja → parking → zakup → skan) | Logika pieniędzy i dostępności ma testy jednostkowe **zanim** dostanie UI. |
 

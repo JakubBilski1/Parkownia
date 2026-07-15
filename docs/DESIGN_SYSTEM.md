@@ -1,4 +1,4 @@
-# DESIGN_SYSTEM.md — ParkSpot
+# DESIGN_SYSTEM.md — Parkownia
 
 Dokument wiążący dla zasad (anty-slop, UX, copy): **`docs/DESIGN_PRINCIPLES.md`**. Ten plik to *konkrety*: tokeny, typografia, komponenty. Jeśli wartość nie jest tokenem — jest błędem.
 

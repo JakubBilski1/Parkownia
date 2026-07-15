@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           href="/"
           className="rounded-button font-display text-h3 font-extrabold tracking-tight text-ink"
         >
-          ParkSpot
+          Parkownia
         </Link>
         <ThemeToggle />
       </header>

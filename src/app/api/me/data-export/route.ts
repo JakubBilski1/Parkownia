@@ -54,7 +54,7 @@ export const GET = handler({
     return new NextResponse(JSON.stringify(data, null, 2), {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": 'attachment; filename="parkspot-moje-dane.json"',
+        "Content-Disposition": 'attachment; filename="parkownia-moje-dane.json"',
         "Cache-Control": "no-store",
       },
     });

@@ -1,5 +1,5 @@
 /*
- * ParkSpot Service Worker — the scanner shell, and nothing else.
+ * Parkownia Service Worker — the scanner shell, and nothing else.
  *
  * What it caches:
  *   - the scanner and host-panel HTML (so the app opens with the radio off),
@@ -15,7 +15,7 @@
  * (src/lib/offline/db.ts), hashed, put there deliberately by the host.
  */
 
-const VERSION = "parkspot-scan-v1";
+const VERSION = "parkownia-scan-v1";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 

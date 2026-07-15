@@ -48,7 +48,7 @@ type EmailData = Record<string, unknown>;
 /* -------------------------------------------------------------------------- */
 
 function appUrl(path = ""): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL || "https://parkspot.pl";
+  const base = process.env.NEXT_PUBLIC_APP_URL || "https://parkownia.com";
   return `${base.replace(/\/$/, "")}${path}`;
 }
 
@@ -143,7 +143,7 @@ export const templates: { [K in TemplateId]: Template<K> } = {
     },
     sms: (p) =>
       [
-        `ParkSpot. Kod: ${p.code}.`,
+        `Parkownia. Kod: ${p.code}.`,
         `${p.parkingTitle}, ${formatDateTimePL(p.startsAt)}.`,
         entranceLine(p.entranceNotes),
       ]
@@ -169,7 +169,7 @@ export const templates: { [K in TemplateId]: Template<K> } = {
     },
     sms: (p) =>
       [
-        `ParkSpot. Za 2 h: ${p.parkingTitle}, ${formatDateTimePL(p.startsAt)}.`,
+        `Parkownia. Za 2 h: ${p.parkingTitle}, ${formatDateTimePL(p.startsAt)}.`,
         `Kod: ${p.code}.`,
         entranceLine(p.entranceNotes),
       ]

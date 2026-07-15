@@ -78,7 +78,7 @@ function Wordmark({ href = ROUTES.map }: { href?: string }) {
       href={href}
       className="rounded-button font-display text-h3 font-extrabold tracking-tight text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
-      ParkSpot
+      Parkownia
     </Link>
   );
 }

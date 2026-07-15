@@ -1,4 +1,4 @@
-# ROADMAP.md — ParkSpot
+# ROADMAP.md — Parkownia
 
 Każda faza = działający, wdrażalny przyrost. **Po każdej fazie: stop i akceptacja użytkownika przed kolejną.**
 
@@ -49,7 +49,7 @@ Scaffolding: Next.js 15 + TypeScript + Tailwind + shadcn/ui, Drizzle + zewnętrz
 ## Faza 5 — Hardening, e2e, deployment
 
 - Pełne przejście e2e ścieżek krytycznych (rejestracja → parking → zakup → skan), testy obciążeniowe zapytań mapy, rate limiting wszędzie wg API_SPEC, audyt RODO (eksport, usunięcie, zgody), audyt logów (zero PII), Lighthouse/dostępność ekranów krytycznych (skaner w słońcu!), i18n struktura.
-- Deploy na Coolify (Hetzner CX33): **jeden obraz produkcyjny z `Dockerfile`** — `docker build --build-arg NEXT_PUBLIC_APP_URL=https://parkspot.pl` → `docker run -p 3000:3000 -e DATABASE_URL=…`. Postgres+PostGIS stoi na VPS obok kontenera, nie w nim; rozszerzenia z `db/extensions.sql` muszą być założone przed pierwszą migracją. Migracje i seed danych referencyjnych odpala `docker-entrypoint.sh` przy starcie kontenera (`RUN_MIGRATIONS` / `RUN_SEED`; `SEED_DEV` nigdy na produkcji). Do tego: domena, TLS, backupy Postgresa (co noc + test odtworzenia), monitoring (uptime + błędy).
+- Deploy na Coolify (Hetzner CX33): **jeden obraz produkcyjny z `Dockerfile`** — `docker build --build-arg NEXT_PUBLIC_APP_URL=https://parkownia.com` → `docker run -p 3000:3000 -e DATABASE_URL=…`. Postgres+PostGIS stoi na VPS obok kontenera, nie w nim; rozszerzenia z `db/extensions.sql` muszą być założone przed pierwszą migracją. Migracje i seed danych referencyjnych odpala `docker-entrypoint.sh` przy starcie kontenera (`RUN_MIGRATIONS` / `RUN_SEED`; `SEED_DEV` nigdy na produkcji). Do tego: domena, TLS, backupy Postgresa (co noc + test odtworzenia), monitoring (uptime + błędy).
 
 **Done =** obraz zbudowany i wstaje na VPS, produkcja dostępna publicznie, backup odtworzony testowo, wszystkie e2e zielone na prod-buildzie.
 

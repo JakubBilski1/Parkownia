@@ -20,10 +20,10 @@ import type { SelectBooking } from "@/db/types";
  * runs the suite with TEST_DATABASE_URL pointing somewhere it should not, and it
  * would take the seed (and any other database's data) with it.
  *
- * Seed rows use @parkspot.pl addresses and untagged titles, so they are invisible
+ * Seed rows use @parkownia.com addresses and untagged titles, so they are invisible
  * to every statement in cleanupTestData().
  */
-export const TEST_EMAIL_DOMAIN = "test.parkspot.local";
+export const TEST_EMAIL_DOMAIN = "test.parkownia.local";
 export const TEST_TAG = "[itest]";
 
 const isTestUser = sql`${users.email} LIKE ${`%@${TEST_EMAIL_DOMAIN}`}`;
@@ -74,10 +74,10 @@ export async function cleanupTestData(): Promise<void> {
 
 /** The application's pool lives on globalThis (HMR survival). Drop it with the file. */
 export async function closeDb(): Promise<void> {
-  const client = globalThis.__parkspotSql;
+  const client = globalThis.__parkowniaSql;
   if (!client) return;
   await client.end({ timeout: 5 });
-  globalThis.__parkspotSql = undefined;
+  globalThis.__parkowniaSql = undefined;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1,11 +1,11 @@
-# ParkSpot — szablony maili dla pbdevs
+# Parkownia — szablony maili dla pbdevs
 
 Apka nie renderuje już maili. Wysyła `POST https://mail.pbdevs.com/api/v1/send`
 z `{ template: "<nazwa>", to, data }`, a pbdevs renderuje szablon (MJML + Handlebars)
 po swojej stronie i trzyma temat oraz nadawcę. Te pliki `.mjml` to źródła do wklejenia
 w panelu pbdevs. Skeleton, tokeny i klocki budujące opisuje `_layout.md`.
 
-## Co trzeba zrobić w panelu pbdevs (aplikacja: ParkSpot)
+## Co trzeba zrobić w panelu pbdevs (aplikacja: Parkownia)
 
 Dla **każdego** z 10 szablonów poniżej:
 
@@ -40,10 +40,10 @@ S3 (`s3.putObject`) i podaje `qrUrl` w `data`; szablon osadza go przez
 
 ## Stopka i domena
 
-Każdy szablon ma w stopce link `https://parkspot.pl/konto` (Ustawienia powiadomień)
+Każdy szablon ma w stopce link `https://parkownia.com/konto` (Ustawienia powiadomień)
 wpisany na sztywno. Linki w treści (przyciski) przychodzą jako pełne URL-e w `data`
 i są budowane z `NEXT_PUBLIC_APP_URL`. Jeśli produkcyjna domena jest inna niż
-`parkspot.pl`, podmień ten jeden link w stopce każdego szablonu.
+`parkownia.com`, podmień ten jeden link w stopce każdego szablonu.
 
 ## Włączenie na produkcji (Coolify)
 
@@ -65,7 +65,7 @@ logów, nic nie wychodzi) — to jest domyślne i bezpieczne dla dev/lokalnie.
   "endsAt": "26.07.2026, 00:30", "spots": "1 miejsce", "price": "35 zł",
   "eventTitle": "Lech Poznań – Cracovia", "entranceNotes": "Wjazd od ul. Górczyńskiej, brama nr 2",
   "accessInstructions": "Szlaban na kod 4417.", "qrUrl": "https://placehold.co/160x160/191A1C/FFFFFF/png?text=QR",
-  "bookingUrl": "https://parkspot.pl/rezerwacja/abc", "ctaUrl": "https://parkspot.pl/rezerwacja/abc",
+  "bookingUrl": "https://parkownia.com/rezerwacja/abc", "ctaUrl": "https://parkownia.com/rezerwacja/abc",
   "ctaLabel": "Nawiguj do wjazdu" }
 ```
 
@@ -75,12 +75,12 @@ logów, nic nie wychodzi) — to jest domyślne i bezpieczne dla dev/lokalnie.
   "eventDay": "sobotę, 25 lipca", "eventTime": "19:00", "venueName": "Enea Stadion",
   "parkingTitle": "Podwórze przy Bułgarskiej 40", "walkDistance": "ok. 600 m pieszo",
   "suggestion": "10 miejsc po 30 zł", "payout": "150 zł",
-  "shareUrl": "https://parkspot.pl/udostepnij/tok", "declineUrl": "https://parkspot.pl/udostepnij/tok?odpowiedz=nie" }
+  "shareUrl": "https://parkownia.com/udostepnij/tok", "declineUrl": "https://parkownia.com/udostepnij/tok?odpowiedz=nie" }
 ```
 
 `payment-failed` (sprawdź oba warianty przełączając `charged`):
 ```json
 { "firstName": "Marek", "parkingTitle": "Plac przy Bułgarskiej", "price": "35 zł",
   "charged": false, "holdUntil": "25.07.2026, 12:15",
-  "retryUrl": "https://parkspot.pl/rezerwacja/abc/platnosc", "mapUrl": "https://parkspot.pl/mapa" }
+  "retryUrl": "https://parkownia.com/rezerwacja/abc/platnosc", "mapUrl": "https://parkownia.com/mapa" }
 ```

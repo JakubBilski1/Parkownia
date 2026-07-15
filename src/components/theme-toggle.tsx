@@ -11,7 +11,7 @@ import {
 } from "react";
 import { cn } from "@/lib/cn";
 
-const STORAGE_KEY = "parkspot-theme";
+const STORAGE_KEY = "parkownia-theme";
 
 export type ThemePreference = "system" | "light" | "dark";
 

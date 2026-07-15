@@ -1,7 +1,7 @@
 <mjml>
   <mj-head>
-    <mj-title>ParkSpot</mj-title>
-    <mj-preview>Twoje dane z ParkSpot są gotowe do pobrania.</mj-preview>
+    <mj-title>Parkownia</mj-title>
+    <mj-preview>Twoje dane z Parkownia są gotowe do pobrania.</mj-preview>
     <mj-attributes>
       <mj-all font-family="'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" />
       <mj-text color="#191A1C" font-size="16px" line-height="24px" padding="0 0 16px" />
@@ -16,7 +16,7 @@
     <mj-wrapper background-color="#FFFFFF" border="1px solid #DEDEDA" border-radius="14px" padding="32px 28px">
       <mj-section padding="0">
         <mj-column>
-          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18px" font-weight="800" letter-spacing="-0.01em" padding="0 0 24px">ParkSpot</mj-text>
+          <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18px" font-weight="800" letter-spacing="-0.01em" padding="0 0 24px">Parkownia</mj-text>
           <mj-text font-family="Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28px" font-weight="700" line-height="34px" letter-spacing="-0.02em" padding="0 0 16px">Twoje dane są gotowe</mj-text>
           <mj-text padding="0 0 16px">{{#if firstName}}{{firstName}}, przygotowaliśmy{{else}}Przygotowaliśmy{{/if}} plik JSON z Twoimi danymi: kontem, rezerwacjami, parkingami i zgodami.</mj-text>
         </mj-column>
@@ -31,8 +31,8 @@
       <mj-section padding="0">
         <mj-column>
           <mj-divider border-color="#DEDEDA" border-width="1px" padding="28px 0 20px" />
-          <mj-text css-class="muted" padding="0 0 6px">Ten e-mail dostajesz, bo poprosiłeś o kopię swoich danych z ParkSpot.</mj-text>
-          <mj-text css-class="muted" padding="0"><a href="https://parkspot.pl/konto" style="color:#70747A;">Ustawienia powiadomień</a></mj-text>
+          <mj-text css-class="muted" padding="0 0 6px">Ten e-mail dostajesz, bo poprosiłeś o kopię swoich danych z Parkownia.</mj-text>
+          <mj-text css-class="muted" padding="0"><a href="https://parkownia.com/konto" style="color:#70747A;">Ustawienia powiadomień</a></mj-text>
         </mj-column>
       </mj-section>
     </mj-wrapper>

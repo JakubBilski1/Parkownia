@@ -14,7 +14,7 @@ set -e
 
 if [ -z "$DATABASE_URL" ]; then
   echo "docker-entrypoint: DATABASE_URL is not set — the app cannot start." >&2
-  echo "  docker run -e DATABASE_URL=\"postgresql://user:pass@host:5432/parkspot\" ..." >&2
+  echo "  docker run -e DATABASE_URL=\"postgresql://user:pass@host:5432/parkownia\" ..." >&2
   exit 1
 fi
 

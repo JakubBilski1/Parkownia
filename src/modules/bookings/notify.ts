@@ -25,7 +25,7 @@ function iso(value: Date): string {
  * retries for three days if we are slow, and a driver's confirmation mail is not
  * worth a retry storm. We answer first and send after.
  *
- * This is a floating promise on purpose, and it is safe *because* ParkSpot is a
+ * This is a floating promise on purpose, and it is safe *because* Parkownia is a
  * long-lived Node process on a VPS (docs/ARCHITECTURE.md §1). If this ever moves
  * to a serverless runtime, this call has to become waitUntil() or a real queue —
  * otherwise the process dies with the mail still in it.

@@ -1,4 +1,4 @@
--- Extensions required by ParkSpot. Run ONCE against the target database, before
+-- Extensions required by Parkownia. Run ONCE against the target database, before
 -- the first migration, with a role allowed to create extensions (superuser, or
 -- rds_superuser / cloudsqlsuperuser on managed Postgres):
 --

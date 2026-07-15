@@ -1,6 +1,6 @@
-# Baza danych — ParkSpot
+# Baza danych — Parkownia
 
-ParkSpot wymaga **PostgreSQL 14+ (zalecane 16) z rozszerzeniem PostGIS**.
+Parkownia wymaga **PostgreSQL 14+ (zalecane 16) z rozszerzeniem PostGIS**.
 To nie jest opcjonalne: parkingi i eventy trzymają współrzędne jako
 `geography(Point, 4326)` z indeksem GiST, a wyszukiwanie „parkingi w promieniu
 X” dzieje się w SQL. Bez PostGIS **pierwsza migracja nie przejdzie**.
@@ -33,7 +33,7 @@ psql "$DATABASE_URL" -f db/extensions.sql
 ```
 
 Rozszerzenia są **per-baza**. Włączenie ich w bazie `postgres` nie włącza ich
-w bazie `parkspot`.
+w bazie `parkownia`.
 
 ---
 
@@ -66,16 +66,16 @@ potem `sudo service postgresql restart`.
 ### 1.3. Załóż użytkownika i bazę
 
 ```bash
-sudo -u postgres psql -c "CREATE USER parkspot WITH PASSWORD 'parkspot';"
-sudo -u postgres psql -c "CREATE DATABASE parkspot OWNER parkspot;"
+sudo -u postgres psql -c "CREATE USER parkownia WITH PASSWORD 'parkownia';"
+sudo -u postgres psql -c "CREATE DATABASE parkownia OWNER parkownia;"
 ```
 
-### 1.4. Włącz rozszerzenia **w bazie `parkspot`**
+### 1.4. Włącz rozszerzenia **w bazie `parkownia`**
 
-Wymaga superusera, dlatego przez `postgres`, nie przez `parkspot`:
+Wymaga superusera, dlatego przez `postgres`, nie przez `parkownia`:
 
 ```bash
-sudo -u postgres psql -d parkspot -f db/extensions.sql
+sudo -u postgres psql -d parkownia -f db/extensions.sql
 ```
 
 ### 1.5. Ustaw `DATABASE_URL` w `.env.local`
@@ -85,7 +85,7 @@ cp .env.example .env.local
 ```
 
 ```
-DATABASE_URL="postgresql://parkspot:parkspot@localhost:5433/parkspot"
+DATABASE_URL="postgresql://parkownia:parkownia@localhost:5433/parkownia"
 ```
 
 `.env.example` ma w tym miejscu **5432** — to tylko generyczny default. Port
@@ -94,7 +94,7 @@ wpisujesz swój (u nas: 5433) i **w `.env.local`**, nie w `.env.example`.
 ### 1.6. Sprawdź, że PostGIS naprawdę działa
 
 ```bash
-psql "postgresql://parkspot:parkspot@localhost:5433/parkspot" -c "SELECT postgis_version();"
+psql "postgresql://parkownia:parkownia@localhost:5433/parkownia" -c "SELECT postgis_version();"
 ```
 
 Poprawna odpowiedź to np. `3.6 USE_GEOS=1 USE_PROJ=1 USE_STATS=1`. Jeśli widzisz
@@ -134,7 +134,7 @@ Na co uważać:
    serwerze”. Zweryfikuj `SELECT postgis_version();` po połączeniu.
 3. **SSL.** Większość managed hostów wymaga TLS:
    ```
-   DATABASE_URL="postgresql://user:pass@host:5432/parkspot?sslmode=require"
+   DATABASE_URL="postgresql://user:pass@host:5432/parkownia?sslmode=require"
    ```
 4. **Pooler vs. połączenie bezpośrednie.** Rezerwacje używają transakcji z
    `SELECT ... FOR UPDATE` (blokada wiersza — patrz `CLAUDE.md`, „sprzedaż tego
@@ -183,10 +183,10 @@ Testy integracyjne (`npm run test:integration`) chodzą po **żywym** Postgresie
 **czyszczą tabele**. Dlatego muszą mieć własną bazę:
 
 ```
-TEST_DATABASE_URL="postgresql://parkspot:parkspot@localhost:5433/parkspot_test"
+TEST_DATABASE_URL="postgresql://parkownia:parkownia@localhost:5433/parkownia_test"
 ```
 
-Baza `parkspot_test` **tworzy się sama** przy pierwszym uruchomieniu — setup
+Baza `parkownia_test` **tworzy się sama** przy pierwszym uruchomieniu — setup
 zakłada ją, włącza rozszerzenia i puszcza migracje. Rola musi więc móc
 `CREATE DATABASE` i tworzyć rozszerzenia. Suite odmówi startu, jeśli
 `TEST_DATABASE_URL` wskazuje na to samo, co `DATABASE_URL`. Szczegóły:
@@ -254,7 +254,7 @@ Potem ponów `CREATE EXTENSION postgis;`.
 PostGIS jest na serwerze, ale nie jest włączony **w tej bazie**:
 
 ```bash
-sudo -u postgres psql -d parkspot -f db/extensions.sql
+sudo -u postgres psql -d parkownia -f db/extensions.sql
 ```
 
 ### `ERROR: permission denied to create extension "postgis"`
@@ -264,7 +264,7 @@ Postgresów. Włącz rozszerzenia osobno, rolą superusera
 (`rds_superuser` / `cloudsqlsuperuser` / panel dostawcy), i dopiero potem
 `npm run db:migrate`.
 
-### `password authentication failed for user "parkspot"`
+### `password authentication failed for user "parkownia"`
 
 - Literówka w haśle w `DATABASE_URL` (albo znak specjalny wymagający
   URL-encode: `@` → `%40`, `#` → `%23`).

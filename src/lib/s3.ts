@@ -35,11 +35,11 @@ function required(name: string): string {
 }
 
 declare global {
-  var __parkspotS3: S3Client | undefined;
+  var __parkowniaS3: S3Client | undefined;
 }
 
 function client(): S3Client {
-  if (globalThis.__parkspotS3) return globalThis.__parkspotS3;
+  if (globalThis.__parkowniaS3) return globalThis.__parkowniaS3;
 
   const config: S3ClientConfig = {
     endpoint: required("S3_ENDPOINT"),
@@ -54,7 +54,7 @@ function client(): S3Client {
 
   const instance = new S3Client(config);
   if (process.env.NODE_ENV !== "production") {
-    globalThis.__parkspotS3 = instance;
+    globalThis.__parkowniaS3 = instance;
   }
   return instance;
 }

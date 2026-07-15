@@ -1,9 +1,9 @@
 {
   "version": 8,
-  "name": "ParkSpot — Bilet (light)",
+  "name": "Parkownia — Bilet (light)",
   "metadata": {
-    "parkspot:note": "Raster OSM to rozwiazanie deweloperskie. Polityka tile.openstreetmap.org zabrania ruchu produkcyjnego. Przed startem: kafelki wektorowe (MapTiler / Protomaps) i styl wyprowadzony z tokenow, nie z filtra na rastrze. Patrz docs/DESIGN_SYSTEM.md.",
-    "parkspot:tokens": {
+    "parkownia:note": "Raster OSM to rozwiazanie deweloperskie. Polityka tile.openstreetmap.org zabrania ruchu produkcyjnego. Przed startem: kafelki wektorowe (MapTiler / Protomaps) i styl wyprowadzony z tokenow, nie z filtra na rastrze. Patrz docs/DESIGN_SYSTEM.md.",
+    "parkownia:tokens": {
       "bg": "#EEEEEB",
       "accent": "#8E2B2B"
     }

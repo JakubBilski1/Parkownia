@@ -87,8 +87,8 @@ describe("double booking: one spot, two buyers, same millisecond", () => {
       // Through POST /api/bookings: Zod, rate limiter, session, service, error
       // mapping. 201 and 409 are what the driver's phone actually receives.
       const [first, second] = await Promise.all([
-        postBooking(buyer(parking.id, `race-a-${round}@test.parkspot.local`, window)),
-        postBooking(buyer(parking.id, `race-b-${round}@test.parkspot.local`, window)),
+        postBooking(buyer(parking.id, `race-a-${round}@test.parkownia.local`, window)),
+        postBooking(buyer(parking.id, `race-b-${round}@test.parkownia.local`, window)),
       ]);
 
       const statuses = [first.status, second.status].sort();
@@ -114,7 +114,7 @@ describe("double booking: capacity is a ceiling, not a suggestion", () => {
 
     const results = await Promise.all(
       Array.from({ length: 10 }, (_, index) =>
-        postBooking(buyer(parking.id, `crowd-${index}@test.parkspot.local`, window)),
+        postBooking(buyer(parking.id, `crowd-${index}@test.parkownia.local`, window)),
       ),
     );
 
@@ -144,7 +144,7 @@ describe("double booking: capacity is a ceiling, not a suggestion", () => {
           parkingId: parking.id,
           eventId: event.id,
           spots: 1,
-          contact: { email: `lech-${index}@test.parkspot.local`, phone: "+48601234567" },
+          contact: { email: `lech-${index}@test.parkownia.local`, phone: "+48601234567" },
           consents: { terms: true, privacy: true },
         }),
       ),
@@ -162,7 +162,7 @@ describe("double booking: capacity is a ceiling, not a suggestion", () => {
 
     const results = await Promise.all(
       Array.from({ length: 5 }, (_, index) => {
-        const request = buyer(parking.id, `pairs-${index}@test.parkspot.local`, window);
+        const request = buyer(parking.id, `pairs-${index}@test.parkownia.local`, window);
         return postBooking({ ...request, spots: 2 });
       }),
     );

@@ -135,7 +135,7 @@ class NominatimGeocoder implements Geocoder {
     const payload = await this.throttle(() =>
       fetchJson(`${this.base}/search?${params}`, {
         // Nominatim rejects requests without an identifying User-Agent.
-        "User-Agent": "ParkSpot/0.1 (parking marketplace, Poznan)",
+        "User-Agent": "Parkownia/0.1 (parking marketplace, Poznan)",
         "Accept-Language": "pl",
       }),
     );
@@ -156,7 +156,7 @@ class NominatimGeocoder implements Geocoder {
 
     const payload = await this.throttle(() =>
       fetchJson(`${this.base}/reverse?${params}`, {
-        "User-Agent": "ParkSpot/0.1 (parking marketplace, Poznan)",
+        "User-Agent": "Parkownia/0.1 (parking marketplace, Poznan)",
         "Accept-Language": "pl",
       }),
     );

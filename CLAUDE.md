@@ -1,4 +1,4 @@
-# CLAUDE.md — ParkSpot
+# CLAUDE.md — Parkownia
 
 Ten plik jest czytany na starcie każdej sesji. Trzymaj go krótkim i aktualnym.
 

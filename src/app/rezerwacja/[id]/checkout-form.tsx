@@ -236,7 +236,7 @@ export function CheckoutForm({ parkingId, eventId, startsAt, endsAt, priceGr }: 
       />
 
       <div className="flex flex-col gap-2">
-        <Checkbox name="terms" required label="Akceptuję regulamin ParkSpot." />
+        <Checkbox name="terms" required label="Akceptuję regulamin Parkownia." />
         <Checkbox
           name="privacy"
           required

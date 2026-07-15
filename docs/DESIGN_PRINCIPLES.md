@@ -1,4 +1,4 @@
-# DESIGN_PRINCIPLES.md — ParkSpot
+# DESIGN_PRINCIPLES.md — Parkownia
 
 > Ten dokument jest wiążący. Każdy ekran, komponent i animacja musi dać się obronić którąś z poniższych zasad. Jeśli czegoś nie da się obronić — wyleć to.
 
@@ -6,7 +6,7 @@
 
 ## 0. Brief w jednym zdaniu
 
-**ParkSpot to narzędzie, któremu ktoś powierza pieniądze i swój samochód, stojąc na deszczu pod stadionem z 40 tysiącami ludzi wokół.** Wszystko poniżej wynika z tego zdania.
+**Parkownia to narzędzie, któremu ktoś powierza pieniądze i swój samochód, stojąc na deszczu pod stadionem z 40 tysiącami ludzi wokół.** Wszystko poniżej wynika z tego zdania.
 
 Trzy konsekwencje, które przebijają każdą inną zasadę:
 1. **Zaufanie > efektowność.** Interfejs, który wygląda na weekendowy side-project, nie dostanie 35 zł przelewem.

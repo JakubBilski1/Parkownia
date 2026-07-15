@@ -1,12 +1,12 @@
-# ParkSpot — production image. One image, one job: serve the app on :3000.
+# Parkownia — production image. One image, one job: serve the app on :3000.
 #
-# The database is NOT in here. ParkSpot expects an external PostgreSQL with
+# The database is NOT in here. Parkownia expects an external PostgreSQL with
 # PostGIS, reachable over DATABASE_URL — on the VPS that is the Postgres you
 # already run. There is deliberately no docker-compose: this image is the whole
 # deployment unit (README.md → "Wdrożenie na VPS").
 #
-#   docker build -t parkspot --build-arg NEXT_PUBLIC_APP_URL=https://parkspot.pl .
-#   docker run -d -p 3000:3000 -e DATABASE_URL="postgresql://..." parkspot
+#   docker build -t parkownia --build-arg NEXT_PUBLIC_APP_URL=https://parkownia.com .
+#   docker run -d -p 3000:3000 -e DATABASE_URL="postgresql://..." parkownia
 #
 # On start the container brings the database up to date before it serves a single
 # request: migrations, then the reference data the app cannot run without
@@ -45,7 +45,7 @@ ENV NODE_ENV=production
 # NEXT_PUBLIC_* is inlined into the client bundle at build time, so it has to be
 # present here — not just at runtime. A wrong value here means wrong absolute
 # links (payment returns, e-mail links) in the shipped JS.
-#   docker build --build-arg NEXT_PUBLIC_APP_URL=https://parkspot.pl .
+#   docker build --build-arg NEXT_PUBLIC_APP_URL=https://parkownia.com .
 ARG NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 

@@ -27,17 +27,17 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "ParkSpot — parking na mecz i targi w Poznaniu",
-    template: "%s · ParkSpot",
+    default: "Parkownia — parking na mecz i targi w Poznaniu",
+    template: "%s · Parkownia",
   },
   description:
     "Zarezerwuj miejsce parkingowe przy Enea Stadionie i MTP. Płacisz z góry, wjeżdżasz na kod.",
-  applicationName: "ParkSpot",
+  applicationName: "Parkownia",
   openGraph: {
     type: "website",
     locale: "pl_PL",
-    siteName: "ParkSpot",
-    title: "ParkSpot — parking na mecz i targi w Poznaniu",
+    siteName: "Parkownia",
+    title: "Parkownia — parking na mecz i targi w Poznaniu",
     description:
       "Zarezerwuj miejsce parkingowe przy Enea Stadionie i MTP. Płacisz z góry, wjeżdżasz na kod.",
   },
@@ -58,7 +58,7 @@ export const viewport: Viewport = {
  * Runs before first paint: without it the page flashes light before the stored
  * preference is read. Kept as a raw string so it ships inline, not as a chunk.
  */
-const themeScript = `(function(){try{var t=localStorage.getItem("parkspot-theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t)}}catch(e){}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem("parkownia-theme");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t)}}catch(e){}})();`;
 
 export default function RootLayout({
   children,

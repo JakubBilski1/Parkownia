@@ -26,7 +26,7 @@ export const sql = postgres(process.env.DATABASE_URL as string, {
 
 /** Everything this suite creates is named so, and only so, that cleanup can find it. */
 export const E2E_TAG = "E2E";
-export const E2E_EMAIL_DOMAIN = "parkspot.test";
+export const E2E_EMAIL_DOMAIN = "parkownia.test";
 
 export const SEED_PASSWORD = "parkspot123";
 export const ACCOUNTS = {

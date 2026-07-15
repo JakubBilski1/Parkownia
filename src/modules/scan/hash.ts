@@ -7,7 +7,7 @@
 
 /**
  * A QR payload may be the bare code or a deep link that ends with it
- * ("https://parkspot.pl/b/PK-7H2K-9QW3"). Everything after the last slash,
+ * ("https://parkownia.com/b/PK-7H2K-9QW3"). Everything after the last slash,
  * uppercased, whitespace removed.
  */
 export function normalizeBookingCode(raw: string): string {

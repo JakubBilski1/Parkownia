@@ -1,4 +1,4 @@
-# Testy — ParkSpot
+# Testy — Parkownia
 
 Trzy pakiety, trzy różne pytania. Nie zastępują się nawzajem.
 
@@ -26,11 +26,11 @@ Postgresa naprawdę wybrał indeks GiST. Nie robi się tego na bazie dewelopersk
 
 ```bash
 # .env.local
-DATABASE_URL="postgresql://parkspot:parkspot@localhost:5433/parkspot"
-TEST_DATABASE_URL="postgresql://parkspot:parkspot@localhost:5433/parkspot_test"
+DATABASE_URL="postgresql://parkownia:parkownia@localhost:5433/parkownia"
+TEST_DATABASE_URL="postgresql://parkownia:parkownia@localhost:5433/parkownia_test"
 ```
 
-Baza `parkspot_test` **tworzy się sama** przy pierwszym uruchomieniu: `global-setup`
+Baza `parkownia_test` **tworzy się sama** przy pierwszym uruchomieniu: `global-setup`
 zakłada ją, włącza rozszerzenia (`postgis`, `citext`, `pgcrypto`), puszcza migracje
 i wstawia reguły prowizji oraz domyślną politykę zwrotów — bez nich `createBooking()`
 słusznie odmawia przyjęcia pieniędzy. Wymaga roli z prawem `CREATEDB`.
@@ -43,13 +43,13 @@ npm run test:integration
 
 Każdy wiersz stworzony przez testy jest **oznaczony**:
 
-- użytkownicy: `…@test.parkspot.local`
+- użytkownicy: `…@test.parkownia.local`
 - parkingi i eventy: tytuł zaczyna się od `[itest]`
 - webhooki: `event_id` zaczyna się od `itest_`
 
 `cleanupTestData()` kasuje dokładnie to i nic więcej — przed pierwszym testem (żeby
 resztki po przerwanym przebiegu nie liczyły się jako zajętość), po każdym teście i na
-końcu pliku. Dane z seeda (konta `@parkspot.pl`, 20 parkingów, 17 eventów) są dla tych
+końcu pliku. Dane z seeda (konta `@parkownia.com`, 20 parkingów, 17 eventów) są dla tych
 zapytań niewidzialne. Świadomie **nie** ma tu `TRUNCATE`.
 
 ### Co dokładnie jest testowane
@@ -142,7 +142,7 @@ rezerwacja doszła na serwer jako `USED` z `offline = true`.
 Ta sama zasada co w integracyjnych: **nic się nie truncate'uje**. Wszystko, co suite
 tworzy, jest oznaczone i tylko to jest kasowane (`cleanupE2eArtifacts()`):
 
-- użytkownicy: `e2e-…@parkspot.test`
+- użytkownicy: `e2e-…@parkownia.test`
 - eventy i parkingi: tytuł zaczyna się od `E2E`
 
 Seed (20 parkingów, 17 eventów, 4 konta) przeżywa przebieg bez zadrapania.
@@ -178,4 +178,4 @@ lokalnie, we własnym kontenerze albo zarządzany. Instalacja krok po kroku:
 `db/README.md`.
 
 Rola z `TEST_DATABASE_URL` musi mieć `CREATEDB` i prawo tworzenia rozszerzeń —
-bazę `parkspot_test`, rozszerzenia i migracje `global-setup` zakłada sam.
+bazę `parkownia_test`, rozszerzenia i migracje `global-setup` zakłada sam.

@@ -1,4 +1,4 @@
-# ParkSpot
+# Parkownia
 
 Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych
 (firmy po godzinach, osoby prywatne, komercyjni operatorzy) i sprzedaje
@@ -23,12 +23,12 @@ uruchamiasz na hoście (`npm run dev`).
 ```bash
 # 1. Postgres 14+ z rozszerzeniami: postgis, citext, pgcrypto.
 #    Raz, jako superuser, na docelowej bazie:
-psql "postgresql://user:pass@localhost:5433/parkspot" -f db/extensions.sql
+psql "postgresql://user:pass@localhost:5433/parkownia" -f db/extensions.sql
 
 # 2. Konfiguracja
 cp .env.example .env.local
 #    PODMIEŃ DATABASE_URL na swój host/port — np. Postgres w WSL na 5433:
-#    DATABASE_URL="postgresql://parkspot:parkspot@localhost:5433/parkspot"
+#    DATABASE_URL="postgresql://parkownia:parkownia@localhost:5433/parkownia"
 
 npm install
 npm run db:migrate
@@ -75,17 +75,17 @@ aplikacja łączy się przez `DATABASE_URL` do Postgresa, który już stoi na VP
 > `psql "$DATABASE_URL" -f db/extensions.sql`.
 
 ```bash
-docker build -t parkspot --build-arg NEXT_PUBLIC_APP_URL=https://parkspot.pl .
+docker build -t parkownia --build-arg NEXT_PUBLIC_APP_URL=https://parkownia.com .
 
-docker run -d --name parkspot -p 3000:3000 \
-  -e DATABASE_URL="postgresql://user:pass@host:5432/parkspot" \
+docker run -d --name parkownia -p 3000:3000 \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/parkownia" \
   -e JWT_ACCESS_SECRET="..." \
   -e JWT_REFRESH_SECRET="..." \
   -e ACTION_TOKEN_SECRET="..." \
   -e PAYMENT_PROVIDER="stripe" \
   -e STRIPE_SECRET_KEY="..." \
   -e STRIPE_WEBHOOK_SECRET="..." \
-  parkspot
+  parkownia
 ```
 
 **`NEXT_PUBLIC_APP_URL` jest build-argiem, nie zmienną runtime'u.** Next wkleja
@@ -146,7 +146,7 @@ Dockerfile            # obraz produkcyjny (deps → builder → runner)
 docker-entrypoint.sh  # migracje + seed przed startem serwera w kontenerze
 tests/
   unit/               # Vitest, bez bazy
-  integration/        # Vitest na żywym PostGIS (osobna baza parkspot_test)
+  integration/        # Vitest na żywym PostGIS (osobna baza parkownia_test)
   e2e/                # Playwright
 ```
 
@@ -167,7 +167,7 @@ bezpośrednio. Szczegóły: `docs/ARCHITECTURE.md` §4.
 | `npm run db:push` | pcha schemat bez migracji (szybka iteracja lokalnie) |
 | `npm run db:seed` | dane referencyjne (obiekty, eventy, `commission_rules`); z `SEED_DEV=1` także konta testowe i parkingi demo |
 | `npm test` / `npm run test:watch` | Vitest — **tylko unit**, bez bazy |
-| `npm run test:integration` | Vitest na **żywym Postgresie** (osobna baza `parkspot_test`, patrz `TEST_DATABASE_URL`) |
+| `npm run test:integration` | Vitest na **żywym Postgresie** (osobna baza `parkownia_test`, patrz `TEST_DATABASE_URL`) |
 | `npm run test:e2e` | Playwright (własny serwer na :3200, nie dotyka Twojego `npm run dev`) |
 
 `npm test` celowo **nie** odpala testów integracyjnych: gołe `vitest run`

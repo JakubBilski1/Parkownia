@@ -1,4 +1,4 @@
-# RISKS.md — ParkSpot
+# RISKS.md — Parkownia
 
 Co może pójść nie tak i jak to mitygujemy. Posortowane: najpierw to, co zabija produkt.
 

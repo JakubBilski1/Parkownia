@@ -46,8 +46,8 @@ type HostEvent = {
   endsAt: string;
 };
 
-const EVENT_KEY = "parkspot-scan-event";
-const PARKING_KEY = "parkspot-scan-parking";
+const EVENT_KEY = "parkownia-scan-event";
+const PARKING_KEY = "parkownia-scan-parking";
 const DETECT_INTERVAL_MS = 220;
 
 export function ScannerScreen({ initialEventId }: { initialEventId?: string }) {

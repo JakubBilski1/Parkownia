@@ -18,7 +18,7 @@ import type { InsertEvent, InsertParking, Role } from "./types";
 // Deterministic ids keep the seed idempotent without needing a natural key on
 // every table: re-running produces the same uuids, so ON CONFLICT DO NOTHING wins.
 function seedId(namespace: string, key: string): string {
-  const h = createHash("sha256").update(`parkspot:${namespace}:${key}`).digest("hex");
+  const h = createHash("sha256").update(`parkownia:${namespace}:${key}`).digest("hex");
   const bytes = h.slice(0, 32).split("");
   bytes[12] = "5";
   bytes[16] = "a";
@@ -740,7 +740,7 @@ async function seedDevFixtures(): Promise<{ users: number; parkings: number }> {
     .values({
       userId: companyUserId,
       nip: "7781456789",
-      companyName: "ParkSpot Testowa sp. z o.o.",
+      companyName: "Parkownia Testowa sp. z o.o.",
       address: "ul. Głogowska 14, 60-734 Poznań",
       vatStatus: "Czynny",
     })

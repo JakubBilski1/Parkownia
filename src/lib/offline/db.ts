@@ -13,7 +13,7 @@ import type { QueuedScan, ScanManifest } from "@/modules/scan/types";
  * - `meta`      — the device id, generated once and reused.
  */
 
-const DB_NAME = "parkspot-scan";
+const DB_NAME = "parkownia-scan";
 const DB_VERSION = 1;
 
 const STORE_MANIFESTS = "manifests";

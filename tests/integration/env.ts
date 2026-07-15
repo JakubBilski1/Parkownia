@@ -17,7 +17,7 @@ export function testDatabaseUrl(): string {
     throw new Error(
       "TEST_DATABASE_URL is not set.\n" +
         "The integration suite needs a throwaway database — see tests/README.md.\n" +
-        '  TEST_DATABASE_URL="postgresql://parkspot:parkspot@localhost:5433/parkspot_test"',
+        '  TEST_DATABASE_URL="postgresql://parkownia:parkownia@localhost:5433/parkownia_test"',
     );
   }
 
@@ -46,7 +46,7 @@ function sameDatabase(a: string, b: string): boolean {
   }
 }
 
-/** `postgresql://user:pass@host:5432/parkspot_test` → `parkspot_test`. */
+/** `postgresql://user:pass@host:5432/parkownia_test` → `parkownia_test`. */
 export function databaseName(url: string): string {
   return new URL(url).pathname.replace(/^\//, "");
 }

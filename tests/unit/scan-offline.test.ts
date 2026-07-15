@@ -32,9 +32,9 @@ const entry = {
 
 describe("normalizeBookingCode", () => {
   it("takes the code out of a deep link and uppercases it", () => {
-    expect(normalizeBookingCode("https://parkspot.pl/b/pk-7h2k-9qw3")).toBe("PK-7H2K-9QW3");
+    expect(normalizeBookingCode("https://parkownia.com/b/pk-7h2k-9qw3")).toBe("PK-7H2K-9QW3");
     expect(normalizeBookingCode("  pk-7h2k-9qw3 ")).toBe("PK-7H2K-9QW3");
-    expect(normalizeBookingCode("https://parkspot.pl/b/PK-7H2K?utm=sms")).toBe("PK-7H2K");
+    expect(normalizeBookingCode("https://parkownia.com/b/PK-7H2K?utm=sms")).toBe("PK-7H2K");
   });
 
   it("rejects garbage before it costs a round trip", () => {
@@ -44,7 +44,7 @@ describe("normalizeBookingCode", () => {
   });
 
   it("hashes the normalised code, not the raw scan", async () => {
-    const fromLink = await hashBookingCode("https://parkspot.pl/b/pk-7h2k-9qw3");
+    const fromLink = await hashBookingCode("https://parkownia.com/b/pk-7h2k-9qw3");
     const fromCode = await hashBookingCode("PK-7H2K-9QW3");
     expect(fromLink).toBe(fromCode);
     expect(fromCode).toMatch(/^[0-9a-f]{64}$/);

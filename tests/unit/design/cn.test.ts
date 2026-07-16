@@ -29,6 +29,27 @@ describe("cn keeps a text colour when a font size follows it", () => {
   });
 });
 
+/**
+ * Characterisation, not a wish: this is tailwind-merge behaving correctly, and it
+ * bit us anyway. Tailwind's own `text-*` sizes carry a line-height, so a font size
+ * is treated as conflicting with `leading-*` — and a size arriving later (from a
+ * caller's className) silently deletes the leading set earlier in a base string.
+ *
+ * That shipped: the events grid set `leading-none` in its base and took the size
+ * via className. The leading vanished, line-height fell back to the 1.5rem
+ * inherited from <body>, and a 128px numeral rendered into a 24px box, clipped by
+ * overflow-hidden into unreadable stumps. Pass size and leading as one class.
+ */
+describe("a font size cancels a preceding leading — pass them as one class", () => {
+  it("drops leading-none when a size follows it", () => {
+    expect(cn("leading-none", "text-[6.5rem]")).toBe("text-[6.5rem]");
+  });
+
+  it("keeps both when the size carries the leading", () => {
+    expect(cn("leading-none", "text-[6.5rem]/none")).toContain("text-[6.5rem]/none");
+  });
+});
+
 describe("every button variant keeps its text colour at every size", () => {
   const cases = [
     { variant: "accent", expected: "text-accent-ink" },

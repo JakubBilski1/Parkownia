@@ -24,13 +24,21 @@ import { EVENT_CATEGORY_LABEL } from "./event-meta";
  * pairs it with a `relative` CardBody. That ordering is load-bearing: an absolute
  * element paints above static siblings, so a plain CardBody would have the veil
  * laid over its own text.
+ *
+ * Callers must pass the size as the `text-[…]/none` shorthand, never as a bare
+ * `text-[…]` plus a separate `leading-none` here: tailwind-merge treats a font
+ * size as conflicting with `leading-*` (Tailwind's own text-* utilities set both),
+ * so a size arriving later via className silently deletes the leading. That is
+ * not hypothetical — it shipped, line-height fell back to the 1.5rem inherited
+ * from <body>, and a 120px numeral was drawn into a 24px box and clipped to
+ * illegible stumps by the card's overflow-hidden.
  */
 function GhostDay({ date, className }: { date: Date; className: string }) {
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "num pointer-events-none absolute select-none font-display font-extrabold leading-none text-ink opacity-[0.07]",
+        "num pointer-events-none absolute select-none font-display font-extrabold text-ink opacity-[0.07]",
         className,
       )}
     >
@@ -48,7 +56,7 @@ function GhostDay({ date, className }: { date: Date; className: string }) {
 export function NextEventHero({ event }: { event: EventSummary }) {
   return (
     <Card className="relative mb-4 overflow-hidden lg:mb-6">
-      <GhostDay date={event.startsAt} className="-top-8 right-2 text-[9rem] sm:text-[12rem]" />
+      <GhostDay date={event.startsAt} className="right-3 top-1 text-[8rem]/none sm:text-[11rem]/none" />
 
       <CardBody className="relative flex flex-col gap-2 p-5 sm:p-6 lg:p-8">
         <div className="flex flex-wrap items-center gap-2">
@@ -86,7 +94,7 @@ export function NextEventHero({ event }: { event: EventSummary }) {
 export function EventCard({ event }: { event: EventSummary }) {
   return (
     <Card className="relative flex h-full w-full flex-col overflow-hidden">
-      <GhostDay date={event.startsAt} className="-top-6 right-1 text-[7.5rem]" />
+      <GhostDay date={event.startsAt} className="right-2 top-1 text-[6.5rem]/none" />
 
       <CardBody className="relative flex flex-1 flex-col gap-1.5">
         <span className="font-mono text-ui uppercase tracking-[0.14em] text-muted">

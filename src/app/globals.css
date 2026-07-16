@@ -24,7 +24,11 @@
     --surface: #ffffff;
     --surface-2: #f3f3f0;
     --ink: #191a1c;
-    --muted: #70747a;
+    /* Measured, not eyeballed: the old #70747a hit 4.5:1 on white but only
+       4.04:1 on --bg, the ground most muted text actually sits on (page leads,
+       field hints, "(opcjonalne)"). This clears 4.5:1 on all three light
+       grounds — --bg, --surface, --surface-2. Dark's muted always passed. */
+    --muted: #686c72;
     --line: #dededa;
 
     /* Accent — CTA, active pin, success confirmation. Nothing else. */

@@ -22,7 +22,7 @@ Definicja: `src/app/globals.css`. Mapowanie na klasy: `tailwind.config.ts`. Moty
 | `--surface` | `bg-surface` | `#FFFFFF` | `#232221` | karty, panele, bilet |
 | `--surface-2` | `bg-surface-2` | `#F3F3F0` | `#2C2A28` | pola nieaktywne, hover, skeleton |
 | `--ink` | `text-ink` | `#191A1C` | `#F1EDE7` | tekst główny |
-| `--muted` | `text-muted` | `#70747A` | `#9E978D` | tekst pomocniczy, meta, hinty |
+| `--muted` | `text-muted` | `#686C72` | `#9E978D` | tekst pomocniczy, meta, hinty (4.54:1 na `--bg` — najciemniejszym jasnym podłożu) |
 | `--line` | `border-line` | `#DEDEDA` | `#38352F` | obramowania, linia perforacji |
 | `--accent` | `bg-accent` / `text-accent` | `#8E2B2B` | `#C93A3A` | **tylko** główne CTA, aktywna pinezka, potwierdzenie sukcesu |
 | `--accent-ink` | `text-accent-ink` | `#FFFFFF` | `#FFF7F5` | tekst na akcencie (4.9:1 na `--accent`) |

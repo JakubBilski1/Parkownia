@@ -32,18 +32,25 @@ import { EVENT_CATEGORY_LABEL } from "./event-meta";
  * not hypothetical — it shipped, line-height fell back to the 1.5rem inherited
  * from <body>, and a 120px numeral was drawn into a 24px box and clipped to
  * illegible stumps by the card's overflow-hidden.
+ *
+ * The digits are generated content, not a text node. WCAG 1.4.3 exempts pure
+ * decoration from contrast, and at 7% this is exactly that — but a contrast
+ * checker cannot tell decoration from copy, so a DOM text node here scores 1.14:1
+ * and lands in every automated report forever. Rendering it through ::before says
+ * "decoration" in a way tooling understands, and keeps the audit at a true zero
+ * instead of a zero with an asterisk nobody remembers.
  */
 function GhostDay({ date, className }: { date: Date; className: string }) {
   return (
     <span
       aria-hidden="true"
+      style={{ "--ghost-day": `"${formatDayOfMonthPL(date)}"` } as React.CSSProperties}
       className={cn(
         "num pointer-events-none absolute select-none font-display font-extrabold text-ink opacity-[0.07]",
+        "before:content-[var(--ghost-day)]",
         className,
       )}
-    >
-      {formatDayOfMonthPL(date)}
-    </span>
+    />
   );
 }
 

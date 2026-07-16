@@ -86,7 +86,7 @@ export default async function CheckoutPage({
   ].filter((item): item is { icon: typeof Umbrella; label: string } => item !== null);
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[32rem] flex-col gap-4 p-4 pb-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-[32rem] flex-col gap-4 p-4 pb-8 lg:max-w-5xl lg:gap-6 lg:p-6">
       {/* Back to the event's parking list, not to the event index — a driver who
           loses their event loses their sale. The slug is derived, not stored, so
           it is built with the events module's own helper. */}
@@ -105,102 +105,112 @@ export default async function CheckoutPage({
         </p>
       </header>
 
-      <Card>
-        <CardBody className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex min-w-0 flex-col gap-1">
-              <h2 className="font-display text-h3 font-bold text-ink">
-                {parking.title ?? "Parking"}
-              </h2>
-              {parking.address ? (
-                <p className="text-ui text-muted">{parking.address}</p>
-              ) : null}
-            </div>
-            {priceGr !== null ? <Price gr={priceGr} size="lg" /> : null}
-          </div>
-
-          <dl className="flex flex-col gap-2 border-t border-line pt-3 text-body">
-            {event ? (
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted">Wydarzenie</dt>
-                <dd className="text-right text-ink">
-                  {event.title}
-                  {event.venueName ? <span className="text-muted">, {event.venueName}</span> : null}
-                </dd>
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_22rem] lg:items-start lg:gap-10">
+        {/* Order summary: the first thing on a phone, a sticky rail on desktop so
+            the price and what-you-get stay in view while the form is filled in. */}
+        <div className="lg:order-2 lg:sticky lg:top-6">
+          <Card>
+            <CardBody className="flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 flex-col gap-1">
+                  <h2 className="font-display text-h3 font-bold text-ink">
+                    {parking.title ?? "Parking"}
+                  </h2>
+                  {parking.address ? (
+                    <p className="text-ui text-muted">{parking.address}</p>
+                  ) : null}
+                </div>
+                {priceGr !== null ? <Price gr={priceGr} size="lg" /> : null}
               </div>
-            ) : null}
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted">Kiedy</dt>
-              <dd className="num text-right text-ink">
-                {formatDatePL(window.startsAt)}, {formatTimeRangePL(window.startsAt, window.endsAt)}
-              </dd>
-            </div>
-            {event ? (
-              <p className="text-ui text-muted">
-                Miejsce jest Twoje od dwóch godzin przed wydarzeniem do dwóch godzin po nim.
-              </p>
-            ) : null}
-          </dl>
 
-          {features.length > 0 ? (
-            <ul className="flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3">
-              {features.map((feature) => (
-                <li key={feature.label} className="flex items-center gap-1.5 text-ui text-muted">
-                  <feature.icon size={16} aria-hidden="true" />
-                  {feature.label}
-                </li>
-              ))}
-            </ul>
+              <dl className="flex flex-col gap-2 border-t border-line pt-3 text-body">
+                {event ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted">Wydarzenie</dt>
+                    <dd className="text-right text-ink">
+                      {event.title}
+                      {event.venueName ? <span className="text-muted">, {event.venueName}</span> : null}
+                    </dd>
+                  </div>
+                ) : null}
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted">Kiedy</dt>
+                  <dd className="num text-right text-ink">
+                    {formatDatePL(window.startsAt)}, {formatTimeRangePL(window.startsAt, window.endsAt)}
+                  </dd>
+                </div>
+                {event ? (
+                  <p className="text-ui text-muted">
+                    Miejsce jest Twoje od dwóch godzin przed wydarzeniem do dwóch godzin po nim.
+                  </p>
+                ) : null}
+              </dl>
+
+              {features.length > 0 ? (
+                <ul className="flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3">
+                  {features.map((feature) => (
+                    <li key={feature.label} className="flex items-center gap-1.5 text-ui text-muted">
+                      <feature.icon size={16} aria-hidden="true" />
+                      {feature.label}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Actions: duration + the form. Payment inputs stay a single vertical
+            flow (Stripe's guidance — never split payment fields into columns). */}
+        <div className="flex flex-col gap-4 lg:order-1">
+          {!event ? (
+            <nav aria-label="Czas postoju" className="flex flex-col gap-2">
+              <span className="text-ui font-semibold text-muted">Czas postoju</span>
+              <div className="flex gap-2">
+                {DURATIONS.map((duration) => {
+                  const selected = duration.hours === hours;
+                  return (
+                    <Link
+                      key={duration.hours}
+                      href={`/rezerwacja/${parkingId}?godziny=${duration.hours}`}
+                      aria-current={selected ? "true" : undefined}
+                      scroll={false}
+                      className={[
+                        "press inline-flex min-h-touch flex-1 items-center justify-center rounded-pill border px-3 text-ui font-semibold",
+                        "transition-colors duration-micro ease-out",
+                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+                        selected
+                          ? "border-selected bg-selected text-selected-ink"
+                          : "border-line bg-surface text-ink hover:bg-surface-2",
+                      ].join(" ")}
+                    >
+                      {duration.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
           ) : null}
-        </CardBody>
-      </Card>
 
-      {!event ? (
-        <nav aria-label="Czas postoju" className="flex flex-col gap-2">
-          <span className="text-ui font-semibold text-muted">Czas postoju</span>
-          <div className="flex gap-2">
-            {DURATIONS.map((duration) => {
-              const selected = duration.hours === hours;
-              return (
-                <Link
-                  key={duration.hours}
-                  href={`/rezerwacja/${parkingId}?godziny=${duration.hours}`}
-                  aria-current={selected ? "true" : undefined}
-                  scroll={false}
-                  className={[
-                    "press inline-flex min-h-touch flex-1 items-center justify-center rounded-pill border px-3 text-ui font-semibold",
-                    "transition-colors duration-micro ease-out",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
-                    selected
-                      ? "border-selected bg-selected text-selected-ink"
-                      : "border-line bg-surface text-ink hover:bg-surface-2",
-                  ].join(" ")}
-                >
-                  {duration.label}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      ) : null}
-
-      {priceGr === null ? (
-        <Card>
-          <CardBody className="flex flex-col gap-2">
-            <h2 className="font-display text-h3 font-bold text-ink">Nie da się tego kupić</h2>
-            <p className="text-body text-muted">{priceError}</p>
-            <p className="text-body text-muted">Nie pobraliśmy żadnych pieniędzy.</p>
-          </CardBody>
-        </Card>
-      ) : (
-        <CheckoutForm
-          parkingId={parkingId}
-          eventId={event?.id ?? null}
-          startsAt={window.startsAt.toISOString()}
-          endsAt={window.endsAt.toISOString()}
-          priceGr={priceGr}
-        />
-      )}
+          {priceGr === null ? (
+            <Card>
+              <CardBody className="flex flex-col gap-2">
+                <h2 className="font-display text-h3 font-bold text-ink">Nie da się tego kupić</h2>
+                <p className="text-body text-muted">{priceError}</p>
+                <p className="text-body text-muted">Nie pobraliśmy żadnych pieniędzy.</p>
+              </CardBody>
+            </Card>
+          ) : (
+            <CheckoutForm
+              parkingId={parkingId}
+              eventId={event?.id ?? null}
+              startsAt={window.startsAt.toISOString()}
+              endsAt={window.endsAt.toISOString()}
+              priceGr={priceGr}
+            />
+          )}
+        </div>
+      </div>
     </main>
   );
 }

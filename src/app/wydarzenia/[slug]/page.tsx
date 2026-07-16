@@ -4,7 +4,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/app-shell";
 import { getNavUser } from "@/components/nav/current-user";
-import { Badge } from "@/components/ui";
+import { Badge, PageContainer } from "@/components/ui";
 import { formatDatePL, formatTimeRangePL } from "@/lib/format";
 import { listEventParkings } from "@/modules/events/parkings";
 import { getEventBySlug } from "@/modules/events/service";
@@ -36,7 +36,7 @@ export default async function EventPage({ params }: PageProps) {
 
   return (
     <AppShell user={user} scroll>
-      <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-4">
+      <PageContainer width="wide" className="pb-16 pt-4">
       <Link
         href="/wydarzenia"
         className="mb-3 inline-flex min-h-touch items-center gap-1.5 text-ui text-muted transition-colors duration-micro ease-out hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
@@ -71,11 +71,11 @@ export default async function EventPage({ params }: PageProps) {
         parkings={parkings}
       />
 
-      <p className="mt-4 text-ui text-muted">
+      <p className="mt-4 max-w-2xl text-ui text-muted">
         Odległości liczymy w linii prostej i doliczamy zapas na drogę — stąd „ok.”. Nawigacja
         prowadzi do wjazdu, nie do środka placu.
       </p>
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

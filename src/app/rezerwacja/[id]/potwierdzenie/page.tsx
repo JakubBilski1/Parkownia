@@ -62,7 +62,9 @@ export default async function ConfirmationPage({
   const paid = booking.status === "CONFIRMED" || booking.status === "USED";
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[32rem] flex-col gap-4 p-4 pb-8">
+    <main
+      className={`mx-auto flex min-h-dvh w-full max-w-[32rem] flex-col gap-4 p-4 pb-8 ${paid ? "lg:max-w-4xl" : ""}`}
+    >
       {booking.status === "PENDING" ? <PendingWatcher /> : null}
 
       <header className="flex flex-col gap-2">
@@ -82,7 +84,11 @@ export default async function ConfirmationPage({
       </header>
 
       {paid ? (
-        <>
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_22rem] lg:items-start lg:gap-10">
+          {/* The ticket is the object the driver came for: first on a phone, a
+              sticky rail on desktop so the QR stays in view while the entry
+              instructions sit beside it rather than below a lot of empty space. */}
+          <div className="lg:order-2 lg:sticky lg:top-6">
           <Ticket>
             <TicketMain className="flex flex-col gap-3">
               <div className="flex items-start justify-between gap-4">
@@ -140,7 +146,9 @@ export default async function ConfirmationPage({
               </p>
             </TicketStub>
           </Ticket>
+          </div>
 
+          <div className="flex flex-col gap-4 lg:order-1">
           <Card>
             <CardBody className="flex flex-col gap-3">
               <h2 className="flex items-center gap-2 font-display text-h3 font-bold text-ink">
@@ -187,7 +195,8 @@ export default async function ConfirmationPage({
           </Card>
 
           {booking.status === "CONFIRMED" ? <CancelBooking bookingId={booking.id} /> : null}
-        </>
+          </div>
+        </div>
       ) : null}
 
       {booking.status === "PENDING" ? (

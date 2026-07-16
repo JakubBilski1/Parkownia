@@ -24,6 +24,9 @@ const VENUE_ZOOM = 14;
 
 export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventParkingsProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Desktop-only cross-highlight: hovering a rail card raises its pin (neutral),
+  // never selects it. Harmless on touch — selection (accent) always outranks it.
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const itemRefs = useRef(new Map<string, HTMLLIElement>());
 
@@ -74,48 +77,62 @@ export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventP
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative h-[52dvh] min-h-[18rem] w-full overflow-hidden rounded-card border border-line">
-        <MapView onViewportChange={() => {}} onReady={onReady} onBackgroundClick={() => setSelectedId(null)}>
-          <EventOverlay center={{ lng: venue.lng, lat: venue.lat }} radiusMeters={radiusMeters} />
+    // Mobile: map on top, list below (DOM order) — unchanged. Desktop: a fixed
+    // rail on the left and a sticky map filling the rest, swapped into place with
+    // `lg:order-*`. The map never scrolls away while the driver reads the list.
+    <div className="lg:grid lg:grid-cols-[minmax(0,27rem)_1fr] lg:items-start lg:gap-6">
+      <div className="mb-4 lg:order-2 lg:mb-0 lg:sticky lg:top-4 lg:self-start">
+        <div className="relative h-[52dvh] min-h-[18rem] w-full overflow-hidden rounded-card border border-line lg:h-[calc(100dvh-6rem)]">
+          <MapView onViewportChange={() => {}} onReady={onReady} onBackgroundClick={() => setSelectedId(null)}>
+            <EventOverlay center={{ lng: venue.lng, lat: venue.lat }} radiusMeters={radiusMeters} />
 
-          {parkings.map((parking) => (
-            <MapMarker
-              key={parking.id}
-              lng={parking.location.lng}
-              lat={parking.location.lat}
-              zIndex={selectedId === parking.id ? 2 : 1}
-            >
-              <PricePin
-                priceGr={parking.priceGr}
-                walkMinutes={parking.walkMinutes}
-                isCovered={parking.isCovered}
-                selected={selectedId === parking.id}
-                onSelect={() => select(parking.id)}
-              />
-            </MapMarker>
-          ))}
-        </MapView>
+            {parkings.map((parking) => (
+              <MapMarker
+                key={parking.id}
+                lng={parking.location.lng}
+                lat={parking.location.lat}
+                zIndex={selectedId === parking.id ? 3 : hoveredId === parking.id ? 2 : 1}
+              >
+                <PricePin
+                  priceGr={parking.priceGr}
+                  walkMinutes={parking.walkMinutes}
+                  isCovered={parking.isCovered}
+                  selected={selectedId === parking.id}
+                  raised={hoveredId === parking.id}
+                  onSelect={() => select(parking.id)}
+                />
+              </MapMarker>
+            ))}
+          </MapView>
+        </div>
       </div>
 
-      <p className="text-ui text-muted">
-        {parkings.length === 1
-          ? "1 parking w promieniu wydarzenia, wolny w jego godzinach."
-          : `${formatParkings(parkings.length)} w promieniu wydarzenia, wolne w jego godzinach. Najbliższy na górze.`}
-      </p>
+      <div className="flex flex-col gap-3 lg:order-1">
+        <p className="text-ui text-muted">
+          {parkings.length === 1
+            ? "1 parking w promieniu wydarzenia, wolny w jego godzinach."
+            : `${formatParkings(parkings.length)} w promieniu wydarzenia, wolne w jego godzinach. Najbliższy na górze.`}
+        </p>
 
-      <ol className="flex flex-col gap-3">
-        {parkings.map((parking) => {
-          const selected = selectedId === parking.id;
-          return (
-            <li
-              key={parking.id}
-              ref={(element) => {
-                if (element) itemRefs.current.set(parking.id, element);
-                else itemRefs.current.delete(parking.id);
-              }}
-            >
-              <Card className={cn("transition-colors duration-micro ease-out", selected && "border-ink")}>
+        <ol className="flex flex-col gap-3">
+          {parkings.map((parking) => {
+            const selected = selectedId === parking.id;
+            return (
+              <li
+                key={parking.id}
+                onMouseEnter={() => setHoveredId(parking.id)}
+                onMouseLeave={() => setHoveredId((id) => (id === parking.id ? null : id))}
+                ref={(element) => {
+                  if (element) itemRefs.current.set(parking.id, element);
+                  else itemRefs.current.delete(parking.id);
+                }}
+              >
+                <Card
+                  className={cn(
+                    "transition-colors duration-micro ease-out hover-hover:hover:border-ink",
+                    selected && "border-ink",
+                  )}
+                >
                 <CardBody className="flex flex-col gap-3">
                   <button
                     type="button"
@@ -174,7 +191,8 @@ export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventP
             </li>
           );
         })}
-      </ol>
+        </ol>
+      </div>
     </div>
   );
 }

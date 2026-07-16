@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight, CalendarDays, MapPin } from "lucide-react";
 import { AppShell } from "@/components/nav/app-shell";
 import { getNavUser } from "@/components/nav/current-user";
-import { Badge, Card, CardBody, EmptyState } from "@/components/ui";
+import { Badge, Card, CardBody, EmptyState, PageContainer } from "@/components/ui";
 import { formatDatePL, formatTimeRangePL } from "@/lib/format";
 import { listUpcomingEvents } from "@/modules/events/service";
 import { LinkButton } from "@/modules/events/ui/link-button";
@@ -21,10 +21,10 @@ export default async function EventsPage() {
 
   return (
     <AppShell user={user} scroll>
-      <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-6">
-      <header className="mb-6">
+      <PageContainer width="wide" className="pb-16 pt-6 lg:pt-10">
+      <header className="mb-6 lg:mb-8">
         <h1 className="font-display text-h1 font-extrabold text-ink">Wydarzenia</h1>
-        <p className="mt-2 text-body text-muted">
+        <p className="mt-2 max-w-2xl text-body text-muted">
           Mecze na Enea Stadionie i targi na MTP. Wybierz wydarzenie — pokażemy parkingi w promieniu
           i wolne miejsca na te godziny.
         </p>
@@ -32,6 +32,7 @@ export default async function EventsPage() {
 
       {events.length === 0 ? (
         <EmptyState
+          className="mx-auto max-w-lg"
           icon={CalendarDays}
           title="Nie mamy jeszcze żadnego wydarzenia"
           description="Kolejne mecze i targi pojawią się tutaj, gdy poznamy terminy. Masz miejsce przy stadionie albo MTP? Udostępnij je i zarabiaj w dni meczowe."
@@ -42,13 +43,13 @@ export default async function EventsPage() {
           }
         />
       ) : (
-        <ol className="flex flex-col gap-3">
+        <ol className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {events.map((event) => {
             const Icon = EVENT_CATEGORY_ICON[event.category];
             return (
-              <li key={event.id}>
-                <Card>
-                  <CardBody className="flex flex-col gap-3">
+              <li key={event.id} className="flex">
+                <Card className="flex h-full w-full flex-col">
+                  <CardBody className="flex flex-1 flex-col gap-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge icon={Icon} tone="neutral">
                         {EVENT_CATEGORY_LABEL[event.category]}
@@ -66,13 +67,27 @@ export default async function EventsPage() {
                       {event.venue.name}
                     </p>
 
+                    {/* "Zobacz parkingi" is navigation, not the money CTA, so it
+                        must not carry the sacred accent (DESIGN_PRINCIPLES §4). On
+                        a phone the owner keeps the red button; a desktop grid of
+                        nine of them is a wall of accent, so there it becomes a
+                        quiet text affordance. Same href, one shown per breakpoint. */}
                     <LinkButton
                       href={`/wydarzenia/${event.slug}`}
                       variant="accent"
-                      className="self-start"
+                      className="mt-auto self-start lg:hidden"
                     >
                       Zobacz parkingi
                       <ArrowRight size={18} aria-hidden="true" />
+                    </LinkButton>
+                    <LinkButton
+                      href={`/wydarzenia/${event.slug}`}
+                      variant="ghost"
+                      size="sm"
+                      className="-ml-3 mt-auto hidden self-start text-muted hover:text-ink lg:inline-flex"
+                    >
+                      Zobacz parkingi
+                      <ArrowRight size={16} aria-hidden="true" />
                     </LinkButton>
                   </CardBody>
                 </Card>
@@ -81,7 +96,7 @@ export default async function EventsPage() {
           })}
         </ol>
       )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

@@ -44,6 +44,7 @@
     --overlay: rgb(25 26 28 / 0.45);
 
     --shadow-card: 0 1px 2px rgb(25 26 28 / 0.06), 0 10px 24px -16px rgb(25 26 28 / 0.24);
+    --shadow-card-hover: 0 2px 4px rgb(25 26 28 / 0.07), 0 16px 32px -20px rgb(25 26 28 / 0.3);
     --shadow-float: 0 2px 6px rgb(25 26 28 / 0.08), 0 24px 48px -24px rgb(25 26 28 / 0.34);
     --drop-ticket-1: 0 1px 1px rgb(25 26 28 / 0.08);
     --drop-ticket-2: 0 10px 18px rgb(25 26 28 / 0.12);
@@ -59,10 +60,12 @@
     --muted: #9e978d;
     --line: #38352f;
 
-    --accent: #e0c9a6;
-    --accent-ink: #1a1918;
-    --accent-hover: #ecdabd;
-    --accent-active: #cdb28a;
+    /* Stamp red, tuned up in lightness for the near-black field: same pure-red
+       hue as light's #8e2b2b, kept distinct from the danger/scan reds. */
+    --accent: #c93a3a;
+    --accent-ink: #fff7f5;
+    --accent-hover: #d64b4b;
+    --accent-active: #b23131;
 
     --scan-ok: #0f7b4f;
     --scan-bad: #b3261e;
@@ -78,6 +81,7 @@
     --overlay: rgb(0 0 0 / 0.62);
 
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 24px -16px rgb(0 0 0 / 0.7);
+    --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.45), 0 16px 32px -20px rgb(0 0 0 / 0.78);
     --shadow-float: 0 2px 6px rgb(0 0 0 / 0.5), 0 24px 48px -24px rgb(0 0 0 / 0.8);
     --drop-ticket-1: 0 1px 1px rgb(0 0 0 / 0.5);
     --drop-ticket-2: 0 10px 18px rgb(0 0 0 / 0.45);

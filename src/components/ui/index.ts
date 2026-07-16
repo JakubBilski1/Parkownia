@@ -15,6 +15,11 @@ export { Dialog, useNativeDialog, type DialogProps } from "./dialog";
 export { EmptyState, type EmptyStateProps } from "./empty-state";
 export { Field, type FieldControlProps, type FieldProps } from "./field";
 export { Input, inputBase, type InputProps } from "./input";
+export {
+  PageContainer,
+  type PageContainerProps,
+  type PageWidth,
+} from "./page-container";
 export { Price, type PriceProps } from "./price";
 export { Progress, type ProgressProps } from "./progress";
 export {

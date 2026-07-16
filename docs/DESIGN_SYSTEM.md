@@ -4,7 +4,7 @@ Dokument wiążący dla zasad (anty-slop, UX, copy): **`docs/DESIGN_PRINCIPLES.m
 
 **Kierunek wizualny wybrany przez właściciela:**
 - **Motyw jasny — „Bilet".** Rezerwacja *jest* biletem: chłodna, papierowa (nie kremowa) baza, stemplowa czerwień jako akcent, perforacja i monospace na kodach oraz kwotach.
-- **Motyw ciemny — „Zmierzch".** To samo DNA, inna podłoga: ciepły grafit i szampanowy akcent.
+- **Motyw ciemny — „Zmierzch".** To samo DNA, inna podłoga: ciepły grafit, a akcent zostaje **stemplową czerwienią** — ten sam odcień co w jasnym, tylko rozjaśniony pod near-black. Akcent marki nie zmienia się razem z motywem; zmienia się tylko jego jasność.
 
 Oba motywy to **jeden zestaw tokenów** — komponenty nie wiedzą, w którym motywie działają.
 
@@ -22,9 +22,9 @@ Definicja: `src/app/globals.css`. Mapowanie na klasy: `tailwind.config.ts`. Moty
 | `--ink` | `text-ink` | `#191A1C` | `#F1EDE7` | tekst główny |
 | `--muted` | `text-muted` | `#70747A` | `#9E978D` | tekst pomocniczy, meta, hinty |
 | `--line` | `border-line` | `#DEDEDA` | `#38352F` | obramowania, linia perforacji |
-| `--accent` | `bg-accent` / `text-accent` | `#8E2B2B` | `#E0C9A6` | **tylko** główne CTA, aktywna pinezka, potwierdzenie sukcesu |
-| `--accent-ink` | `text-accent-ink` | `#FFFFFF` | `#1A1918` | tekst na akcencie |
-| `--accent-hover` / `--accent-active` | — | `#7A2424` / `#661D1D` | `#ECDABD` / `#CDB28A` | stany akcentu |
+| `--accent` | `bg-accent` / `text-accent` | `#8E2B2B` | `#C93A3A` | **tylko** główne CTA, aktywna pinezka, potwierdzenie sukcesu |
+| `--accent-ink` | `text-accent-ink` | `#FFFFFF` | `#FFF7F5` | tekst na akcencie (4.9:1 na `--accent`) |
+| `--accent-hover` / `--accent-active` | — | `#7A2424` / `#661D1D` | `#D64B4B` / `#B23131` | stany akcentu |
 | `--selected-bg` / `--selected-ink` | `bg-selected` / `text-selected-ink` | `#191A1C` / `#EEEEEB` | `#F1EDE7` / `#1A1918` | **stan zaznaczenia — neutralna inwersja, nigdy akcent** |
 | `--focus` | `outline-focus` | `#191A1C` | `#F1EDE7` | pierścień focusu (afordancja systemowa, więc ink, nie akcent) |
 | `--overlay` | `bg-overlay` | `rgb(25 26 28 / .45)` | `rgb(0 0 0 / .62)` | tło pod sheetem/dialogiem |
@@ -104,6 +104,7 @@ Jedna rzecz, po której aplikacja ma być zapamiętana. **Cała śmiałość idz
 - Lewa krawędź ma **wycięcie perforacji** — ten sam ząb, co na bilecie. Pinezka to fizycznie „oderwany odcinek": zabranie jej z mapy da bilet.
 - Stan aktywny (wybrana pinezka) — **jedyne** miejsce poza CTA i sukcesem, gdzie żyje akcent: tło `accent`, tekst `accent-ink`.
 - Stan nieaktywny: `surface` + `ink` + `line`.
+- Stan podniesiony (kursor na powiązanej karcie z listy, tylko desktop — `hover-hover:`): obramowanie `ink` i ślad skali. **Neutralny, nigdy akcent** — akcent zostaje zarezerwowany dla zaznaczenia, które zawsze go przebija. Na dotyku nie istnieje.
 - Bez pulsowania, bez animowanego wejścia. Rusza się tylko mapa (`flyTo`), bo to komunikuje ciągłość przestrzenną.
 - Pinezka wskazuje `entranceLocation` (wjazd), nie `location`. To nie jest kosmetyka — kierowca jedzie do wjazdu.
 
@@ -120,6 +121,7 @@ Implementacja pinezki należy do warstwy mapy (Faza 4 wg ROADMAP), nie do prymit
 | `Field` | `field.tsx` | label **zawsze** powiązany z inputem (render-prop podaje `id` + `aria-describedby` + `aria-invalid`); błąd ma `role="alert"`; pola opcjonalne są oznaczone, wymagane nie muszą się tłumaczyć |
 | `Checkbox`, `RadioGroup`, `Switch` | — | natywne inputy pod spodem (klawiatura, formularze, czytniki ekranu); stan zaznaczony **neutralny**; `RadioGroup` to pełnowymiarowe wiersze, nie kropki 20 px |
 | `Card` | `card.tsx` | `floating` dla kart nad mapą |
+| `PageContainer` | `page-container.tsx` | rozdziela **powłokę** strony od **miary czytania**, które wcześniej były jedną liczbą (`max-w-3xl` na wszystkim = telefon w pustych marginesach na monitorze). Szerokość wybiera typ treści: `prose` \| `default` \| `wide` \| `full`. Poniżej `lg:` każdy wariant zwija się do tej samej kolumny mobilnej — telefon renderuje się bez zmian |
 | `Ticket` | `ticket.tsx` | **perforacja jako maska CSS** (`.ticket-notch-top/bottom`), nie `border-dashed`; dziury są prawdziwe — mapa widać przez nie. Każda połowa niesie połowę dziury, więc łączą się w koło bez mierzenia czegokolwiek w JS |
 | `Sheet` | `sheet.tsx` | bottom sheet ≤768 px, panel boczny wyżej; oparty na natywnym `<dialog showModal()>` (focus trap, Escape, top-layer z platformy); wychodzi tam, skąd wszedł |
 | `Dialog` | `dialog.tsx` | akcja destrukcyjna nie sąsiaduje z potwierdzającą (`flex-col-reverse` na mobile) |

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/nav/app-shell";
 import { getNavUser } from "@/components/nav/current-user";
 import { ROUTES } from "@/components/nav/routes";
-import { Price } from "@/components/ui";
+import { PageContainer, Price } from "@/components/ui";
 import { formatDatePL, formatTimeRangePL } from "@/lib/format";
 import { getSession } from "@/lib/session";
 import { listBookings, type BookingListItem } from "@/modules/bookings/service";
@@ -88,7 +88,7 @@ export default async function AccountPage() {
 
   return (
     <AppShell user={navUser} scroll>
-      <div className="mx-auto flex w-full max-w-[32rem] flex-col gap-4 p-4 pb-8">
+      <PageContainer width="prose" className="flex flex-col gap-4 py-4 pb-8">
         <header className="flex flex-col gap-1">
           <h1 className="font-display text-h1 font-extrabold text-ink">Konto</h1>
           <p className="text-body text-muted">
@@ -163,7 +163,7 @@ export default async function AccountPage() {
           <h2 className="font-display text-h3 font-bold text-ink">Usunięcie konta</h2>
           <DeleteAccountCard isHost={isHost} />
         </section>
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

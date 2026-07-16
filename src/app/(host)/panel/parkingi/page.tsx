@@ -12,6 +12,7 @@ import {
   CardMeta,
   CardTitle,
   EmptyState,
+  PageContainer,
   Price,
   Progress,
 } from "@/components/ui";
@@ -91,7 +92,7 @@ export default async function HostParkingsPage() {
   const parkings = await listMyParkings(session);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 pb-24">
+    <PageContainer width="wide" className="flex flex-col gap-4 py-4 pb-24">
       <header className="flex items-center justify-between gap-3">
         <h1 className="font-display text-h1 text-ink">Twoje parkingi</h1>
         <Link href="/panel/parkingi/nowy" className={buttonVariants({ variant: "accent" })}>
@@ -102,6 +103,7 @@ export default async function HostParkingsPage() {
 
       {parkings.length === 0 ? (
         <EmptyState
+          className="mx-auto max-w-lg"
           title="Nie masz jeszcze żadnego parkingu"
           description="Dodanie zajmuje minutę: nazwa, pinezka na mapie, liczba miejsc i cena. Resztę uzupełnisz później — szkic zapisuje się sam."
           action={
@@ -115,65 +117,69 @@ export default async function HostParkingsPage() {
         />
       ) : null}
 
-      {parkings.map((parking) => {
-        const status = STATUS[parking.status];
-        const price = priceOf(parking);
+      {/* Cards are self-contained, so on a desktop they pair up instead of
+          running as one column down the middle of a 1152px shell. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {parkings.map((parking) => {
+          const status = STATUS[parking.status];
+          const price = priceOf(parking);
 
-        return (
-          <Card key={parking.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between gap-3">
-                <CardTitle>{parking.title ?? "Parking bez nazwy"}</CardTitle>
-                <Badge tone={status.tone} icon={status.icon}>
-                  {status.label}
-                </Badge>
-              </div>
-              <CardMeta>{parking.address ?? "Brak adresu"}</CardMeta>
-            </CardHeader>
+          return (
+            <Card key={parking.id} className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-3">
+                  <CardTitle>{parking.title ?? "Parking bez nazwy"}</CardTitle>
+                  <Badge tone={status.tone} icon={status.icon}>
+                    {status.label}
+                  </Badge>
+                </div>
+                <CardMeta>{parking.address ?? "Brak adresu"}</CardMeta>
+              </CardHeader>
 
-            <CardBody className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                {price ? <Price gr={price.gr} per={price.per} size="sm" /> : null}
-                <span className="num text-ui text-muted">
-                  {parking.capacity ?? 0} {parking.capacity === 1 ? "miejsce" : "miejsc"}
-                </span>
-                <span className="num text-ui text-muted">
-                  {parking.photoCount} {parking.photoCount === 1 ? "zdjęcie" : "zdjęć"}
-                </span>
-              </div>
+              <CardBody className="flex flex-1 flex-col gap-3">
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  {price ? <Price gr={price.gr} per={price.per} size="sm" /> : null}
+                  <span className="num text-ui text-muted">
+                    {parking.capacity ?? 0} {parking.capacity === 1 ? "miejsce" : "miejsc"}
+                  </span>
+                  <span className="num text-ui text-muted">
+                    {parking.photoCount} {parking.photoCount === 1 ? "zdjęcie" : "zdjęć"}
+                  </span>
+                </div>
 
-              {parking.status === "REJECTED" && parking.rejectionReason ? (
-                <p className="rounded-chip border border-danger bg-danger-soft p-3 text-ui text-ink">
-                  <span className="font-semibold">Dlaczego odrzucony: </span>
-                  {parking.rejectionReason}
+                {parking.status === "REJECTED" && parking.rejectionReason ? (
+                  <p className="rounded-chip border border-danger bg-danger-soft p-3 text-ui text-ink">
+                    <span className="font-semibold">Dlaczego odrzucony: </span>
+                    {parking.rejectionReason}
+                  </p>
+                ) : null}
+
+                {status.note ? <p className="text-ui text-muted">{status.note}</p> : null}
+
+                <Progress
+                  value={parking.profileCompleteness}
+                  label="Kompletność profilu"
+                  hint={`${parking.profileCompleteness}%`}
+                />
+
+                <p className="text-ui text-muted">
+                  Ostatnia zmiana: {formatDateTimePL(parking.updatedAt)}
                 </p>
-              ) : null}
+              </CardBody>
 
-              {status.note ? <p className="text-ui text-muted">{status.note}</p> : null}
-
-              <Progress
-                value={parking.profileCompleteness}
-                label="Kompletność profilu"
-                hint={`${parking.profileCompleteness}%`}
-              />
-
-              <p className="text-ui text-muted">
-                Ostatnia zmiana: {formatDateTimePL(parking.updatedAt)}
-              </p>
-            </CardBody>
-
-            <CardFooter>
-              <Link
-                href={`/panel/parkingi/${parking.id}/edytuj`}
-                className={buttonVariants({ size: "sm" })}
-              >
-                Edytuj
-              </Link>
-              <ParkingActions parkingId={parking.id} status={parking.status} />
-            </CardFooter>
-          </Card>
-        );
-      })}
-    </div>
+              <CardFooter>
+                <Link
+                  href={`/panel/parkingi/${parking.id}/edytuj`}
+                  className={buttonVariants({ size: "sm" })}
+                >
+                  Edytuj
+                </Link>
+                <ParkingActions parkingId={parking.id} status={parking.status} />
+              </CardFooter>
+            </Card>
+          );
+        })}
+      </div>
+    </PageContainer>
   );
 }

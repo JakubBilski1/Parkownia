@@ -18,6 +18,12 @@ export type PricePinProps = {
   walkMinutes?: number | null;
   isCovered?: boolean | null;
   selected?: boolean;
+  /**
+   * Cross-highlight from hovering the matching rail card on desktop: a NEUTRAL
+   * lift (ink border, a hair of scale), never the accent — the accent is the
+   * selected pin alone. Ignored while selected.
+   */
+  raised?: boolean;
   /** Height of the stem raising the label clear of an overlapping neighbour. */
   liftPx?: number;
   onSelect: () => void;
@@ -28,9 +34,11 @@ export function PricePin({
   walkMinutes,
   isCovered,
   selected = false,
+  raised = false,
   liftPx = 0,
   onSelect,
 }: PricePinProps) {
+  const emphasizedNeutral = raised && !selected;
   const { amount, currency } = formatMoneyParts(priceGr);
 
   const description = [
@@ -52,6 +60,8 @@ export function PricePin({
       aria-label={description}
       className={cn(
         "press flex min-w-[60px] flex-col items-center drop-shadow-ticket",
+        "transition-transform duration-micro ease-out",
+        emphasizedNeutral && "scale-[1.06]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
       )}
     >
@@ -62,7 +72,9 @@ export function PricePin({
           "transition-colors duration-micro ease-out",
           selected
             ? "border-accent bg-accent text-accent-ink"
-            : "border-line bg-surface text-ink",
+            : emphasizedNeutral
+              ? "border-ink bg-surface text-ink"
+              : "border-line bg-surface text-ink",
         )}
       >
         <span className="num flex items-baseline gap-0.5 font-mono text-ui font-semibold leading-none">
@@ -90,7 +102,10 @@ export function PricePin({
         <span
           aria-hidden="true"
           style={{ height: `${liftPx}px` }}
-          className={cn("w-px", selected ? "bg-accent" : "bg-line")}
+          className={cn(
+            "w-px",
+            selected ? "bg-accent" : emphasizedNeutral ? "bg-ink" : "bg-line",
+          )}
         />
       ) : null}
 
@@ -98,7 +113,11 @@ export function PricePin({
         aria-hidden="true"
         className={cn(
           "-mt-[3px] h-[7px] w-[7px] rotate-45 border-b border-r",
-          selected ? "border-accent bg-accent" : "border-line bg-surface",
+          selected
+            ? "border-accent bg-accent"
+            : emphasizedNeutral
+              ? "border-ink bg-surface"
+              : "border-line bg-surface",
         )}
       />
     </button>

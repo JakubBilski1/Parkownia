@@ -177,7 +177,7 @@ export function MapScreen() {
         {isInitialLoading ? (
           <div
             aria-busy="true"
-            className="pointer-events-auto w-full rounded-card border border-line bg-surface p-3 shadow-float"
+            className="pointer-events-auto w-full rounded-card border border-line bg-surface p-3 shadow-float md:w-auto md:max-w-sm"
           >
             <span className="sr-only">Szukamy parkingów w tym widoku.</span>
             <div className="flex flex-col gap-2">
@@ -188,7 +188,7 @@ export function MapScreen() {
         ) : null}
 
         {error ? (
-          <div className="pointer-events-auto flex w-full flex-col items-start gap-2 rounded-card border border-danger bg-surface p-3 shadow-float">
+          <div className="pointer-events-auto flex w-full flex-col items-start gap-2 rounded-card border border-danger bg-surface p-3 shadow-float md:w-auto md:max-w-sm">
             <p className="text-body text-ink">{error}</p>
             <Button variant="quiet" size="sm" onClick={retry}>
               Spróbuj ponownie
@@ -198,7 +198,7 @@ export function MapScreen() {
 
         {showEmpty ? (
           <EmptyState
-            className="pointer-events-auto w-full shadow-float"
+            className="pointer-events-auto w-full shadow-float md:w-auto md:max-w-md"
             title={
               selectedEvent
                 ? "Nie mamy jeszcze parkingów przy tym wydarzeniu"

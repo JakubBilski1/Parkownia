@@ -9,7 +9,31 @@ import {
 } from "@/lib/format";
 import type { EventSummary } from "@/modules/events/service";
 import { LinkButton } from "@/modules/events/ui/link-button";
-import { EVENT_CATEGORY_LABEL, matchColours, type MatchColours } from "./event-meta";
+import {
+  EVENT_CATEGORY_ICON,
+  EVENT_CATEGORY_LABEL,
+  matchColours,
+  type MatchColours,
+} from "./event-meta";
+
+/**
+ * What kind of event this is: icon plus word, on every card.
+ *
+ * A fixture is also marked by its clubs' colours, but colour must never be the
+ * only carrier (DESIGN_PRINCIPLES §4) — 8% of men cannot separate these reds and
+ * greens, and football crowds are exactly that audience. Without this the grid
+ * said "match" in colour alone and said nothing at all about a fair. The icon is
+ * the same one the event's own page uses, so the list and the detail agree.
+ */
+function CategoryTag({ category }: { category: EventSummary["category"] }) {
+  const Icon = EVENT_CATEGORY_ICON[category];
+  return (
+    <span className="inline-flex items-center gap-1.5 font-mono text-ui uppercase tracking-[0.14em] text-muted">
+      <Icon size={14} aria-hidden="true" className="shrink-0" />
+      {EVENT_CATEGORY_LABEL[category]}
+    </span>
+  );
+}
 
 /**
  * A fixture's colours: the away side washed softly in from the corner, and both
@@ -103,13 +127,18 @@ export function NextEventHero({ event }: { event: EventSummary }) {
       <GhostDay date={event.startsAt} className="right-3 top-1 text-[8rem]/none sm:text-[11rem]/none" />
 
       <CardBody className="relative flex flex-col gap-2 p-5 sm:p-6 lg:p-8">
-        <div className="flex flex-wrap items-center gap-2">
+        {/* "Najbliższe" was once the whole eyebrow: the title named the clubs, so
+            the category read as noise. That holds for a fixture and fails for a
+            fair — "DREMA" tells a driver nothing on its own. It is information
+            here, so it stays. */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="font-mono text-ui uppercase tracking-[0.14em] text-muted">
             Najbliższe
           </span>
           <span className="num rounded-pill border border-line bg-surface-2 px-2.5 py-0.5 font-mono text-ui text-ink">
             {formatEventCountdownPL(event.startsAt, event.endsAt)}
           </span>
+          <CategoryTag category={event.category} />
         </div>
 
         <h2 className="max-w-2xl text-balance font-display text-h2 font-extrabold text-ink lg:text-h1">
@@ -144,9 +173,7 @@ export function EventCard({ event }: { event: EventSummary }) {
       <GhostDay date={event.startsAt} className="right-2 top-1 text-[6.5rem]/none" />
 
       <CardBody className="relative flex flex-1 flex-col gap-1.5">
-        <span className="font-mono text-ui uppercase tracking-[0.14em] text-muted">
-          {EVENT_CATEGORY_LABEL[event.category]}
-        </span>
+        <CategoryTag category={event.category} />
 
         {/* Reserve two lines from the grid up. "Lech Poznań – Piast Gliwice" fits
             one line and "…– Jagiellonia Białystok" needs two, so without a floor

@@ -28,6 +28,23 @@ type NewParking = {
 };
 
 test.describe("Cykl życia parkingu — od rejestracji do pinezki", () => {
+  /**
+   * The longest test in the suite, and the only one that earns extra time.
+   *
+   * It drives six phases end to end — register, create, autosave across a reload,
+   * submit, moderate, appear on the map — and each is a first hit on a route that
+   * `next dev` compiles on demand. On an unloaded machine it lands around 70 s
+   * against the suite's 90 s default, i.e. under 25% headroom, and it fails
+   * whenever anything else is competing for the CPU. It has been observed failing
+   * on unrelated code for exactly this reason.
+   *
+   * Raising the ceiling here does not hide a slow product: `next build` is not on
+   * this path, and the same journey takes seconds against a compiled server. It
+   * buys the room this specific test always needed. Every other test keeps the
+   * 90 s default, so a genuine regression elsewhere still fails loudly.
+   */
+  test.describe.configure({ timeout: 180_000 });
+
   test.beforeEach(async () => {
     await resetRateLimits();
   });

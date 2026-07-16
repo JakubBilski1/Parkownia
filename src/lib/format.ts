@@ -1,4 +1,3 @@
-import { differenceInCalendarDays, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -91,6 +90,28 @@ export function formatDayOfMonthPL(value: Date | string | number): string {
 }
 
 /**
+ * Whole days between two "yyyy-MM-dd" strings, counted as calendar dates.
+ *
+ * Anchoring both at UTC midnight makes the subtraction exact: a UTC day is always
+ * 86,400,000 ms, so the DST switch these dates may straddle cannot leak in. The
+ * zone was already applied upstream when the strings were formatted.
+ *
+ * Deliberately not date-fns: `differenceInCalendarDays` costs a root `date-fns`
+ * import, and that barrel pulls the whole library into the module graph. This file
+ * is in almost every page's graph, and doing it made the dev server compile all of
+ * date-fns on demand — the e2e suite went from 2.6 to 4.2 minutes and the parking
+ * lifecycle test blew its 90 s budget. The rest of this file imports date-fns by
+ * path for the same reason.
+ */
+function calendarDaysBetween(fromIsoDate: string, toIsoDate: string): number {
+  const utcMidnight = (iso: string) => {
+    const [year, month, day] = iso.split("-").map(Number);
+    return Date.UTC(year!, month! - 1, day!);
+  };
+  return Math.round((utcMidnight(toIsoDate) - utcMidnight(fromIsoDate)) / 86_400_000);
+}
+
+/**
  * "trwa teraz" / "dziś" / "jutro" / "za 9 dni" — how far off an event is.
  *
  * Counted in CALENDAR days in Europe/Warsaw, not in elapsed hours: at 23:00 an
@@ -113,9 +134,9 @@ export function formatEventCountdownPL(
   if (current.getTime() >= end.getTime()) return "zakończone";
   if (current.getTime() >= start.getTime()) return "trwa teraz";
 
-  const days = differenceInCalendarDays(
-    parseISO(formatInTimeZone(start, APP_TIME_ZONE, "yyyy-MM-dd")),
-    parseISO(formatInTimeZone(current, APP_TIME_ZONE, "yyyy-MM-dd")),
+  const days = calendarDaysBetween(
+    formatInTimeZone(current, APP_TIME_ZONE, "yyyy-MM-dd"),
+    formatInTimeZone(start, APP_TIME_ZONE, "yyyy-MM-dd"),
   );
 
   if (days <= 0) return "dziś";

@@ -14,6 +14,8 @@ Oba motywy to **jeden zestaw tokenów** — komponenty nie wiedzą, w którym mo
 
 Definicja: `src/app/globals.css`. Mapowanie na klasy: `tailwind.config.ts`. Motyw przełącza jeden atrybut na `<html>` (`data-theme="light" | "dark"`, brak atrybutu = preferencja systemu).
 
+> **Ciemna paleta jest w `globals.css` zapisana dwa razy** — raz dla jawnego przełącznika (`:root[data-theme="dark"]`), raz dla preferencji systemu (`@media (prefers-color-scheme: dark)`). CSS nie potrafi dzielić jednej reguły przez granicę media query, więc duplikat jest konieczny. **Zmieniasz token w jednej kopii → zmień w obu.** Pilnuje tego `tests/unit/design/theme-tokens.test.ts`; rozjazd wywala build. Kopia systemowa musi używać selektora `:root:not([data-theme])` — wariant `:not([data-theme="light"])` łapie się także na `data-theme="dark"`, remisuje na specyficzności i po cichu nadpisuje świadomy wybór użytkownika. Ten błąd już raz pojechał na produkcję.
+
 | Token | Klasa Tailwind | Jasny (Bilet) | Ciemny (Zmierzch) | Rola |
 |---|---|---|---|---|
 | `--bg` | `bg-bg` | `#EEEEEB` | `#1A1918` | tło aplikacji, podkład mapy |

@@ -5,7 +5,7 @@
     "parkownia:note": "Ciemny wariant powstaje przez odbarwienie i przyciemnienie rastra OSM — to proteza, nie docelowy styl. Raster nie da sie odwrocic tonalnie bez zamiany napisow w papke. Produkcja: kafelki wektorowe (MapTiler / Protomaps) ze stylem na tokenach Zmierzchu. Patrz docs/DESIGN_SYSTEM.md.",
     "parkownia:tokens": {
       "bg": "#1A1918",
-      "accent": "#E0C9A6"
+      "accent": "#C93A3A"
     }
   },
   "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",

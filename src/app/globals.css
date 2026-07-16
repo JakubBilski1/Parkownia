@@ -4,9 +4,15 @@
 
 /* ==========================================================================
    Parkownia design tokens.
-   Light  = "Bilet"   (cool paper, stamp red)
-   Dark   = "Zmierzch" (warm graphite, champagne)
+   Light  = "Bilet"    (cool paper, stamp red)
+   Dark   = "Zmierzch" (warm graphite, stamp red lifted for the near-black field)
    Full documentation: docs/DESIGN_SYSTEM.md
+
+   The dark palette is declared TWICE below and the two copies must stay
+   identical — one for the explicit toggle, one for the OS preference. They
+   cannot be merged: a rule cannot be both inside and outside a media query.
+   The duplication is guarded by tests/unit/design/theme-tokens.test.ts, which
+   fails the build if the copies drift. Do not edit one without the other.
    ========================================================================== */
 
 @layer base {
@@ -44,12 +50,12 @@
     --overlay: rgb(25 26 28 / 0.45);
 
     --shadow-card: 0 1px 2px rgb(25 26 28 / 0.06), 0 10px 24px -16px rgb(25 26 28 / 0.24);
-    --shadow-card-hover: 0 2px 4px rgb(25 26 28 / 0.07), 0 16px 32px -20px rgb(25 26 28 / 0.3);
     --shadow-float: 0 2px 6px rgb(25 26 28 / 0.08), 0 24px 48px -24px rgb(25 26 28 / 0.34);
     --drop-ticket-1: 0 1px 1px rgb(25 26 28 / 0.08);
     --drop-ticket-2: 0 10px 18px rgb(25 26 28 / 0.12);
   }
 
+  /* Dark, copy 1 of 2 — the explicit toggle. Keep in sync with copy 2. */
   :root[data-theme="dark"] {
     color-scheme: dark;
 
@@ -67,8 +73,6 @@
     --accent-hover: #d64b4b;
     --accent-active: #b23131;
 
-    --scan-ok: #0f7b4f;
-    --scan-bad: #b3261e;
     --danger: #f2857d;
     --danger-ink: #1a1918;
     --danger-soft: #34211f;
@@ -81,14 +85,18 @@
     --overlay: rgb(0 0 0 / 0.62);
 
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 24px -16px rgb(0 0 0 / 0.7);
-    --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.45), 0 16px 32px -20px rgb(0 0 0 / 0.78);
     --shadow-float: 0 2px 6px rgb(0 0 0 / 0.5), 0 24px 48px -24px rgb(0 0 0 / 0.8);
     --drop-ticket-1: 0 1px 1px rgb(0 0 0 / 0.5);
     --drop-ticket-2: 0 10px 18px rgb(0 0 0 / 0.45);
   }
 
+  /* Dark, copy 2 of 2 — the OS preference, and ONLY when the user has not
+     chosen for themselves. The selector must stay `:not([data-theme])`, not
+     `:not([data-theme="light"])`: the latter also matches data-theme="dark",
+     ties on specificity (0,2,0) with copy 1, and — being later in the file —
+     silently overrides the explicit toggle. That bug shipped once already. */
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
+    :root:not([data-theme]) {
       color-scheme: dark;
 
       --bg: #1a1918;
@@ -98,10 +106,10 @@
       --muted: #9e978d;
       --line: #38352f;
 
-      --accent: #e0c9a6;
-      --accent-ink: #1a1918;
-      --accent-hover: #ecdabd;
-      --accent-active: #cdb28a;
+      --accent: #c93a3a;
+      --accent-ink: #fff7f5;
+      --accent-hover: #d64b4b;
+      --accent-active: #b23131;
 
       --danger: #f2857d;
       --danger-ink: #1a1918;

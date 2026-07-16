@@ -70,7 +70,6 @@ const config: Config = {
     },
     boxShadow: {
       card: "var(--shadow-card)",
-      "card-hover": "var(--shadow-card-hover)",
       float: "var(--shadow-float)",
       none: "none",
     },
@@ -115,8 +114,8 @@ const config: Config = {
     },
   },
   plugins: [
-    // Desktop hover affordances (card lift, pin cross-highlight) must never fire
-    // on a touchscreen, where "hover" is a tap and the lift reads as a glitch.
+    // Desktop hover affordances (rail card outline, pin cross-highlight) must never
+    // fire on a touchscreen, where "hover" is a tap and the change reads as a glitch.
     // `hover-hover:` wraps a rule in `@media (hover: hover) and (pointer: fine)`,
     // so only a real mouse/trackpad gets it — phones and tablets are excluded by
     // construction, which is also how mobile stays byte-for-byte unchanged.

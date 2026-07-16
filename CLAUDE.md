@@ -86,7 +86,9 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 *(aktualizuj tę sekcję po każdej ukończonej fazie)*
 
 - [x] Faza projektowa — komplet dokumentów w `docs/` (2026-07-13)
-  - Design: motyw jasny „Bilet", ciemny „Zmierzch" — wybrany, tokeny w `tailwind.config.ts`
+  - Design: motyw jasny „Bilet", ciemny „Zmierzch" — wybrany. Tokeny definiuje
+    `src/app/globals.css`, `tailwind.config.ts` tylko mapuje je na klasy. Akcent to stemplowa
+    czerwień w OBU motywach (`#8e2b2b` jasny / `#c93a3a` ciemny) — szampan jest wycofany.
 - [x] Faza 0 — scaffolding (Next.js, Docker, Drizzle, seed)
 - [x] Faza 1 — Auth + model parkingu + formularz + mapa
 - [x] Faza 2 — Eventy + nakładka na mapę + deklaracja dostępności hosta
@@ -94,19 +96,25 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 - [x] Faza 4 — Panel hosta (skaner offline) + panel admina
 - [ ] Faza 5 — Hardening, testy e2e, deployment ← **TU JESTEŚMY**
 
-**Bramka jakości (stan na 2026-07-14, wszystko uruchomione, nie zadeklarowane):**
+**Bramka jakości (stan na 2026-07-16, wszystko uruchomione, nie zadeklarowane):**
 
 | | |
 |---|---|
 | `npx tsc --noEmit` | ✅ |
 | `npm run lint` | ✅ |
 | `npm run build` | ✅ |
-| `npx vitest run` (unit) | ✅ 77/77 |
+| `npx vitest run --project unit` | ✅ 83/83 |
 | `npm run test:integration` | ✅ 27/27 na żywym PostGIS |
 | `npm run test:e2e` | ✅ 10/10 (Playwright) |
 
-**Baza DZIAŁA i ma dane.** PostgreSQL 16 + PostGIS 3.6 (WSL, `localhost:5433`). Migracje i seed
-wykonane: 26 tabel, 17 eventów (mecze Lecha + targi MTP), 20 parkingów, 4 konta testowe
+**Zielona bramka nie łapie wszystkiego — i to nie jest teoria.** Zmiana akcentu w ciemnym
+motywie pojechała na produkcję martwa: `tsc`, `lint`, `build` i 104 testy przeszły, bo **żaden
+z nich nie patrzy na skomputowany CSS**. Błąd wyszedł dopiero po otwarciu strony w przeglądarce.
+Jeśli ruszasz cokolwiek wizualnego — otwórz to i zobacz, zanim powiesz „gotowe".
+
+**Baza LOKALNA działa i ma dane** (to nie jest prod — prod opisany niżej). PostgreSQL 16 +
+PostGIS 3.6 (WSL, `localhost:5433`). Migracje i seed wykonane z `SEED_DEV=1`: 26 tabel,
+17 eventów (mecze Lecha + targi MTP), 20 parkingów, 4 konta testowe
 (`admin@` / `host@` / `firma@` / `kierowca@parkspot.pl`, hasło `parkspot123`).
 Ścieżka zakupu przejechana end-to-end na żywym serwerze: rezerwacja → intent → webhook →
 CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego samego kodu → odrzucony.
@@ -116,21 +124,63 @@ CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego sa
       publikacja parkingu zablokowana, dopóki host nie przejdzie KYC (tylko na `PAYMENT_PROVIDER=stripe`)
 - [x] Testy integracyjne i e2e istnieją i przechodzą
 
+## PRODUKCJA ŻYJE (zweryfikowane 2026-07-16)
+
+**`https://parkownia.com` stoi i serwuje tę aplikację.** Hetzner, `135.181.253.104`.
+`parkownia.pl` **nie istnieje** (NXDOMAIN na 1.1.1.1 i 8.8.8.8) — nie szukaj tam niczego.
+
+**Push na `main` = deploy. Bez pytania.** Coolify ma własny webhook i sam przebudowuje;
+**wchodzi ~8 minut po pushu**. W repo nie ma po tym ANI ŚLADU — brak `.github/workflows`,
+domena nie występuje w kodzie. Nie wyciągaj z tego wniosku „push nie deployuje" (ja wyciągnąłem,
+błędnie). Jak chcesz sprawdzić, czy zmiana weszła: porównaj hash bundla CSS z
+`/_next/static/css/…` przed i po, i **daj mu te 8 minut**, zanim uznasz, że nie poszło.
+
+**Czego NIE wiem:** czy Coolify buduje przez nasz `Dockerfile`, czy po swojemu. `docker build`
+nigdy nie przeszedł na tej maszynie (demon nie wstaje, `com.docker.service` zatrzymana, brak
+uprawnień). Ale ścieżka deploymentu jako taka **jest zweryfikowana w praktyce** — prod chodzi
+i przyjmuje kolejne commity.
+
+**Prod nie ma ani jednego parkingu — TAK MA BYĆ.** `docker-entrypoint.sh` celowo nie ustawia
+`SEED_DEV`, a za tą flagą stoją konta testowe i 20 demo-parkingów. Prod dostaje wyłącznie dane
+referencyjne: prowizje, politykę zwrotów, obiekty i 17 eventów. Dlatego mapa jest pusta,
+a każdy event mówi „nie mamy jeszcze parkingu". **To nie jest awaria** — to brak podaży:
+żaden prawdziwy host jeszcze nic nie wystawił.
+
 **Co NIE jest zrobione — nie udawaj, że jest:**
 
-- [ ] **Obraz Dockera nigdy się nie zbudował.** Nie ma już `docker-compose*.yml` — jednostką
-      deploymentu jest jeden obraz produkcyjny z `Dockerfile` (baza stoi na VPS-ie, poza obrazem).
-      Demon Dockera nie wstaje w tym środowisku: usługa `com.docker.service` jest zatrzymana,
-      a jej uruchomienie wymaga podniesionych uprawnień, których sesja nie ma. **`docker build`
-      nie przeszedł ani razu — to niezweryfikowana ścieżka deploymentu.** Pierwszy build na
-      maszynie z działającym Dockerem jest jednocześnie pierwszym testem.
-      Zweryfikowane *jest* natomiast to, co obraz odpala przy starcie: `scripts/migrate.mjs`
-      i zbundlowany `dist/seed.mjs` przejechane na żywym PostGIS-ie, bez `tsx`.
-- [ ] **Brak `PATCH /api/me`** → „Moje dane" na `/konto` są read-only. Telefon da się ustawić tylko
-      przy zakupie. Zły numer = brak SMS-a z kodem i brak sposobu, żeby to naprawić.
+- [ ] **Brak `PATCH /api/me`** → „Moje dane" na `/konto` są read-only (na stronie widać „Telefon —").
+      Telefon da się ustawić tylko przy zakupie. Zły numer = brak SMS-a z kodem i brak sposobu,
+      żeby to naprawić. **Najostrzejsza dziura funkcjonalna, jaka została.**
+- [ ] **`PAYMENT_PROVIDER` nieuzupełniony przez właściciela** — bez tego nic się nie kupi.
+      Uwaga: brama KYC (publikacja parkingu zablokowana do przejścia weryfikacji) odpala się
+      **tylko** na `PAYMENT_PROVIDER=stripe`, więc dziś nie działa.
+- [ ] Stripe przetestowany wyłącznie na mocku — brak testu na prawdziwym koncie testowym Stripe.
 - [ ] **Seed nie zawiera ani jednej deklaracji hosta na event** (`event_parking_availability` = 0 wierszy).
       Sprzedaż eventowa działa (parking z `availability_mode` pokrywającym okno sprzedaje się bez
       deklaracji), ale panel hosta „Wydarzenia", quick-declare z maila i skaner są po seedzie puste.
-- [ ] Stripe przetestowany wyłącznie na mocku — brak testu na prawdziwym koncie testowym Stripe.
+      Dotyczy dev-a; na prodzie i tak nie ma parkingów.
+
+---
+
+## Miny, w które ktoś już wdepnął — nie powtarzaj
+
+**Ciemna paleta w `globals.css` jest zapisana DWA RAZY** — raz dla jawnego przełącznika
+(`:root[data-theme="dark"]`), raz dla preferencji systemu (`@media (prefers-color-scheme: dark)`).
+CSS nie umie dzielić jednej reguły przez granicę media query, więc duplikat jest konieczny.
+**Zmieniasz token w jednej kopii → zmień w obu.** Kopia systemowa MUSI mieć selektor
+`:root:not([data-theme])`; wariant `:not([data-theme="light"])` łapie się także na
+`data-theme="dark"`, remisuje na specyficzności `(0,2,0)` i po cichu nadpisuje świadomy wybór
+użytkownika. Dokładnie to pojechało na prod: każdy z ciemnym systemem widział stary akcent,
+niezależnie od tego, co wybrał. Pilnuje tego teraz `tests/unit/design/theme-tokens.test.ts` —
+rozjazd wywala build.
+
+**`PageContainer` NIE jest do wszystkiego** (`src/components/ui/page-container.tsx`).
+Ma dwa warianty, `prose` i `wide`, i jest świadomie użyty tylko na 4 stronach
+(`/wydarzenia`, `/wydarzenia/[slug]`, `/konto`, `/panel/parkingi`). Reszta jest wąska **celowo**:
+długie formularze, magic-link, wizjer skanera, 404, kolumna logowania; mapa i admin są full-bleed
+pod swoimi shellami. **Poszerzenie płaci się tylko wtedy, gdy treść potrafi wydać to miejsce** —
+jednokolumnowa lista kart rozciągnięta do 1152px to regres. Jeśli poszerzasz, zmień też siatkę
+w środku (tak zrobiono na `/panel/parkingi`: `wide` + `lg:grid-cols-2`). Warianty `default`
+i `full` zostały wycięte jako spekulacja — nie dodawaj ich z powrotem „na zapas".
 
 **Wymagany Node ≥ 22** (Vitest 4 potrzebuje `util.styleText`). Na Node 21 testy nie wystartują.

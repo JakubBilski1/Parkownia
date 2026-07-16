@@ -64,6 +64,7 @@ export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventP
   if (parkings.length === 0) {
     return (
       <EmptyState
+        className="mx-auto max-w-lg"
         icon={ParkingCircle}
         title="Nie mamy jeszcze parkingu przy tym wydarzeniu"
         description="Nikt nie udostępnił miejsca w promieniu tego wydarzenia. Masz podjazd, plac albo pusty parking firmowy w okolicy? Udostępnij go na ten jeden wieczór i zarób."
@@ -133,64 +134,66 @@ export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventP
                     selected && "border-ink",
                   )}
                 >
-                <CardBody className="flex flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={() => select(parking.id)}
-                    className="flex flex-col items-start gap-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                  >
-                    <h3 className="font-display text-h3 font-bold text-ink">
-                      {parking.title ?? "Parking"}
-                    </h3>
-                    <p className="num text-ui text-muted">
-                      {formatWalkDistance(parking.straightLineMeters)} ·{" "}
-                      {formatWalkTime(parking.straightLineMeters)}
-                    </p>
-                  </button>
+                  <CardBody className="flex flex-col gap-3">
+                    <button
+                      type="button"
+                      onClick={() => select(parking.id)}
+                      className="flex flex-col items-start gap-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    >
+                      <h3 className="font-display text-h3 font-bold text-ink">
+                        {parking.title ?? "Parking"}
+                      </h3>
+                      <p className="num text-ui text-muted">
+                        {formatWalkDistance(parking.straightLineMeters)} ·{" "}
+                        {formatWalkTime(parking.straightLineMeters)}
+                      </p>
+                    </button>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    {parking.isCovered ? (
-                      <Badge icon={Umbrella} tone="neutral">
-                        Zadaszony
-                      </Badge>
-                    ) : null}
-                    {parking.isGuarded ? (
-                      <Badge icon={Eye} tone="neutral">
-                        Dozorowany
-                      </Badge>
-                    ) : null}
-                    {parking.maxVehicleHeightCm ? (
-                      <Badge icon={Ruler} tone="neutral">
-                        Do {formatHeight(parking.maxVehicleHeightCm)}
-                      </Badge>
-                    ) : null}
-                  </div>
-
-                  {parking.hostNotes ? <p className="text-ui text-ink">{parking.hostNotes}</p> : null}
-
-                  <div className="flex flex-wrap items-end justify-between gap-3">
-                    <div className="flex flex-col gap-0.5">
-                      <Price gr={parking.priceGr} per="za wydarzenie" size="md" />
-                      <span className="num text-ui text-muted">
-                        {parking.freeSpots === 1
-                          ? "Zostało 1 miejsce"
-                          : `Wolne miejsca: ${parking.freeSpots}`}
-                      </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {parking.isCovered ? (
+                        <Badge icon={Umbrella} tone="neutral">
+                          Zadaszony
+                        </Badge>
+                      ) : null}
+                      {parking.isGuarded ? (
+                        <Badge icon={Eye} tone="neutral">
+                          Dozorowany
+                        </Badge>
+                      ) : null}
+                      {parking.maxVehicleHeightCm ? (
+                        <Badge icon={Ruler} tone="neutral">
+                          Do {formatHeight(parking.maxVehicleHeightCm)}
+                        </Badge>
+                      ) : null}
                     </div>
 
-                    <LinkButton
-                      href={ROUTES.reserve(parking.id, { eventId })}
-                      variant="accent"
-                      className="min-w-[9rem]"
-                    >
-                      Zarezerwuj
-                    </LinkButton>
-                  </div>
-                </CardBody>
-              </Card>
-            </li>
-          );
-        })}
+                    {parking.hostNotes ? (
+                      <p className="text-ui text-ink">{parking.hostNotes}</p>
+                    ) : null}
+
+                    <div className="flex flex-wrap items-end justify-between gap-3">
+                      <div className="flex flex-col gap-0.5">
+                        <Price gr={parking.priceGr} per="za wydarzenie" size="md" />
+                        <span className="num text-ui text-muted">
+                          {parking.freeSpots === 1
+                            ? "Zostało 1 miejsce"
+                            : `Wolne miejsca: ${parking.freeSpots}`}
+                        </span>
+                      </div>
+
+                      <LinkButton
+                        href={ROUTES.reserve(parking.id, { eventId })}
+                        variant="accent"
+                        className="min-w-[9rem]"
+                      >
+                        Zarezerwuj
+                      </LinkButton>
+                    </div>
+                  </CardBody>
+                </Card>
+              </li>
+            );
+          })}
         </ol>
       </div>
     </div>

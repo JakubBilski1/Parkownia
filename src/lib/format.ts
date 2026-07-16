@@ -1,3 +1,4 @@
+import { differenceInCalendarDays, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -82,6 +83,44 @@ export function formatTimeRangePL(
     APP_TIME_ZONE,
     "dd.MM, HH:mm",
   )}`;
+}
+
+/** "dd" in Warsaw — the day of the month, on its own, for a date's typography. */
+export function formatDayOfMonthPL(value: Date | string | number): string {
+  return formatInTimeZone(toDate(value), APP_TIME_ZONE, "dd", { locale: pl });
+}
+
+/**
+ * "trwa teraz" / "dziś" / "jutro" / "za 9 dni" — how far off an event is.
+ *
+ * Counted in CALENDAR days in Europe/Warsaw, not in elapsed hours: at 23:00 an
+ * event starting in two hours is "jutro", and 25 hours out can still be "jutro"
+ * as well. Both sides collapse to a plain yyyy-MM-dd in Warsaw before they are
+ * compared, so a DST switch in between cannot shift the answer by a day.
+ *
+ * `endsAt` is not decoration — listUpcomingEvents keeps events whose endsAt is
+ * still ahead, so the soonest one can be a match already under way.
+ */
+export function formatEventCountdownPL(
+  startsAt: Date | string | number,
+  endsAt: Date | string | number,
+  now: Date | string | number = new Date(),
+): string {
+  const start = toDate(startsAt);
+  const end = toDate(endsAt);
+  const current = toDate(now);
+
+  if (current.getTime() >= end.getTime()) return "zakończone";
+  if (current.getTime() >= start.getTime()) return "trwa teraz";
+
+  const days = differenceInCalendarDays(
+    parseISO(formatInTimeZone(start, APP_TIME_ZONE, "yyyy-MM-dd")),
+    parseISO(formatInTimeZone(current, APP_TIME_ZONE, "yyyy-MM-dd")),
+  );
+
+  if (days <= 0) return "dziś";
+  if (days === 1) return "jutro";
+  return `za ${days} ${pluralPl(days, "dzień", "dni", "dni")}`;
 }
 
 export type WalkEstimate = { meters: number; minutes: number };

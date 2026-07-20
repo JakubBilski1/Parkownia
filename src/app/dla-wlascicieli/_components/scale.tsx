@@ -8,21 +8,33 @@ import { events, venues } from "@/db/schema";
  * have, so it stays an explicit TODO placeholder — never a fabricated figure
  * (DESIGN_PRINCIPLES §1: no fake numbers before they are real).
  */
-async function getStats(): Promise<{ eventsNext12mo: number; eneaCapacity: number | null }> {
-  const [eventRow] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(events)
-    .where(
-      and(gte(events.endsAt, sql`now()`), lte(events.startsAt, sql`now() + interval '12 months'`)),
-    );
+type ScaleStats = { eventsNext12mo: number | null; eneaCapacity: number | null };
 
-  const [enea] = await db
-    .select({ capacity: venues.capacity })
-    .from(venues)
-    .where(sql`${venues.name} ILIKE ${"%enea%"}`)
-    .limit(1);
+async function getStats(): Promise<ScaleStats> {
+  // This is an acquisition page — a database hiccup must not 500 it. On failure
+  // the section still renders, just without the live figures.
+  try {
+    const [eventRow] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(events)
+      .where(
+        and(
+          gte(events.endsAt, sql`now()`),
+          lte(events.startsAt, sql`now() + interval '12 months'`),
+        ),
+      );
 
-  return { eventsNext12mo: eventRow?.n ?? 0, eneaCapacity: enea?.capacity ?? null };
+    const [enea] = await db
+      .select({ capacity: venues.capacity })
+      .from(venues)
+      .where(sql`${venues.name} ILIKE ${"%enea%"}`)
+      .limit(1);
+
+    return { eventsNext12mo: eventRow?.n ?? 0, eneaCapacity: enea?.capacity ?? null };
+  } catch (error) {
+    console.error("[dla-wlascicieli] scale stats failed:", error instanceof Error ? error.message : error);
+    return { eventsNext12mo: null, eneaCapacity: null };
+  }
 }
 
 export async function Scale() {
@@ -50,13 +62,15 @@ export async function Scale() {
             </div>
           ) : null}
 
-          <div className="rounded-card border border-line bg-surface p-6">
-            <dt className="text-ui text-muted">Wydarzenia w najbliższych 12 miesiącach</dt>
-            <dd className="mt-2 font-display text-h1 font-extrabold tabular-nums tracking-tight text-ink">
-              {eventsNext12mo.toLocaleString("pl-PL")}
-            </dd>
-            <dd className="mt-1 text-ui text-muted">mecze Lecha i targi MTP w naszej bazie</dd>
-          </div>
+          {eventsNext12mo !== null ? (
+            <div className="rounded-card border border-line bg-surface p-6">
+              <dt className="text-ui text-muted">Wydarzenia w najbliższych 12 miesiącach</dt>
+              <dd className="mt-2 font-display text-h1 font-extrabold tabular-nums tracking-tight text-ink">
+                {eventsNext12mo.toLocaleString("pl-PL")}
+              </dd>
+              <dd className="mt-1 text-ui text-muted">mecze Lecha i targi MTP w naszej bazie</dd>
+            </div>
+          ) : null}
 
           {/* TODO(dane): średnia frekwencja Lecha + footfall MTP — wstawić realne, CYTOWANE liczby
               przed publikacją (raporty klubu/Ekstraklasy, raport roczny Grupy MTP). Nie zgadywać. */}

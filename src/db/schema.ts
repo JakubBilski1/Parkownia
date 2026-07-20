@@ -168,6 +168,27 @@ export const notificationChannelEnum = pgEnum("notification_channel", ["EMAIL", 
 
 export const notificationStatusEnum = pgEnum("notification_status", ["SENT", "FAILED"]);
 
+// Supply-acquisition leads (landing /dla-wlascicieli). Object type mirrors the
+// Polish copy: plac, podjazd, parking firmowy, garaż/podziemie, inne.
+export const leadObjectTypeEnum = pgEnum("lead_object_type", [
+  "LOT",
+  "DRIVEWAY",
+  "COMPANY_LOT",
+  "GARAGE",
+  "OTHER",
+]);
+
+export const leadContactPreferenceEnum = pgEnum("lead_contact_preference", ["PHONE", "EMAIL"]);
+
+export const leadStatusEnum = pgEnum("lead_status", [
+  "NEW",
+  "CONTACTED",
+  "QUALIFIED",
+  "CONVERTED",
+  "REJECTED",
+  "SPAM",
+]);
+
 /* -------------------------------------------------------------------------- */
 /* JSONB shapes                                                               */
 /* -------------------------------------------------------------------------- */
@@ -760,6 +781,66 @@ export const rateLimits = pgTable("rate_limits", {
   count: integer("count").notNull().default(0),
   ...timestamps,
 });
+
+/* -------------------------------------------------------------------------- */
+/* Leads (supply acquisition — landing /dla-wlascicieli)                      */
+/* -------------------------------------------------------------------------- */
+
+// A prospect who left their parking object through the acquisition landing.
+// Not a user and not a host: no FK to users, no account. Personal data of a
+// non-user (RODO applies) — consent is captured here, versioned like consents.
+export const leads = pgTable(
+  "leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    status: leadStatusEnum("status").notNull().default("NEW"),
+
+    // The object being offered.
+    objectName: text("object_name"),
+    address: text("address").notNull(),
+    // Nullable: set from geocoding the address or from a map click; a lead may
+    // arrive before we resolve coordinates.
+    location: geographyPoint("location"),
+    objectType: leadObjectTypeEnum("object_type"),
+    spotsDeclared: integer("spots_declared"),
+
+    // Who to talk to.
+    contactName: text("contact_name").notNull(),
+    phone: text("phone"),
+    email: citext("email"),
+    contactPreference: leadContactPreferenceEnum("contact_preference").notNull(),
+
+    // Snapshot of the estimate the owner saw, RECOMPUTED on the server at submit
+    // (never trusted from the client) — context for the sales conversation.
+    estimatedRateGr: integer("estimated_rate_gr"),
+    estimatedAnnualGrossGr: integer("estimated_annual_gross_gr"),
+    eventsInReach: integer("events_in_reach"),
+    walkMinutesEnea: integer("walk_minutes_enea"),
+    walkMinutesMtp: integer("walk_minutes_mtp"),
+
+    // RODO: consent captured at submission. privacy_consent_version pins the
+    // privacy-policy version in force at the time (see CONSENT_VERSIONS).
+    // Marketing is split per channel (PKE art. 398 needs a separate consent for
+    // each); SMS is intentionally absent — the landing markets by e-mail and phone.
+    privacyConsent: boolean("privacy_consent").notNull().default(false),
+    privacyConsentVersion: text("privacy_consent_version"),
+    marketingEmailConsent: boolean("marketing_email_consent").notNull().default(false),
+    marketingPhoneConsent: boolean("marketing_phone_consent").notNull().default(false),
+
+    // Provenance / anti-abuse.
+    source: text("source"),
+    userAgent: text("user_agent"),
+
+    ...timestamps,
+  },
+  (table) => [
+    index("leads_status_idx").on(table.status),
+    index("leads_created_at_idx").on(table.createdAt),
+    index("leads_location_gist_idx").using("gist", sql`${table.location}`),
+    // We cannot follow up on a lead with no way to reach them.
+    check("leads_contact_present", sql`${table.phone} is not null or ${table.email} is not null`),
+  ],
+);
 
 /* -------------------------------------------------------------------------- */
 /* Relations                                                                  */

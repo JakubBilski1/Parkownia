@@ -1,6 +1,6 @@
 import { and, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { type Point, stDistance } from "@/db/geo";
+import { fromPoint, type Point, stDistance } from "@/db/geo";
 import { events, leads, venues } from "@/db/schema";
 import { CONSENT_VERSIONS } from "@/modules/users/consents";
 import {
@@ -25,6 +25,8 @@ function venueKey(name: string): VenueKey {
 export type ReachVenue = {
   key: VenueKey;
   name: string;
+  lat: number;
+  lng: number;
   distanceMeters: number;
   walkMinutes: number;
   inReach: boolean;
@@ -54,6 +56,7 @@ export async function computeReach(point: Point): Promise<ReachResult> {
     .select({
       id: venues.id,
       name: venues.name,
+      location: fromPoint(venues.location),
       distanceMeters: stDistance(venues.location, point),
     })
     .from(venues);
@@ -76,6 +79,8 @@ export async function computeReach(point: Point): Promise<ReachResult> {
     return {
       key: venueKey(v.name),
       name: v.name,
+      lat: v.location.lat,
+      lng: v.location.lng,
       distanceMeters: Math.round(meters),
       walkMinutes: minutes,
       inReach: minutes <= MAX_REACH_MINUTES,

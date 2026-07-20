@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { Calculator } from "./_components/calculator/calculator";
 import { Effort } from "./_components/effort";
 import { Faq } from "./_components/faq";
 import { Hero } from "./_components/hero";
@@ -31,7 +33,10 @@ export default function DlaWlascicieliPage() {
     <>
       <JsonLd />
       <Hero />
-      <CalculatorPlaceholder />
+      {/* Reads search params (shareable link) — needs a Suspense boundary. */}
+      <Suspense fallback={<CalculatorFallback />}>
+        <Calculator />
+      </Suspense>
       <HowItWorks />
       <Effort />
       {/* async server component — reads real event data */}
@@ -41,9 +46,9 @@ export default function DlaWlascicieliPage() {
   );
 }
 
-// Replaced in the next section by the interactive client island. Kept as a real,
-// intentional block so the page reads whole in the meantime.
-function CalculatorPlaceholder() {
+// The static shell of the calculator section, shown for the instant before the
+// client island mounts — same box, so nothing jumps.
+function CalculatorFallback() {
   return (
     <section id="kalkulator" className="border-b border-line bg-surface-2">
       <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:px-6">
@@ -51,14 +56,10 @@ function CalculatorPlaceholder() {
           Policz swój zarobek
         </h2>
         <p className="mt-3 max-w-2xl text-lead text-muted">
-          Wpisz adres obiektu, a policzymy dojście do Enea Stadionu i MTP, liczbę wydarzeń w zasięgu
+          Wpisz adres obiektu — policzymy dojście do Enea Stadionu i MTP, liczbę wydarzeń w zasięgu
           i szacowany roczny przychód.
         </p>
-        {/* TODO(sekcja 4): interaktywny kalkulator (client island) — geokoder + mapa z pierścieniami
-            dojścia, suwak liczby miejsc, bilet z animowaną kwotą, formularz leada. */}
-        <div className="mt-6 rounded-card border border-dashed border-line bg-surface p-8 text-center text-muted">
-          Interaktywny kalkulator pojawi się tutaj.
-        </div>
+        <div className="mt-8 h-[300px] w-full rounded-card border border-line bg-surface sm:h-[340px]" />
       </div>
     </section>
   );

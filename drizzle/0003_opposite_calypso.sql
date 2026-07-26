@@ -6,7 +6,7 @@ CREATE TABLE "leads" (
 	"status" "lead_status" DEFAULT 'NEW' NOT NULL,
 	"object_name" text,
 	"address" text NOT NULL,
-	"location" "geography(Point,4326)",
+	"location" geography(Point,4326),
 	"object_type" "lead_object_type",
 	"spots_declared" integer,
 	"contact_name" text NOT NULL,

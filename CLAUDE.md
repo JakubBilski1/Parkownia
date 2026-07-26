@@ -134,16 +134,28 @@ CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego sa
 **`https://parkownia.com` stoi i serwuje tę aplikację.** Hetzner, `135.181.253.104`.
 `parkownia.pl` **nie istnieje** (NXDOMAIN na 1.1.1.1 i 8.8.8.8) — nie szukaj tam niczego.
 
-**⚠️ STAN NA 2026-07-26: PROD NIE PRZYJMUJE DEPLOYÓW OD 2026-07-21.** Commity landingu
-(`4acff5e`…`cc22c09`) siedzą na `origin/main` od pięciu dni, a `parkownia.com/dla-wlascicieli`,
-`/prywatnosc`, `/regulamin` i `/api/dla-wlascicieli/*` zwracają **404**. Prod serwuje build
-sprzed tych commitów (ma licznik z `a74b15d`). Nie wiadomo, czy build w Coolify pada, czy
-webhook przestał odpalać — wymaga zajrzenia w panel Coolify (z tej maszyny nie ma dostępu:
-SSH blokuje klasyfikator uprawnień). **Zanim uznasz, że cokolwiek „jest na produkcji" —
-sprawdź `curl -o /dev/null -w "%{http_code}" https://parkownia.com/<ścieżka>`.**
-Jeden trop już wyeliminowany: `src/db/index.ts` łączył się przy imporcie, więc `next build`
-bez `DATABASE_URL` (a Dockerfile go nie ustawia) padał na „collect page data" — naprawione
-w `36779b0`, build przechodzi teraz z pustym środowiskiem.
+**Mina rozbrojona 2026-07-26: DEPLOY WRACAŁ NA STARY OBRAZ Z POWODU MIGRACJI, NIE BUILDU.**
+Od `4acff5e` (tabela `leads`) każdy deploy Coolify budował się poprawnie, startował kontener,
+padał w `docker-entrypoint` na `node scripts/migrate.mjs` i był rolowany z powrotem —
+przez **pięć dni**, bez śladu w repo. Prod stał dokładnie na commicie sprzed migracji `0003`.
+
+Przyczyna: `geographyPoint` (`src/db/geo.ts`) podaje typ SQL jako `geography(Point,4326)`.
+Starsza drizzle-kit wypisywała to dosłownie (migracja `0000`:
+`"location" geography(Point,4326)`), nowsza zaczęła **cytować nazwy typów własnych**
+i w `0003` wyszło `"location" "geography(Point,4326)"`. W cudzysyłkach to jeden identyfikator,
+więc Postgres szuka typu o NAZWIE `geography(Point,4326)` i odpowiada `42704: type does not
+exist`. `"citext"` w cudzysyłkach działa (zwykła nazwa się rozwiązuje) — łamie się **wyłącznie
+typ z parametrami**. Naprawione w `0003`; pilnuje tego `tests/unit/db/migrations.test.ts`.
+
+**Wniosek na przyszłość: zielona bramka lokalna nie widzi wygenerowanego SQL.** `tsc`, `lint`,
+`build` i wszystkie unity przechodziły, a produkcja nie wstawała. Po każdym `npm run db:generate`
+**przeczytaj plik `.sql`**, który wypadł, i sprawdź go na żywej bazie, zanim pushniesz.
+**Zanim uznasz, że cokolwiek „jest na produkcji" — sprawdź
+`curl -o /dev/null -w "%{http_code}" https://parkownia.com/<ścieżka>`.**
+
+Przy okazji naprawione `36779b0`: `src/db/index.ts` łączył się przy imporcie, więc `next build`
+bez `DATABASE_URL` padał na „collect page data". To **nie** był powód blokady deployu (build
+w Coolify przechodził), ale `docker build` bez środowiska teraz też działa.
 
 **Push na `main` = deploy. Bez pytania.** Coolify ma własny webhook i sam przebudowuje;
 **wchodzi ~8 minut po pushu** — o ile ścieżka deploymentu działa, patrz ostrzeżenie wyżej. W repo nie ma po tym ANI ŚLADU — brak `.github/workflows`,
@@ -151,10 +163,12 @@ domena nie występuje w kodzie. Nie wyciągaj z tego wniosku „push nie deployu
 błędnie). Jak chcesz sprawdzić, czy zmiana weszła: porównaj hash bundla CSS z
 `/_next/static/css/…` przed i po, i **daj mu te 8 minut**, zanim uznasz, że nie poszło.
 
-**Czego NIE wiem:** czy Coolify buduje przez nasz `Dockerfile`, czy po swojemu. `docker build`
-nigdy nie przeszedł na tej maszynie (demon nie wstaje, `com.docker.service` zatrzymana, brak
-uprawnień). Ale ścieżka deploymentu jako taka **jest zweryfikowana w praktyce** — prod chodzi
-i przyjmuje kolejne commity.
+**Coolify buduje przez nasz `Dockerfile`** — potwierdzone logiem deployu z 2026-07-26:
+`docker compose --build` na `/artifacts/<id>/docker-compose.yaml`, healthcheck „found in
+Dockerfile", po niepowodzeniu automatyczny rollback na poprzedni kontener. Build w Coolify
+przechodzi (kontener startuje), więc środowisko builda ma to, czego potrzebuje. `docker build`
+nigdy nie przeszedł na maszynie deweloperskiej (demon nie wstaje, `com.docker.service`
+zatrzymana, brak uprawnień) — dlatego migracja pojechała nieprzetestowana w kontenerze.
 
 **Prod nie ma ani jednego parkingu — TAK MA BYĆ.** `docker-entrypoint.sh` celowo nie ustawia
 `SEED_DEV`, a za tą flagą stoją konta testowe i 20 demo-parkingów. Prod dostaje wyłącznie dane

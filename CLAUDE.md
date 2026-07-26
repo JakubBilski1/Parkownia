@@ -103,7 +103,7 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 | `npx tsc --noEmit` | ✅ |
 | `npm run lint` | ✅ |
 | `npm run build` | ✅ (przechodzi też **bez żadnego `.env`** — od `36779b0`) |
-| `npx vitest run --project unit` | ✅ 130/130 |
+| `npx vitest run --project unit` | ✅ 141/141 |
 | `npm run test:integration` | ⛔ nieuruchomione — brak lokalnego PostGIS |
 | `npm run test:e2e` | ⛔ nieuruchomione — brak lokalnego PostGIS |
 
@@ -121,6 +121,17 @@ stan z 2026-07-16, do odtworzenia: PostgreSQL 16 + PostGIS 3.6 (WSL, `localhost:
 CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego samego kodu → odrzucony.
 
 - [x] Strona `/konto` — zgody, eksport, usunięcie konta (**luka RODO zamknięta**)
+- [x] **Landing wszedł na `/`, mapa kierowcy na `/mapa`** (`/dla-wlascicieli` już nie istnieje —
+      świadomie bez przekierowania, nikt go nie dostał). API zostało pod `/api/dla-wlascicieli/*`.
+- [x] **Samodzielna rejestracja wyłączona** — strony `/rejestracja` nie ma, a `POST
+      /api/auth/register` wymaga sesji admina i **nie ustawia już ciasteczek** (inaczej admin
+      zakładający konto wylogowywałby się do klienta). Zakup bez konta działa jak dotąd.
+      **Wróci** — to jest jeden commit do odkręcenia.
+- [x] **`/admin/klienci` + `/admin/klienci/[id]`** — CRUD klientów i ich kont pracowniczych,
+      hasło tymczasowe pokazywane RAZ, miękkie usuwanie z anonimizacją. Model: `users.employer_id`
+      + rola `HOST_EMPLOYEE`, `resolveHostId()` w `src/modules/host/identity.ts`. Pracownik widzi
+      wyłącznie `/panel/skaner` i `/panel/rezerwacje` (middleware + shell + `requireHost`),
+      i **nie może sam zostać hostem**.
 - [x] `users.stripe_account_id` / `charges_enabled` / `payouts_enabled` + `@stripe/stripe-js`;
       publikacja parkingu zablokowana, dopóki host nie przejdzie KYC (tylko na `PAYMENT_PROVIDER=stripe`)
 - [x] Testy integracyjne i e2e istnieją i przechodzą (ostatni raz uruchomione 2026-07-16)
@@ -150,6 +161,14 @@ typ z parametrami**. Naprawione w `0003`; pilnuje tego `tests/unit/db/migrations
 **Wniosek na przyszłość: zielona bramka lokalna nie widzi wygenerowanego SQL.** `tsc`, `lint`,
 `build` i wszystkie unity przechodziły, a produkcja nie wstawała. Po każdym `npm run db:generate`
 **przeczytaj plik `.sql`**, który wypadł, i sprawdź go na żywej bazie, zanim pushniesz.
+
+**Druga mina w tej samej maszynerii: drizzle puszcza WSZYSTKIE zaległe migracje w JEDNEJ
+transakcji** (`session.transaction(...)` w `node_modules/drizzle-orm/pg-core/dialect.js`).
+Postgres pozwala na `ALTER TYPE … ADD VALUE` w transakcji, ale **zabrania użycia nowej wartości
+w tej samej transakcji**. Migracja `0004` dodaje `HOST_EMPLOYEE` i jej nie używa — celowo.
+Jeśli kiedyś napiszesz migrację, która wstawia albo porównuje świeżo dodaną wartość enuma,
+przejdzie na bazie, która wartość już ma, a padnie na świeżej, gdzie obie migracje są zaległe
+razem. Pilnuje tego `tests/unit/db/migrations.test.ts`.
 **Zanim uznasz, że cokolwiek „jest na produkcji" — sprawdź
 `curl -o /dev/null -w "%{http_code}" https://parkownia.com/<ścieżka>`.**
 
@@ -180,6 +199,14 @@ wiersz testowy: `source = 'test-techniczny-2026-07-26'` — do usunięcia.
 **Uwaga: powyżej ~920 m w linii prostej kalkulator nie pokazuje ŻADNEJ kwoty** (`inReach: false`,
 `events: 0`, `rate: null`) — pasy sięgają 15 minut. Adresaci maili dobierani dalej niż kilometr
 od bramy zobaczą stronę bez liczby.
+
+**Panel klientów i pracowników NIE BYŁ uruchomiony na żywej bazie** (stan 2026-07-26): brak
+lokalnego PostGIS, więc `/admin/klienci`, migracja `0004`, hasła tymczasowe i ścieżka skanera dla
+pracownika przeszły tylko `tsc`, `lint`, `build` i testy jednostkowe. Pierwsze uruchomienie na
+prodzie jest jednocześnie pierwszym testem — sprawdź w tej kolejności: nadanie roli ADMIN →
+`/admin/klienci` → „Dodaj klienta" (hasło pokazuje się raz) → logowanie na to konto →
+„Dodaj pracownika" → logowanie pracownika → `/panel/skaner` widzi parkingi KLIENTA, a `/panel/parkingi`
+odbija na skaner.
 
 **Na produkcji NIE MA konta z rolą ADMIN.** `admin@parkspot.pl` jest w `src/db/seed.ts` za
 `SEED_DEV=1`, a `docker-entrypoint.sh` tej flagi nie ustawia; aplikacja nie daje żadnej ścieżki

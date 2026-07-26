@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { businessProfiles, users, userRoles } from "@/db/schema";
 import type { Role } from "@/db/types";
-import { AppError, conflict, unauthorized } from "@/lib/api";
+import { AppError, conflict, forbidden, unauthorized } from "@/lib/api";
 import { grantConsent } from "@/modules/users/consents";
 import { consumeActionToken, issueActionToken } from "./action-tokens";
 import { lookupGus } from "./gus";
@@ -195,8 +195,25 @@ export async function refreshSession(rawRefreshToken: string | null): Promise<Se
 /**
  * Roles are a set, not a state machine: a host is still a driver. Upgrading is
  * one INSERT, never a migration of the account (docs/DATA_MODEL.md §2).
+ *
+ * Closed to staff accounts. A client's employee (users.employer_id) upgrading
+ * themselves would walk out of the gate they were given and into their own
+ * parkings, prices and payouts — a privilege escalation by button. Who becomes a
+ * host is the admin panel's decision.
  */
 export async function upgradeToHostIndividual(userId: string): Promise<Role[]> {
+  const [account] = await db
+    .select({ employerId: users.employerId })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (account?.employerId) {
+    throw forbidden(
+      "To konto pracownicze nie może wystawiać parkingów. Poproś swojego klienta albo administratora.",
+    );
+  }
+
   await db
     .insert(userRoles)
     .values({ userId, role: "HOST_INDIVIDUAL" })

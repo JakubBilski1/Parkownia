@@ -50,6 +50,7 @@ notification_log   (audyt wysyłek, bez PII w treści)
 | first_name, last_name | text | |
 | email_verified_at | timestamptz | |
 | deleted_at | timestamptz | soft delete = anonimizacja (patrz §10 RODO) |
+| employer_id | uuid FK → users ON DELETE CASCADE | **NULL = konto działa za siebie** (klient, kierowca, admin). Ustawione = konto pracownicze klienta: rola `HOST_EMPLOYEE`, dostęp tylko do skanera i listy rezerwacji **tego klienta**. Parking zawsze należy do klienta (`parkings.owner_id`), nigdy do pracownika — pieniądze, wypłaty i KYC zostają przy stronie umowy. Każde zapytanie strony hosta rozwiązuje `employer_id ?? id` przez `resolveHostId()` (`src/modules/host/identity.ts`), czytane z bazy, nie z tokenu. **Świadomie NIE ma tabeli organizacji** — to poprawny model dla firmy z wieloma lokalizacjami i przenosi własność parkingu, wypłaty i KYC na nowy byt; osobna faza, nie kolumna. |
 
 ### `user_roles`
 | kolumna | typ | uwagi |

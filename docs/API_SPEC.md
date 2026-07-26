@@ -147,6 +147,15 @@ Szczegóły flow: `docs/PAYMENTS.md`. Kontrakt niezależny od providera:
 | GET | `/api/admin/payouts?status=PENDING` | Raport „kto ile dostaje w tym tygodniu". |
 | POST | `/api/admin/payouts` | Generuje wypłaty za okres (idempotentne — unikat na `payout_items.booking_id`). **Bez tego `mark-paid` nie ma czego oznaczać.** |
 | POST | `/api/admin/payouts/:id/mark-paid` | `{providerRef}` — opcja C (przelew ręczny). Druga próba → 422 `ALREADY_PAID`. |
+| GET | `/api/admin/leads` | Leady ze strony głównej: filtr statusu, szukanie po imieniu/adresie/telefonie/mailu. |
+| GET | `/api/admin/clients` | Klienci (konta z rolą hosta i `employer_id IS NULL`) + liczba parkingów i pracowników. `?q=&kind=BUSINESS|INDIVIDUAL&includeDeleted=`. |
+
+**Klienci i pracownicy — tylko server actions** (`src/app/(admin)/admin/actions.ts`), bo każda z tych
+operacji zwraca do ekranu hasło tymczasowe, którego nie chcemy w logu żadnego proxy:
+`createClientAction`, `updateClientAction`, `deleteClientAction` (miękkie + anonimizacja),
+`createEmployeeAction`, `deleteEmployeeAction`, `resetPasswordAction` (unieważnia wszystkie sesje).
+Hasło pokazujemy **raz** — w bazie jest wyłącznie hash. Konto pracownicze dostaje rolę
+`HOST_EMPLOYEE` i `users.employer_id`; nie może samo zostać hostem (`upgradeToHostIndividual` → 403).
 
 ## 10. RODO
 

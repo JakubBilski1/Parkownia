@@ -871,6 +871,89 @@ export const leads = pgTable(
 );
 
 /* -------------------------------------------------------------------------- */
+/* E-mail campaigns (admin bulk send)                                         */
+/* -------------------------------------------------------------------------- */
+
+// One campaign = one authored message, sent once, to a list pasted by the admin.
+// The body is stored so a campaign can be read back a year later — "what exactly
+// did we write to this person" is the first question after a complaint.
+export const emailCampaigns = pgTable(
+  "email_campaigns",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    subject: text("subject").notNull(),
+    /** The grey line after the subject in an inbox list. */
+    preheader: text("preheader"),
+    heading: text("heading").notNull(),
+    // Plain paragraphs, never HTML: the operator types text, the mail template
+    // wraps it. Nothing the admin writes can inject markup into somebody's inbox.
+    paragraphs: jsonb("paragraphs").$type<string[]>().notNull(),
+    ctaLabel: text("cta_label"),
+    ctaUrl: text("cta_url"),
+
+    /** Who pressed send. Kept for the audit trail, not for display. */
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+
+    // The operator's declaration that they have a legal basis for the addresses
+    // that carry no marketing consent (PKE art. 398). Stored WITH the campaign,
+    // because a claim made after the fact is worth nothing.
+    consentOverride: boolean("consent_override").notNull().default(false),
+
+    recipientCount: integer("recipient_count").notNull().default(0),
+    sentCount: integer("sent_count").notNull().default(0),
+    failedCount: integer("failed_count").notNull().default(0),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [index("email_campaigns_created_at_idx").on(table.createdAt)],
+);
+
+export const campaignConsentEnum = pgEnum("campaign_consent", [
+  /** marketing_email_consent on a lead, or a live MARKETING_EMAIL consent row. */
+  "GRANTED",
+  /** We know this address and it has no marketing consent. */
+  "MISSING",
+  /** Not in our database at all — a cold address off a list. */
+  "UNKNOWN",
+]);
+
+export const campaignRecipientStatusEnum = pgEnum("campaign_recipient_status", [
+  "PENDING",
+  "SENT",
+  "FAILED",
+]);
+
+// One row per address per campaign, written BEFORE the send starts. That order is
+// the point: a crash halfway through leaves PENDING rows, so the next attempt can
+// see who already has the mail instead of sending it twice.
+export const emailCampaignRecipients = pgTable(
+  "email_campaign_recipients",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    campaignId: uuid("campaign_id")
+      .notNull()
+      .references(() => emailCampaigns.id, { onDelete: "cascade" }),
+    email: citext("email").notNull(),
+    name: text("name"),
+    consent: campaignConsentEnum("consent").notNull(),
+    status: campaignRecipientStatusEnum("status").notNull().default("PENDING"),
+    /** Provider reason on failure. Never the message body. */
+    error: text("error"),
+    providerRef: text("provider_ref"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    // The same address cannot be in one campaign twice, whatever the pasted JSON
+    // repeated.
+    unique("email_campaign_recipients_unique").on(table.campaignId, table.email),
+    index("email_campaign_recipients_campaign_idx").on(table.campaignId),
+    index("email_campaign_recipients_email_idx").on(table.email),
+  ],
+);
+
+/* -------------------------------------------------------------------------- */
 /* Relations                                                                  */
 /* -------------------------------------------------------------------------- */
 
@@ -997,4 +1080,16 @@ export const refundPoliciesRelations = relations(refundPolicies, ({ many }) => (
 
 export const notificationLogRelations = relations(notificationLog, ({ one }) => ({
   user: one(users, { fields: [notificationLog.userId], references: [users.id] }),
+}));
+
+export const emailCampaignsRelations = relations(emailCampaigns, ({ one, many }) => ({
+  author: one(users, { fields: [emailCampaigns.createdBy], references: [users.id] }),
+  recipients: many(emailCampaignRecipients),
+}));
+
+export const emailCampaignRecipientsRelations = relations(emailCampaignRecipients, ({ one }) => ({
+  campaign: one(emailCampaigns, {
+    fields: [emailCampaignRecipients.campaignId],
+    references: [emailCampaigns.id],
+  }),
 }));

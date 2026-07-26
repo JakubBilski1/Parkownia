@@ -11,6 +11,7 @@ import { createEvent, deleteEvent, updateEvent } from "@/modules/admin/events";
 import { formatMoney } from "@/lib/format";
 import { LEAD_STATUS_LABEL } from "@/modules/admin/labels";
 import { setLeadStatus } from "@/modules/admin/leads";
+import { sendCampaign } from "@/modules/admin/campaigns";
 import {
   createClient,
   createEmployee,
@@ -428,6 +429,57 @@ export async function resetPasswordAction(
     return {
       message: `Nowe hasło dla ${account.email}. Wszystkie sesje tego konta zostały wylogowane.`,
       secret: { label: `Hasło tymczasowe dla ${account.email}`, value: account.tempPassword },
+    };
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* E-mail campaigns                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The one button that puts mail in strangers' inboxes. Everything it needs to
+ * refuse — an unreadable list, a list over the ceiling, addresses without consent
+ * and without a declaration — is checked inside sendCampaign(), so a second front
+ * door cannot skip it.
+ */
+export async function sendCampaignAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    const admin = await requireAdmin();
+
+    const summary = await sendCampaign(
+      {
+        subject: text(form, "subject"),
+        preheader: text(form, "preheader"),
+        heading: text(form, "heading"),
+        body: form.get("body"),
+        ctaLabel: text(form, "ctaLabel"),
+        ctaUrl: text(form, "ctaUrl"),
+        recipientsJson: form.get("recipientsJson"),
+        consentOverride: form.get("consentOverride") === "on",
+      },
+      admin.userId,
+    );
+
+    revalidatePath("/admin/mailing");
+
+    if (summary.failedCount === 0) {
+      return {
+        message: `Wysłane do ${summary.sentCount} z ${summary.recipientCount} adresów.`,
+        detail:
+          "Jeśli EMAIL_PROVIDER to „console”, nic nie poleciało — treść jest w logu kontenera. Ustaw pbdevs, żeby wysyłać na serio.",
+      };
+    }
+
+    return {
+      message: `Wysłane do ${summary.sentCount}, nieudane ${summary.failedCount} z ${summary.recipientCount}.`,
+      detail:
+        summary.errors.length > 0
+          ? `Powód: ${summary.errors.join(" · ")}`
+          : "Powody są zapisane przy adresatach w historii kampanii.",
     };
   });
 }

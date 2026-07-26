@@ -36,6 +36,13 @@
       "when": 1785032781358,
       "tag": "0004_far_mephistopheles",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785034749857,
+      "tag": "0005_good_the_fury",
+      "breakpoints": true
     }
   ]
 }

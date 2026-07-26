@@ -1,0 +1,95 @@
+<!--
+  Parkownia — owner-campaign
+
+  WKLEJ TO w dashboardzie pbdevs jako szablon o nazwie `owner-campaign`.
+  Temat wiadomości ustaw na: {{subject}}
+  (bez tego każda kampania pójdzie z jednym, zapisanym w dashboardzie tematem —
+  patrz komentarz w src/modules/admin/campaigns.ts).
+
+  Zmienne, które wysyła aplikacja (src/modules/admin/campaigns.ts → templateData):
+    subject, preheader, heading, greeting,
+    p1 … p6            — akapity; puste stringi dla nieużytych slotów
+    hasCta, ctaLabel, ctaUrl
+    unsubscribeUrl
+
+  Dlaczego sześć numerowanych slotów, a nie pętla: szablony w tym projekcie są
+  świadomie głupie — {{var}} i {{#if bool}}, bez helperów i bez {{#each}}
+  (src/modules/notifications/templates.ts). Aplikacja rozwiązuje wszystkie
+  rozgałęzienia po swojej stronie.
+
+  Kolory są zgodne z motywem jasnym „Bilet" (src/app/globals.css). Nie ma tu
+  webfontów — klienty pocztowe ich nie ładują, a IBM Plex zastąpiony losowym
+  krojem wygląda gorzej niż porządny stos systemowy.
+-->
+<mjml>
+  <mj-head>
+    <mj-title>{{subject}}</mj-title>
+    <mj-preview>{{preheader}}</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" />
+      <mj-text color="#1a1918" font-size="16px" line-height="1.6" />
+    </mj-attributes>
+    <mj-style>
+      .footer a { color: #6b6862 !important; }
+      a { color: #8e2b2b; }
+    </mj-style>
+  </mj-head>
+
+  <mj-body background-color="#eeeeeb" width="600px">
+    <!-- Wordmark. Tekst, nie obrazek: połowa skrzynek blokuje grafiki, a nadawca
+         musi być widoczny w pierwszej sekundzie. -->
+    <mj-section padding="28px 24px 12px">
+      <mj-column>
+        <mj-text font-size="20px" font-weight="800" letter-spacing="-0.02em" color="#1a1918">
+          Parkownia
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" border-radius="12px" padding="32px 28px" css-class="card">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="800" line-height="1.25" letter-spacing="-0.02em" padding-bottom="16px">
+          {{heading}}
+        </mj-text>
+
+        <mj-text padding-bottom="12px" color="#6b6862">{{greeting}},</mj-text>
+
+        <mj-text padding-bottom="14px">{{p1}}</mj-text>
+        {{#if p2}}<mj-text padding-bottom="14px">{{p2}}</mj-text>{{/if}}
+        {{#if p3}}<mj-text padding-bottom="14px">{{p3}}</mj-text>{{/if}}
+        {{#if p4}}<mj-text padding-bottom="14px">{{p4}}</mj-text>{{/if}}
+        {{#if p5}}<mj-text padding-bottom="14px">{{p5}}</mj-text>{{/if}}
+        {{#if p6}}<mj-text padding-bottom="14px">{{p6}}</mj-text>{{/if}}
+
+        {{#if hasCta}}
+        <mj-button
+          href="{{ctaUrl}}"
+          background-color="#8e2b2b"
+          color="#f7f6f3"
+          font-size="16px"
+          font-weight="700"
+          border-radius="10px"
+          padding="20px 0 8px"
+          inner-padding="14px 24px"
+        >
+          {{ctaLabel}}
+        </mj-button>
+        {{/if}}
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="8px 24px 32px" css-class="footer">
+      <mj-column>
+        <mj-divider border-width="1px" border-color="#dedbd4" padding="12px 0" />
+        <mj-text font-size="13px" color="#6b6862" line-height="1.6">
+          Piszemy do właścicieli miejsc parkingowych w Poznaniu.
+          <a href="{{unsubscribeUrl}}">Nie chcę takich wiadomości</a> — odpowiedz, a skreślimy Cię z listy.
+        </mj-text>
+        <mj-text font-size="13px" color="#6b6862" line-height="1.6">
+          Administrator danych: Jakub Bilski, ul. Krótka 10a, Mosina.
+          Kontakt: <a href="mailto:kontakt@parkownia.com">kontakt@parkownia.com</a>.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

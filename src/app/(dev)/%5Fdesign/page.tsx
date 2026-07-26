@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { CampaignPreview } from "@/app/(admin)/admin/_components/campaign-preview";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Badge,
@@ -274,6 +275,27 @@ export default function DesignSandboxPage() {
           Wjazd od ul. Górczyńskiej. Szlaban otwierany na kod z rezerwacji.
         </p>
       </Sheet>
+
+      <Section title="Mail kampanijny (podgląd szablonu owner-campaign)">
+        {/* Rendered here so the template can be LOOKED at without a database, an
+            admin session and a mail provider. The MJML the mail service actually
+            renders is docs/mail-templates/owner-campaign.mjml — keep them together. */}
+        <div className="max-w-[40rem]">
+          <CampaignPreview
+            subject="Twój parking stoi pusty w dzień meczu"
+            preheader="Kierowcy szukają miejsc pod Enea Stadionem kilka dni przed gwizdkiem."
+            heading="Zarabiaj na miejscu, które i tak stoi puste"
+            paragraphs={[
+              "W dni meczowe pod Enea Stadionem brakuje miejsc do parkowania, a kierowcy szukają ich na kilka dni przed gwizdkiem.",
+              "Jeśli macie plac, podjazd albo parking firmowy w okolicy, możecie go udostępnić tylko na te kilka godzin. Kierowca rezerwuje i płaci z góry, Wy wpuszczacie go na kod z telefonu.",
+              "Bez gotówki, bez negocjacji i bez telefonów od klientów.",
+            ]}
+            ctaLabel="Policz swój zarobek"
+            ctaUrl="https://parkownia.com/"
+            recipientName="Jan Kowalski"
+          />
+        </div>
+      </Section>
 
       <Dialog
         open={dialogOpen}

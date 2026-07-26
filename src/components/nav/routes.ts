@@ -45,6 +45,7 @@ export const ROUTES = {
     leads: "/admin/leady",
     clients: "/admin/klienci",
     client: (clientId: string) => `/admin/klienci/${clientId}`,
+    mailing: "/admin/mailing",
     moderation: "/admin/moderacja",
     events: "/admin/wydarzenia",
     transactions: "/admin/transakcje",

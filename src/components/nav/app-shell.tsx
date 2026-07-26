@@ -6,6 +6,7 @@ import {
   Coins,
   Inbox,
   LayoutGrid,
+  Mail,
   Map,
   QrCode,
   Receipt,
@@ -73,6 +74,7 @@ const ADMIN_NAV: NavItem[] = [
   // Third: a lead becomes a client here, and the client's staff accounts live
   // behind the same page. Self-service sign-up is off, so this is the only door.
   { href: ROUTES.admin.clients, label: "Klienci", icon: Users },
+  { href: ROUTES.admin.mailing, label: "Mailing", icon: Mail },
   { href: ROUTES.admin.moderation, label: "Moderacja", icon: ShieldCheck },
   { href: ROUTES.admin.events, label: "Wydarzenia", icon: CalendarDays },
   { href: ROUTES.admin.transactions, label: "Transakcje", icon: Receipt },

@@ -248,6 +248,48 @@ export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 export const employeeIdSchema = z.object({ employeeId: uuid });
 
 /* -------------------------------------------------------------------------- */
+/* E-mail campaigns                                                           */
+/* -------------------------------------------------------------------------- */
+
+export const campaignDraftSchema = z.object({
+  subject: z
+    .string()
+    .trim()
+    .min(3, { message: "Temat jest tym, co widzą w skrzynce. Napisz go." })
+    .max(160, { message: "Temat dłuższy niż 160 znaków i tak zostanie ucięty." }),
+  /** The grey line next to the subject. Optional — falls back to the first paragraph. */
+  preheader: z.string().trim().max(200).optional(),
+  heading: z
+    .string()
+    .trim()
+    .min(3, { message: "Nagłówek w treści maila nie może być pusty." })
+    .max(120),
+  /** Plain text. Blank line = new paragraph. Never HTML — the template wraps it. */
+  body: z.string().min(10, { message: "Treść jest za krótka." }).max(6000),
+  ctaLabel: z.string().trim().min(2).max(40).optional(),
+  ctaUrl: z
+    .string()
+    .trim()
+    .url({ message: "Adres przycisku musi być pełnym URL-em, z https://." })
+    .max(500)
+    .optional(),
+});
+export type CampaignDraftInput = z.infer<typeof campaignDraftSchema>;
+
+export const sendCampaignSchema = campaignDraftSchema.extend({
+  /** Raw JSON as pasted. Parsed by parseRecipients(), which reports what it cannot read. */
+  recipientsJson: z.string().min(2, { message: "Wklej listę adresatów." }).max(200_000),
+  /**
+   * The operator's declaration that there is a legal basis for the addresses with
+   * no marketing consent. Stored with the campaign — see PKE art. 398.
+   */
+  consentOverride: z.coerce.boolean().default(false),
+});
+export type SendCampaignInput = z.infer<typeof sendCampaignSchema>;
+
+export const campaignIdSchema = z.object({ campaignId: uuid });
+
+/* -------------------------------------------------------------------------- */
 /* Venues and events                                                          */
 /* -------------------------------------------------------------------------- */
 

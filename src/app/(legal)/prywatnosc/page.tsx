@@ -102,11 +102,55 @@ export default function PrivacyPage() {
           <strong>Prezesa Urzędu Ochrony Danych Osobowych</strong> (ul. Stawki 2, 00-193 Warszawa).
         </p>
 
-        <h2>7. Pliki cookies</h2>
+        <h2>7. Pliki cookies i pamięć przeglądarki</h2>
         <p>
-          Używamy wyłącznie plików cookies niezbędnych do działania serwisu (m.in. utrzymanie sesji i
-          zapamiętanie wybranego motywu). Nie stosujemy analityki ani narzędzi śledzących firm
-          trzecich, dlatego nie wyświetlamy banera zgody na cookies.
+          Używamy wyłącznie plików cookies <strong>niezbędnych do działania serwisu</strong>. Zgodnie
+          z art. 371 Prawa komunikacji elektronicznej zgoda nie jest wymagana dla przechowywania
+          danych koniecznych do świadczenia usługi, o którą sam prosisz — dlatego{" "}
+          <strong>nie wyświetlamy banera zgody</strong>. Poniżej pełna lista tego, co zapisujemy na
+          Twoim urządzeniu:
+        </p>
+        <ul>
+          <li>
+            <strong>ps_access</strong> — token sesji po zalogowaniu. Wygasa po 15 minutach.
+          </li>
+          <li>
+            <strong>ps_refresh</strong> — odnawia sesję, żebyś nie logował się co kwadrans. Wygasa
+            po 7 dniach.
+          </li>
+          <li>
+            <strong>ps_booking_grants</strong> — podpisana lista rezerwacji zrobionych w tej
+            przeglądarce. To ona pozwala Ci wrócić do własnego kodu QR bez zakładania konta i
+            jednocześnie nie pokazuje Ci rezerwacji nikogo innego. Wygasa po 30 dniach.
+          </li>
+        </ul>
+        <p>
+          Wszystkie trzy są <strong>httpOnly</strong> (skrypty na stronie nie mają do nich dostępu),
+          mają <strong>SameSite=Lax</strong> i są przesyłane wyłącznie po HTTPS. Nie należą do
+          nikogo poza nami — nie ma tu cookies firm trzecich.
+        </p>
+        <p>
+          W pamięci przeglądarki (localStorage, IndexedDB) trzymamy dodatkowo: wybrany motyw jasny
+          lub ciemny, a w panelu hosta — wybrane wydarzenie i parking w skanerze oraz pobrane kody
+          rezerwacji, żeby skaner działał przy bramie bez zasięgu. Te dane nie opuszczają Twojego
+          urządzenia.
+        </p>
+        <p>
+          <strong>Nie stosujemy analityki, reklam ani narzędzi śledzących.</strong> Kroje pisma
+          serwujemy z własnego serwera, więc otwarcie strony nie łączy się z Google.
+        </p>
+        <p>
+          Dwa wyjątki, o których warto wiedzieć: mapa pobiera kafle z serwerów{" "}
+          <strong>OpenStreetMap Foundation</strong>, a etykiety na mapie — czcionki z serwera{" "}
+          <strong>MapLibre</strong>. Te podmioty widzą wtedy Twój adres IP i to, że pobierasz
+          fragment mapy; nie zapisują u Ciebie żadnych plików i nie przekazujemy im żadnych danych z
+          formularzy ani z konta.
+        </p>
+        <p>
+          Cookies możesz w każdej chwili usunąć albo zablokować w ustawieniach przeglądarki. Pamiętaj
+          jednak, że bez nich <strong>nie zalogujesz się</strong> i <strong>nie otworzysz swojego
+          kodu wjazdu</strong> — to nie ograniczenie z naszej strony, a wprost sposób, w jaki te
+          funkcje działają.
         </p>
 
         <h2>8. Dobrowolność</h2>

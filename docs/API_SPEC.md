@@ -31,7 +31,7 @@ Rate limity (okno stałe w Postgresie, `src/lib/rate-limit.ts`; klucz w nawiasie
 
 | Metoda | Ścieżka | Rola | Opis |
 |---|---|---|---|
-| POST | `/api/auth/register` | publiczny | `{email, password, firstName?, lastName?, consents: {terms: true, privacy: true, marketingEmail?: bool}}` → 201 `{user, accessToken}` + cookie refresh. Rola startowa: DRIVER. |
+| POST | `/api/auth/register` | **admin** | `{email, password, firstName?, lastName?, consents: {terms: true, privacy: true, marketingEmail?: bool}}` → 201 `{user}`. Rola startowa: DRIVER. **Samodzielna rejestracja jest wyłączona** (decyzja właściciela, 2026-07-26): strony `/rejestracja` nie ma, a endpoint odpowiada 401/403 każdemu, kto nie jest adminem. **Nie ustawia już ciasteczek sesji** — admin zakładający konto klientowi nie może zostać z niego wylogowany. Wróci jako publiczny; wtedy przywraca się też ustawianie sesji. |
 | POST | `/api/auth/login` | publiczny | `{email, password}` → 200 `{user, accessToken}` + cookie. 401 bez rozróżniania „zły mail/hasło". |
 | POST | `/api/auth/refresh` | cookie | Rotacja refresh tokenu. Ponowne użycie zużytego → 401 + unieważnienie rodziny tokenów. |
 | GET | `/api/auth/refresh?next=…` | cookie | **Nawigacyjny wariant tego samego.** Middleware działa na Edge i nie ma dostępu do bazy, więc nie potrafi zrotować tokenu — odbija tu sesję wygasłą-ale-odnawialną i wraca na `next` (walidowane: wyłącznie ścieżki względne). Bez tego host z otwartą kartą leci na ekran logowania co 15 minut. |

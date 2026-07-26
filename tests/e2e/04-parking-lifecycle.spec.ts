@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { e2eEmail, loginAs, waitForRow } from "./fixtures/app";
+import { e2eEmail, loginAs, logout, waitForRow } from "./fixtures/app";
 import {
   ACCOUNTS,
   cleanupE2eArtifacts,
@@ -9,11 +9,14 @@ import {
 } from "./fixtures/db";
 
 /**
- * The supply side, end to end: a stranger becomes a host, lists a parking, and
- * a driver can buy it.
+ * The supply side, end to end: a client gets an account, lists a parking, and a
+ * driver can buy it.
  *
- *   rejestracja → zostań hostem → 5 pól → AUTOSAVE → odświeżenie strony
+ *   admin zakłada konto → zostań hostem → 5 pól → AUTOSAVE → odświeżenie strony
  *              → wysłanie do moderacji → admin zatwierdza → pinezka na mapie
+ *
+ * Phase 1 changed when self-service sign-up was switched off: the account now
+ * comes from an admin, and the test asserts that an anonymous attempt is refused.
  *
  * The autosave reload is the point of this file. DESIGN_PRINCIPLES §6.3:
  * "Dodawanie parkingu ma 20 pól — jeśli użytkownik zamknie kartę, ma wrócić do
@@ -27,7 +30,7 @@ type NewParking = {
   priceEvent: string;
 };
 
-test.describe("Cykl życia parkingu — od rejestracji do pinezki", () => {
+test.describe("Cykl życia parkingu — od konta do pinezki", () => {
   /**
    * The longest test in the suite, and the only one that earns extra time.
    *
@@ -53,7 +56,7 @@ test.describe("Cykl życia parkingu — od rejestracji do pinezki", () => {
     await cleanupE2eArtifacts();
   });
 
-  test("rejestracja → parking → autosave przeżywa odświeżenie → moderacja → mapa", async ({
+  test("konto od admina → parking → autosave przeżywa odświeżenie → moderacja → mapa", async ({
     page,
   }) => {
     const email = e2eEmail("host");
@@ -64,20 +67,42 @@ test.describe("Cykl życia parkingu — od rejestracji do pinezki", () => {
       priceEvent: "25",
     };
 
-    /* ------------------------------------------------------------ 1. rejestracja */
+    /* ------------------------------------------- 1. konto zakłada administrator */
 
-    await page.goto("/rejestracja");
+    // Self-service registration is off: /rejestracja no longer exists and
+    // POST /api/auth/register answers 403 to anybody who is not an admin. That
+    // rule is worth asserting, not just working around — a regression here would
+    // reopen public sign-up silently.
+    const anonymous = await page.request.post("/api/auth/register", {
+      data: {
+        email: e2eEmail("intruz"),
+        password: SEED_PASSWORD,
+        consents: { terms: true, privacy: true },
+      },
+    });
+    expect(
+      [401, 403],
+      `public registration answered ${anonymous.status()} — it must be closed`,
+    ).toContain(anonymous.status());
 
-    // Anchored: a plain "E-mail" also matches the marketing checkbox ("Chcę
-    // dostawać e-maile…"), and an exact match misses the required marker that
-    // Field renders inside the <label>.
-    await page.getByLabel(/^E-mail/).fill(email);
-    await page.getByLabel(/^Hasło/).fill(SEED_PASSWORD);
-    await page.getByLabel(/Akceptuję/).check();
-    await page.getByLabel(/przetwarzanie moich danych/).check();
-    await page.getByRole("button", { name: "Załóż konto" }).click();
+    await loginAs(page, ACCOUNTS.admin);
 
-    await expect(page).not.toHaveURL(/rejestracja/, { timeout: 20_000 });
+    const createdByAdmin = await page.request.post("/api/auth/register", {
+      data: {
+        email,
+        password: SEED_PASSWORD,
+        consents: { terms: true, privacy: true },
+      },
+    });
+    expect(
+      createdByAdmin.ok(),
+      `admin could not create an account: ${createdByAdmin.status()} ${await createdByAdmin.text()}`,
+    ).toBeTruthy();
+
+    // The admin stays the admin: creating an account must not swap the session
+    // for the new one. Then we become the new host for the rest of the journey.
+    await logout(page);
+    await loginAs(page, email);
 
     /* --------------------------------------------------------- 2. zostań hostem */
 

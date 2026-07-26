@@ -96,24 +96,25 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 - [x] Faza 4 — Panel hosta (skaner offline) + panel admina
 - [ ] Faza 5 — Hardening, testy e2e, deployment ← **TU JESTEŚMY**
 
-**Bramka jakości (stan na 2026-07-16, wszystko uruchomione, nie zadeklarowane):**
+**Bramka jakości (stan na 2026-07-26, wszystko uruchomione, nie zadeklarowane):**
 
 | | |
 |---|---|
 | `npx tsc --noEmit` | ✅ |
 | `npm run lint` | ✅ |
-| `npm run build` | ✅ |
-| `npx vitest run --project unit` | ✅ 83/83 |
-| `npm run test:integration` | ✅ 27/27 na żywym PostGIS |
-| `npm run test:e2e` | ✅ 10/10 (Playwright) |
+| `npm run build` | ✅ (przechodzi też **bez żadnego `.env`** — od `36779b0`) |
+| `npx vitest run --project unit` | ✅ 130/130 |
+| `npm run test:integration` | ⛔ nieuruchomione — brak lokalnego PostGIS |
+| `npm run test:e2e` | ⛔ nieuruchomione — brak lokalnego PostGIS |
 
 **Zielona bramka nie łapie wszystkiego — i to nie jest teoria.** Zmiana akcentu w ciemnym
 motywie pojechała na produkcję martwa: `tsc`, `lint`, `build` i 104 testy przeszły, bo **żaden
 z nich nie patrzy na skomputowany CSS**. Błąd wyszedł dopiero po otwarciu strony w przeglądarce.
 Jeśli ruszasz cokolwiek wizualnego — otwórz to i zobacz, zanim powiesz „gotowe".
 
-**Baza LOKALNA działa i ma dane** (to nie jest prod — prod opisany niżej). PostgreSQL 16 +
-PostGIS 3.6 (WSL, `localhost:5433`). Migracje i seed wykonane z `SEED_DEV=1`: 26 tabel,
+**Baza LOKALNA nie odpowiada (stan 2026-07-26)** — nie ma `.env.local`, port 5433 zamknięty,
+demon Dockera nie wstaje, a w WSL Ubuntu nie ma zainstalowanego Postgresa. Poniższy opis to
+stan z 2026-07-16, do odtworzenia: PostgreSQL 16 + PostGIS 3.6 (WSL, `localhost:5433`). Migracje i seed wykonane z `SEED_DEV=1`: 26 tabel,
 17 eventów (mecze Lecha + targi MTP), 20 parkingów, 4 konta testowe
 (`admin@` / `host@` / `firma@` / `kierowca@parkspot.pl`, hasło `parkspot123`).
 Ścieżka zakupu przejechana end-to-end na żywym serwerze: rezerwacja → intent → webhook →
@@ -122,15 +123,30 @@ CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego sa
 - [x] Strona `/konto` — zgody, eksport, usunięcie konta (**luka RODO zamknięta**)
 - [x] `users.stripe_account_id` / `charges_enabled` / `payouts_enabled` + `@stripe/stripe-js`;
       publikacja parkingu zablokowana, dopóki host nie przejdzie KYC (tylko na `PAYMENT_PROVIDER=stripe`)
-- [x] Testy integracyjne i e2e istnieją i przechodzą
+- [x] Testy integracyjne i e2e istnieją i przechodzą (ostatni raz uruchomione 2026-07-16)
+- [x] Landing akwizycyjny `/dla-wlascicieli` + tabela `leads` + `/prywatnosc` i `/regulamin`
+- [x] **Panel leadów `/admin/leady`** + kafelek „Nowe leady" na pulpicie + alert e-mail na
+      `LEAD_ALERT_EMAIL` przy każdym zgłoszeniu (szablon `owner-lead` musi istnieć w pbdevs —
+      dopóki nie istnieje, wysyłka tylko ostrzega w logu, lead i tak jest w bazie i w panelu)
 
 ## PRODUKCJA ŻYJE (zweryfikowane 2026-07-16)
 
 **`https://parkownia.com` stoi i serwuje tę aplikację.** Hetzner, `135.181.253.104`.
 `parkownia.pl` **nie istnieje** (NXDOMAIN na 1.1.1.1 i 8.8.8.8) — nie szukaj tam niczego.
 
+**⚠️ STAN NA 2026-07-26: PROD NIE PRZYJMUJE DEPLOYÓW OD 2026-07-21.** Commity landingu
+(`4acff5e`…`cc22c09`) siedzą na `origin/main` od pięciu dni, a `parkownia.com/dla-wlascicieli`,
+`/prywatnosc`, `/regulamin` i `/api/dla-wlascicieli/*` zwracają **404**. Prod serwuje build
+sprzed tych commitów (ma licznik z `a74b15d`). Nie wiadomo, czy build w Coolify pada, czy
+webhook przestał odpalać — wymaga zajrzenia w panel Coolify (z tej maszyny nie ma dostępu:
+SSH blokuje klasyfikator uprawnień). **Zanim uznasz, że cokolwiek „jest na produkcji" —
+sprawdź `curl -o /dev/null -w "%{http_code}" https://parkownia.com/<ścieżka>`.**
+Jeden trop już wyeliminowany: `src/db/index.ts` łączył się przy imporcie, więc `next build`
+bez `DATABASE_URL` (a Dockerfile go nie ustawia) padał na „collect page data" — naprawione
+w `36779b0`, build przechodzi teraz z pustym środowiskiem.
+
 **Push na `main` = deploy. Bez pytania.** Coolify ma własny webhook i sam przebudowuje;
-**wchodzi ~8 minut po pushu**. W repo nie ma po tym ANI ŚLADU — brak `.github/workflows`,
+**wchodzi ~8 minut po pushu** — o ile ścieżka deploymentu działa, patrz ostrzeżenie wyżej. W repo nie ma po tym ANI ŚLADU — brak `.github/workflows`,
 domena nie występuje w kodzie. Nie wyciągaj z tego wniosku „push nie deployuje" (ja wyciągnąłem,
 błędnie). Jak chcesz sprawdzić, czy zmiana weszła: porównaj hash bundla CSS z
 `/_next/static/css/…` przed i po, i **daj mu te 8 minut**, zanim uznasz, że nie poszło.
@@ -155,6 +171,12 @@ a każdy event mówi „nie mamy jeszcze parkingu". **To nie jest awaria** — t
       Uwaga: brama KYC (publikacja parkingu zablokowana do przejścia weryfikacji) odpala się
       **tylko** na `PAYMENT_PROVIDER=stripe`, więc dziś nie działa.
 - [ ] Stripe przetestowany wyłącznie na mocku — brak testu na prawdziwym koncie testowym Stripe.
+- [ ] **Trzeci kafelek w sekcji „Skala" na landingu** — średnia frekwencja Lecha / footfall MTP.
+      Wycięty (`72e300b`), bo pusta ramka „do uzupełnienia" czytała się jak niedokończony produkt.
+      Wraca dopiero z liczbą, którą da się wskazać źródłem.
+- [ ] **Lokalna baza NIE ŻYJE** (stan 2026-07-26): brak `.env.local`, Postgres na 5433 nie
+      odpowiada, Docker demon nie wstaje, w WSL Ubuntu nie ma Postgresa. Bez bazy nie da się
+      uruchomić testów integracyjnych, e2e ani zobaczyć panelu admina i hosta.
 - [ ] **Seed nie zawiera ani jednej deklaracji hosta na event** (`event_parking_availability` = 0 wierszy).
       Sprzedaż eventowa działa (parking z `availability_mode` pokrywającym okno sprzedaje się bez
       deklaracji), ale panel hosta „Wydarzenia", quick-declare z maila i skaner są po seedzie puste.

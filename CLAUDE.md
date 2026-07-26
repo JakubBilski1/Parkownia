@@ -170,6 +170,25 @@ przechodzi (kontener startuje), więc środowisko builda ma to, czego potrzebuje
 nigdy nie przeszedł na maszynie deweloperskiej (demon nie wstaje, `com.docker.service`
 zatrzymana, brak uprawnień) — dlatego migracja pojechała nieprzetestowana w kontenerze.
 
+**Landing JEST na produkcji (zweryfikowane 2026-07-26, po naprawie migracji).** `/dla-wlascicieli`,
+`/prywatnosc`, `/regulamin` → 200. Kalkulator liczy realnymi danymi: punkt 302 m od Enei daje
+`walkMinutes: 5`, `inReach: true`, **8 meczów Lecha** w 12 miesiącach i pas stawek 40–70 zł.
+Geokoder odpowiada. `POST /api/dla-wlascicieli/leads` → **201**, więc zapis leada, przeliczenie
+szacunku po stronie serwera i tabela `leads` działają na żywym PostGIS. W bazie siedzi jeden
+wiersz testowy: `source = 'test-techniczny-2026-07-26'` — do usunięcia.
+
+**Uwaga: powyżej ~920 m w linii prostej kalkulator nie pokazuje ŻADNEJ kwoty** (`inReach: false`,
+`events: 0`, `rate: null`) — pasy sięgają 15 minut. Adresaci maili dobierani dalej niż kilometr
+od bramy zobaczą stronę bez liczby.
+
+**Na produkcji NIE MA konta z rolą ADMIN.** `admin@parkspot.pl` jest w `src/db/seed.ts` za
+`SEED_DEV=1`, a `docker-entrypoint.sh` tej flagi nie ustawia; aplikacja nie daje żadnej ścieżki
+do samodzielnego nadania roli. Bez tego `/admin/*` — w tym `/admin/leady` — jest niedostępne,
+choć leady i tak lądują w bazie. Nadanie: zarejestruj konto, potem raz na bazie
+`INSERT INTO user_roles (user_id, role) SELECT id, 'ADMIN' FROM users WHERE email = '…'
+ON CONFLICT DO NOTHING;`. Rola czytana jest z bazy przy każdym żądaniu
+(`modules/admin/session.ts`), więc działa bez wylogowania.
+
 **Prod nie ma ani jednego parkingu — TAK MA BYĆ.** `docker-entrypoint.sh` celowo nie ustawia
 `SEED_DEV`, a za tą flagą stoją konta testowe i 20 demo-parkingów. Prod dostaje wyłącznie dane
 referencyjne: prowizje, politykę zwrotów, obiekty i 17 eventów. Dlatego mapa jest pusta,

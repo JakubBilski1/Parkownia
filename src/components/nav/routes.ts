@@ -27,6 +27,12 @@ export const ROUTES = {
   login: "/logowanie",
   register: "/rejestracja",
   becomeHost: "/zostan-hostem",
+  /**
+   * The acquisition landing. Public and account-free, unlike /zostan-hostem —
+   * which redirects to the login screen and is therefore the wrong place to send
+   * a stranger who just noticed we have no parking near their street.
+   */
+  ownersLanding: "/dla-wlascicieli",
   host: {
     dashboard: "/panel",
     parkings: "/panel/parkingi",

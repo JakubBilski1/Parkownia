@@ -69,8 +69,10 @@ export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventP
         title="Nie mamy jeszcze parkingu przy tym wydarzeniu"
         description="Nikt nie udostępnił miejsca w promieniu tego wydarzenia. Masz podjazd, plac albo pusty parking firmowy w okolicy? Udostępnij go na ten jeden wieczór i zarób."
         action={
-          <LinkButton href="/zostan-hostem" variant="accent">
-            Udostępnij parking
+          // The landing, not /zostan-hostem: that one is behind the login screen,
+          // and nobody creates an account before seeing the money.
+          <LinkButton href={ROUTES.ownersLanding} variant="accent">
+            Policz, ile zarobisz
           </LinkButton>
         }
       />

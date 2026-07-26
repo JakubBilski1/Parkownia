@@ -212,9 +212,9 @@ export function MapScreen() {
             action={
               <Button
                 variant="accent"
-                onClick={() => router.push(ROUTES.becomeHost)}
+                onClick={() => router.push(ROUTES.ownersLanding)}
               >
-                Udostępnij swoje miejsce
+                Policz, ile zarobisz
               </Button>
             }
           />

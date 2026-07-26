@@ -37,6 +37,9 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
             <Link href="/regulamin" className="underline underline-offset-4 hover:text-ink">
               Regulamin
             </Link>
+            <Link href="/dla-wlascicieli" className="underline underline-offset-4 hover:text-ink">
+              Dla właścicieli
+            </Link>
             <a
               href="mailto:kontakt@parkownia.com"
               className="underline underline-offset-4 hover:text-ink"

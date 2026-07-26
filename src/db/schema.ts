@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   char,
   check,
@@ -34,7 +35,16 @@ const timestamps = {
 /* Enums                                                                      */
 /* -------------------------------------------------------------------------- */
 
-export const roleEnum = pgEnum("role", ["DRIVER", "HOST_INDIVIDUAL", "HOST_BUSINESS", "ADMIN"]);
+// HOST_EMPLOYEE is a client's staff member: the scanner and the bookings list of
+// the client they belong to (users.employer_id), never prices, payouts or the
+// parking form. Appended, never reordered — a pg enum's order is its sort order.
+export const roleEnum = pgEnum("role", [
+  "DRIVER",
+  "HOST_INDIVIDUAL",
+  "HOST_BUSINESS",
+  "ADMIN",
+  "HOST_EMPLOYEE",
+]);
 
 export const consentKindEnum = pgEnum("consent_kind", [
   "TERMS",
@@ -231,6 +241,22 @@ export const users = pgTable(
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
 
+    // An employee acting for a client (a gate attendant with the QR scanner, an
+    // office worker reading bookings). NULL means this account acts for itself —
+    // every client, driver and admin has NULL here.
+    //
+    // Parkings stay owned by the CLIENT (parkings.owner_id), never by an employee:
+    // money, payouts and Stripe onboarding belong to the party we have a contract
+    // with. Host-side queries therefore resolve `employer_id ?? id` before they
+    // touch parkings — see resolveHostId() in modules/host/identity.ts.
+    //
+    // Deliberately not an organisations table. That is the correct model for
+    // several sites under one company, and it would move parking ownership,
+    // payouts and KYC onto a new entity — a phase of its own, not a column.
+    employerId: uuid("employer_id").references((): AnyPgColumn => users.id, {
+      onDelete: "cascade",
+    }),
+
     // Stripe Connect Express (docs/PAYMENTS.md §2.2). The destination of every
     // charge on this host's parkings; null until they start onboarding.
     stripeAccountId: text("stripe_account_id"),
@@ -244,6 +270,8 @@ export const users = pgTable(
   },
   (table) => [
     uniqueIndex("users_email_key").on(table.email),
+    // Listing a client's staff is a per-client read, on every visit to their page.
+    index("users_employer_id_idx").on(table.employerId),
     // The webhook arrives with an account id and nothing else — this is the
     // lookup that turns it into a user. Unique: one connected account, one host.
     uniqueIndex("users_stripe_account_id_key").on(table.stripeAccountId),

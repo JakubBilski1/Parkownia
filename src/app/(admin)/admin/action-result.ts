@@ -15,7 +15,18 @@
  */
 export type ActionResult =
   | { status: "idle" }
-  | { status: "ok"; message: string; detail?: string }
+  | {
+      status: "ok";
+      message: string;
+      detail?: string;
+      /**
+       * Something the operator must read and pass on — a temporary password.
+       * Separate from `detail` because it must NOT be flashed in a toast that
+       * disappears after four seconds: the screen keeps it until dismissed, and
+       * it is the only time it can be read. Never logged, never mailed.
+       */
+      secret?: { label: string; value: string };
+    }
   | { status: "error"; message: string; fields?: Record<string, string> };
 
 export const IDLE: ActionResult = { status: "idle" };

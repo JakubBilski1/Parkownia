@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PwaRegister } from "@/components/pwa-register";
 import { formatDatePL, formatSpots, formatTimeRangePL } from "@/lib/format";
 import { listHostBookings, type HostBookingRow } from "@/modules/scan/host-bookings";
-import { getHostSession } from "@/modules/scan/session";
+import { getScanContext } from "@/modules/scan/session";
 
 export const metadata: Metadata = {
   title: "Rezerwacje",
@@ -24,9 +24,9 @@ export default async function HostBookingsPage({
 }: {
   searchParams: Promise<Search>;
 }) {
-  const session = await getHostSession();
+  const context = await getScanContext();
 
-  if (!session) {
+  if (!context) {
     return (
       <main className="mx-auto flex min-h-full w-full max-w-[32rem] items-center p-4">
         <EmptyState
@@ -48,7 +48,8 @@ export default async function HostBookingsPage({
 
   const { zakres } = await searchParams;
   const scope = zakres === "nadchodzace" ? "upcoming" : "today";
-  const rows = await listHostBookings(session.userId, scope);
+  // The client's bookings, never the employee's own id — which owns nothing.
+  const rows = await listHostBookings(context.hostId, scope);
 
   return (
     <>

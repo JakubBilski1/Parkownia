@@ -4,7 +4,7 @@ import { ROUTES } from "@/components/nav/routes";
 import { LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PwaRegister } from "@/components/pwa-register";
-import { getHostSession } from "@/modules/scan/session";
+import { getScanContext } from "@/modules/scan/session";
 import { ScannerScreen } from "../scanner-screen";
 
 export const metadata: Metadata = {
@@ -24,10 +24,10 @@ export default async function EventScannerPage({
 }: {
   params: Promise<{ eventId: string }>;
 }) {
-  const session = await getHostSession();
+  const context = await getScanContext();
   const { eventId } = await params;
 
-  if (!session) {
+  if (!context) {
     return (
       <main className="mx-auto flex min-h-full w-full max-w-[32rem] items-center p-4">
         <EmptyState

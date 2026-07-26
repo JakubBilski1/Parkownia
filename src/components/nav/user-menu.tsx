@@ -13,6 +13,8 @@ export type SessionUser = {
   email: string;
   isHost?: boolean;
   isAdmin?: boolean;
+  /** A client's staff member: the gate and the bookings list, nothing else. */
+  isEmployee?: boolean;
 };
 
 export type UserMenuProps = {

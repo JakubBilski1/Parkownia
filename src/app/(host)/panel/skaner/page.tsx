@@ -4,7 +4,7 @@ import { ROUTES } from "@/components/nav/routes";
 import { LockKeyhole } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PwaRegister } from "@/components/pwa-register";
-import { getHostSession } from "@/modules/scan/session";
+import { getScanContext } from "@/modules/scan/session";
 import { ScannerScreen } from "./scanner-screen";
 
 export const metadata: Metadata = {
@@ -16,9 +16,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ScannerPage() {
-  const session = await getHostSession();
+  // Context, not just the session: an employee cut loose from their client
+  // would otherwise pass this gate and meet a 403 from every scan instead.
+  const context = await getScanContext();
 
-  if (!session) {
+  if (!context) {
     return (
       <main className="mx-auto flex min-h-full w-full max-w-[32rem] items-center p-4">
         <EmptyState

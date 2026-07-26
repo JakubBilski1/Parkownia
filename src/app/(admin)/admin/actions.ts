@@ -11,6 +11,14 @@ import { createEvent, deleteEvent, updateEvent } from "@/modules/admin/events";
 import { formatMoney } from "@/lib/format";
 import { LEAD_STATUS_LABEL } from "@/modules/admin/labels";
 import { setLeadStatus } from "@/modules/admin/leads";
+import {
+  createClient,
+  createEmployee,
+  resetAccountPassword,
+  softDeleteClient,
+  softDeleteEmployee,
+  updateClient,
+} from "@/modules/admin/clients";
 import { reviewParking } from "@/modules/admin/moderation";
 import { generatePayouts, markPayoutPaid } from "@/modules/admin/payouts";
 import { requireAdmin } from "@/modules/admin/session";
@@ -22,11 +30,22 @@ import { createVenue, deleteVenue } from "@/modules/admin/venues";
  * Server actions are a second front door to the same domain modules, so they get
  * the same admin check and the same Zod parse (done inside each module function).
  */
-async function run(fn: () => Promise<{ message: string; detail?: string }>): Promise<ActionResult> {
+type Success = {
+  message: string;
+  detail?: string;
+  secret?: { label: string; value: string };
+};
+
+async function run(fn: () => Promise<Success>): Promise<ActionResult> {
   try {
     await requireAdmin();
-    const { message, detail } = await fn();
-    return detail ? { status: "ok", message, detail } : { status: "ok", message };
+    const { message, detail, secret } = await fn();
+    return {
+      status: "ok",
+      message,
+      ...(detail ? { detail } : {}),
+      ...(secret ? { secret } : {}),
+    };
   } catch (error) {
     if (error instanceof AdminError) {
       return { status: "error", message: error.userMessage };
@@ -278,6 +297,137 @@ export async function setLeadStatusAction(
     revalidatePath("/admin");
     return {
       message: `${lead.contactName}: ${LEAD_STATUS_LABEL[status as keyof typeof LEAD_STATUS_LABEL]}.`,
+    };
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Clients and their staff                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The temporary password travels back to the screen once and is never persisted
+ * anywhere else — not in a log line, not in a mail. The operator reads it to the
+ * client on the phone. Production has no mail provider configured yet, so an
+ * invite link would be a credential nobody ever receives.
+ */
+export async function createClientAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    const account = await createClient({
+      email: text(form, "email"),
+      firstName: text(form, "firstName"),
+      lastName: text(form, "lastName"),
+      phone: text(form, "phone"),
+      kind: text(form, "kind"),
+      nip: text(form, "nip"),
+      companyName: text(form, "companyName"),
+      address: text(form, "address"),
+    });
+
+    revalidatePath("/admin/klienci");
+    revalidatePath("/admin");
+
+    return {
+      message: `Konto ${account.email} utworzone.`,
+      secret: { label: `Hasło tymczasowe dla ${account.email}`, value: account.tempPassword },
+    };
+  });
+}
+
+export async function updateClientAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    const clientId = text(form, "clientId") ?? "";
+    // A submitted-but-empty phone field is an instruction to clear the number,
+    // which is not the same as not touching it.
+    const phoneField = form.get("phone");
+    const clearPhone = typeof phoneField === "string" && phoneField.trim() === "";
+
+    await updateClient({
+      clientId,
+      firstName: text(form, "firstName"),
+      lastName: text(form, "lastName"),
+      phone: text(form, "phone"),
+      clearPhone,
+      companyName: text(form, "companyName"),
+      address: text(form, "address"),
+    });
+
+    revalidatePath(`/admin/klienci/${clientId}`);
+    revalidatePath("/admin/klienci");
+    return { message: "Dane klienta zapisane." };
+  });
+}
+
+export async function deleteClientAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    await softDeleteClient({ clientId: text(form, "clientId") });
+
+    revalidatePath("/admin/klienci");
+    revalidatePath("/admin");
+    return {
+      message: "Klient usunięty.",
+      detail:
+        "Dane osobowe nadpisane, konta pracowników wyłączone, parkingi wstrzymane. Rezerwacje i płatności zostają — wymaga tego księgowość.",
+    };
+  });
+}
+
+export async function createEmployeeAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    const clientId = text(form, "clientId") ?? "";
+    const account = await createEmployee({
+      clientId,
+      email: text(form, "email"),
+      firstName: text(form, "firstName"),
+      lastName: text(form, "lastName"),
+      phone: text(form, "phone"),
+    });
+
+    revalidatePath(`/admin/klienci/${clientId}`);
+
+    return {
+      message: `Konto pracownika ${account.email} utworzone.`,
+      secret: { label: `Hasło tymczasowe dla ${account.email}`, value: account.tempPassword },
+    };
+  });
+}
+
+export async function deleteEmployeeAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    await softDeleteEmployee({ employeeId: text(form, "employeeId") });
+
+    revalidatePath(`/admin/klienci/${text(form, "clientId") ?? ""}`);
+    return { message: "Konto pracownika wyłączone." };
+  });
+}
+
+export async function resetPasswordAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    const account = await resetAccountPassword({ clientId: text(form, "accountId") });
+
+    revalidatePath(`/admin/klienci/${text(form, "clientId") ?? ""}`);
+
+    return {
+      message: `Nowe hasło dla ${account.email}. Wszystkie sesje tego konta zostały wylogowane.`,
+      secret: { label: `Hasło tymczasowe dla ${account.email}`, value: account.tempPassword },
     };
   });
 }

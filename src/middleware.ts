@@ -16,6 +16,10 @@ import { verifyAccessToken } from "@/modules/auth/jwt";
 const LOGIN_PATH = "/logowanie";
 const HOST_ONBOARDING_PATH = "/zostan-hostem";
 
+/** What a HOST_EMPLOYEE may open under /panel. Everything else bounces to the scanner. */
+const EMPLOYEE_PATHS = ["/panel/skaner", "/panel/rezerwacje"];
+const EMPLOYEE_HOME = "/panel/skaner";
+
 function redirectTo(req: NextRequest, path: string, next?: string): NextResponse {
   const url = req.nextUrl.clone();
   url.pathname = path;
@@ -50,11 +54,22 @@ export async function middleware(req: NextRequest) {
   const isHost =
     claims.roles.includes("HOST_INDIVIDUAL") || claims.roles.includes("HOST_BUSINESS");
 
-  if (!isHost) {
-    return redirectTo(req, HOST_ONBOARDING_PATH);
+  if (isHost) {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  // A client's employee: the gate and the list they work from, nothing else.
+  // Prices, the parking form and payouts belong to the party with the contract.
+  // This is a coarse filter on claims — Edge has no database — and the pages and
+  // routes behind it check ownership properly (modules/host/identity.ts).
+  if (claims.roles.includes("HOST_EMPLOYEE")) {
+    const allowed = EMPLOYEE_PATHS.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`),
+    );
+    return allowed ? NextResponse.next() : redirectTo(req, EMPLOYEE_HOME);
+  }
+
+  return redirectTo(req, HOST_ONBOARDING_PATH);
 }
 
 export const config = {

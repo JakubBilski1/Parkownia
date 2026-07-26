@@ -13,6 +13,7 @@ import {
   SquareParking,
   Ticket,
   User,
+  Users,
   Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -59,10 +60,19 @@ const HOST_SECONDARY: NavItem[] = [
   { href: ROUTES.host.payouts, label: "Wypłaty", icon: Wallet },
 ];
 
+// A client's employee works a gate. Same two paths the middleware lets through.
+const EMPLOYEE_NAV: NavItem[] = [
+  { href: ROUTES.host.scanner, label: "Skaner", icon: QrCode },
+  { href: ROUTES.host.bookings, label: "Rezerwacje", icon: Ticket },
+];
+
 const ADMIN_NAV: NavItem[] = [
   { href: ROUTES.admin.dashboard, label: "Pulpit", icon: BarChart3 },
   // Second, not last: before there is supply, the leads list IS the daily work.
   { href: ROUTES.admin.leads, label: "Leady", icon: Inbox },
+  // Third: a lead becomes a client here, and the client's staff accounts live
+  // behind the same page. Self-service sign-up is off, so this is the only door.
+  { href: ROUTES.admin.clients, label: "Klienci", icon: Users },
   { href: ROUTES.admin.moderation, label: "Moderacja", icon: ShieldCheck },
   { href: ROUTES.admin.events, label: "Wydarzenia", icon: CalendarDays },
   { href: ROUTES.admin.transactions, label: "Transakcje", icon: Receipt },
@@ -206,15 +216,22 @@ export function AppShell({ children, user, scroll = false }: DriverShellProps) {
 }
 
 export function HostShell({ children, user }: AppShellProps) {
+  // An employee gets the two destinations they are allowed to open (the middleware
+  // enforces the same list). Showing them Parkingi and Wypłaty would be links that
+  // bounce — and an invitation to ask why they cannot see the money.
+  const employee = user?.isEmployee === true && user?.isHost !== true;
+  const primary = employee ? EMPLOYEE_NAV : HOST_NAV;
+  const secondary = employee ? [] : HOST_SECONDARY;
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <TopBar
-        items={[...HOST_NAV, ...HOST_SECONDARY]}
+        items={[...primary, ...secondary]}
         user={user}
-        home={ROUTES.host.dashboard}
+        home={employee ? ROUTES.host.scanner : ROUTES.host.dashboard}
       />
       <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
-      <BottomNav items={HOST_NAV} />
+      <BottomNav items={primary} />
     </div>
   );
 }

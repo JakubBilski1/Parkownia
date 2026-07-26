@@ -57,4 +57,43 @@ describe("generated migrations", () => {
       expect(sql, file).not.toMatch(/"geography\(/i);
     }
   });
+
+  /**
+   * The second trap in the same machinery. drizzle's migrator runs EVERY pending
+   * migration inside ONE transaction (node_modules/drizzle-orm/pg-core/dialect.js:
+   * `session.transaction(...)` wraps the whole loop). Postgres allows
+   * `ALTER TYPE … ADD VALUE` in a transaction, but forbids USING the new value in
+   * that same transaction — so a migration that adds an enum value and any later
+   * migration that inserts or compares it will pass on a database that already had
+   * the value and fail on a fresh one, where both are pending together.
+   *
+   * The fix, when this trips: put the data change in a separate deploy, or write
+   * the value as text with an explicit cast in a statement that runs after commit.
+   */
+  it("never uses an enum value that a migration adds", () => {
+    const files = migrationFiles();
+    const added = new Map<string, string>();
+
+    for (const file of files) {
+      const sql = readFileSync(resolve(MIGRATIONS_DIR, file), "utf8");
+      for (const match of sql.matchAll(/ADD\s+VALUE\s+'([^']+)'/gi)) {
+        added.set(match[1]!, file);
+      }
+    }
+
+    for (const [value, addedIn] of added) {
+      for (const file of files) {
+        const sql = readFileSync(resolve(MIGRATIONS_DIR, file), "utf8");
+        const uses = sql
+          .split("\n")
+          .filter((line) => line.includes(`'${value}'`) && !/ADD\s+VALUE/i.test(line));
+
+        expect(
+          uses,
+          `${file} uses the enum value '${value}' that ${addedIn} adds. Both run in one ` +
+            `transaction on a fresh database, and Postgres refuses to use a value added in it.`,
+        ).toEqual([]);
+      }
+    }
+  });
 });

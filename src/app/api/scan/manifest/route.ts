@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { handler, notFound } from "@/lib/api";
 import { buildScanManifest, listHostScanEvents } from "@/modules/scan/manifest";
-import { requireScanner } from "@/modules/scan/session";
+import { requireScanContext } from "@/modules/scan/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,13 +19,13 @@ export const GET = handler({
   input: querySchema,
   source: "query",
   handle: async ({ input, req }) => {
-    const session = await requireScanner(req);
+    const { hostId } = await requireScanContext(req);
 
     if (!input.eventId) {
-      return { items: await listHostScanEvents(session.userId) };
+      return { items: await listHostScanEvents(hostId) };
     }
 
-    const manifest = await buildScanManifest(session.userId, input.eventId);
+    const manifest = await buildScanManifest(hostId, input.eventId);
     if (!manifest) {
       throw notFound("Nie znamy takiego wydarzenia.");
     }

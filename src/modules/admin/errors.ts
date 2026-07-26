@@ -8,6 +8,8 @@ export type AdminErrorCode =
   | "NOTHING_TO_REFUND"
   | "ALREADY_PAID"
   | "IN_USE"
+  /** The e-mail already belongs to an account. */
+  | "EMAIL_TAKEN"
   | "REFUND_PROVIDER_UNAVAILABLE"
   /** The host's Stripe payouts are not enabled, so their parking cannot go on sale. */
   | "PAYOUTS_NOT_ENABLED";
@@ -38,3 +40,12 @@ export const forbidden = () =>
   new AdminError("FORBIDDEN", 403, "To konto nie ma uprawnień administratora.");
 
 export const notFound = (what: string) => new AdminError("NOT_FOUND", 404, `${what} nie istnieje.`);
+
+export const emailTaken = () =>
+  new AdminError(
+    "EMAIL_TAKEN",
+    409,
+    "Konto z tym adresem już istnieje. Sprawdź listę klientów — także usuniętych.",
+  );
+
+export const invalidState = (message: string) => new AdminError("INVALID_STATE", 422, message);

@@ -28,5 +28,6 @@ export async function getNavUser(): Promise<SessionUser | null> {
     email: row.email,
     firstName: row.firstName,
     isHost: isHost(session),
+    isEmployee: session.roles.includes("HOST_EMPLOYEE"),
   };
 }

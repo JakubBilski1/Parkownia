@@ -161,6 +161,93 @@ export const setLeadStatusSchema = z.object({
 export type SetLeadStatusInput = z.infer<typeof setLeadStatusSchema>;
 
 /* -------------------------------------------------------------------------- */
+/* Clients and their staff                                                    */
+/* -------------------------------------------------------------------------- */
+
+const email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, { message: "Podaj adres e-mail." })
+  .max(160)
+  .email({ message: "To nie jest poprawny adres e-mail." });
+
+const personName = z.string().trim().min(1).max(80);
+
+/**
+ * A phone number as a human types it. Kept loose on purpose — a client dictates
+ * "600 100 200" over the phone and an admin should not have to reformat it.
+ */
+const phone = z.string().trim().min(6, { message: "Numer jest za krótki." }).max(30);
+
+export const clientsQuerySchema = z.object({
+  /** Name, company, e-mail or phone fragment. */
+  q: z.string().trim().min(2).max(120).optional(),
+  kind: z.enum(["INDIVIDUAL", "BUSINESS"]).optional(),
+  /** Soft-deleted clients are hidden unless asked for. */
+  includeDeleted: z
+    .union([z.boolean(), z.enum(["true", "false", "on"])])
+    .transform((value) => value === true || value === "true" || value === "on")
+    .default(false),
+  ...cursorLimit,
+});
+export type ClientsQueryInput = z.infer<typeof clientsQuerySchema>;
+
+export const createClientSchema = z
+  .object({
+    email,
+    firstName: personName.optional(),
+    lastName: personName.optional(),
+    phone: phone.optional(),
+    kind: z.enum(["INDIVIDUAL", "BUSINESS"]),
+    // Business only. NIP is 10 digits; spaces and dashes are stripped first.
+    nip: z
+      .string()
+      .trim()
+      .transform((value) => value.replace(/[\s-]/g, ""))
+      .pipe(z.string().regex(/^\d{10}$/, { message: "NIP ma 10 cyfr." }))
+      .optional(),
+    companyName: z.string().trim().min(2).max(200).optional(),
+    address: z.string().trim().max(240).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.kind !== "BUSINESS") return;
+    // A business host without a company name is an invoice nobody can issue.
+    if (!value.companyName) {
+      ctx.addIssue({ code: "custom", path: ["companyName"], message: "Podaj nazwę firmy." });
+    }
+    if (!value.nip) {
+      ctx.addIssue({ code: "custom", path: ["nip"], message: "Podaj NIP." });
+    }
+  });
+export type CreateClientInput = z.infer<typeof createClientSchema>;
+
+export const updateClientSchema = z.object({
+  clientId: uuid,
+  firstName: personName.optional(),
+  lastName: personName.optional(),
+  phone: phone.optional(),
+  /** Empty string clears the number — undefined leaves it alone. */
+  clearPhone: z.coerce.boolean().optional(),
+  companyName: z.string().trim().min(2).max(200).optional(),
+  address: z.string().trim().max(240).optional(),
+});
+export type UpdateClientInput = z.infer<typeof updateClientSchema>;
+
+export const clientIdSchema = z.object({ clientId: uuid });
+
+export const createEmployeeSchema = z.object({
+  clientId: uuid,
+  email,
+  firstName: personName.optional(),
+  lastName: personName.optional(),
+  phone: phone.optional(),
+});
+export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
+
+export const employeeIdSchema = z.object({ employeeId: uuid });
+
+/* -------------------------------------------------------------------------- */
 /* Venues and events                                                          */
 /* -------------------------------------------------------------------------- */
 

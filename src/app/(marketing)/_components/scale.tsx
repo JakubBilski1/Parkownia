@@ -32,7 +32,7 @@ async function getStats(): Promise<ScaleStats> {
 
     return { eventsNext12mo: eventRow?.n ?? 0, eneaCapacity: enea?.capacity ?? null };
   } catch (error) {
-    console.error("[dla-wlascicieli] scale stats failed:", error instanceof Error ? error.message : error);
+    console.error("[landing] scale stats failed:", error instanceof Error ? error.message : error);
     return { eventsNext12mo: null, eneaCapacity: null };
   }
 }

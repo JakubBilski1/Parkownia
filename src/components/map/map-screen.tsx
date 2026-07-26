@@ -212,7 +212,7 @@ export function MapScreen() {
             action={
               <Button
                 variant="accent"
-                onClick={() => router.push(ROUTES.ownersLanding)}
+                onClick={() => router.push(ROUTES.home)}
               >
                 Policz, ile zarobisz
               </Button>

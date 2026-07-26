@@ -11,7 +11,9 @@
  *   /rezerwacja/:bookingId/potwierdzenie → the ticket: code, QR, entry instructions
  */
 export const ROUTES = {
-  map: "/",
+  /** The owners' landing — the front door, and the only page a stranger sees first. */
+  home: "/",
+  map: "/mapa",
   events: "/wydarzenia",
   event: (slug: string) => `/wydarzenia/${slug}`,
   bookings: "/moje-rezerwacje",
@@ -25,14 +27,10 @@ export const ROUTES = {
   },
   account: "/konto",
   login: "/logowanie",
-  register: "/rejestracja",
+  // No `register`: signing yourself up is off (accounts are created in the admin
+  // panel), and a route constant nobody may reach is a trap for the next person.
+  // It comes back with the page.
   becomeHost: "/zostan-hostem",
-  /**
-   * The acquisition landing. Public and account-free, unlike /zostan-hostem —
-   * which redirects to the login screen and is therefore the wrong place to send
-   * a stranger who just noticed we have no parking near their street.
-   */
-  ownersLanding: "/dla-wlascicieli",
   host: {
     dashboard: "/panel",
     parkings: "/panel/parkingi",

@@ -141,7 +141,7 @@ export const markPaidSchema = z.object({
 export type MarkPaidInput = z.infer<typeof markPaidSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Leads (supply acquisition — landing /dla-wlascicieli)                      */
+/* Leads (supply acquisition — the landing at /)                              */
 /* -------------------------------------------------------------------------- */
 
 const leadStatus = z.enum(["NEW", "CONTACTED", "QUALIFIED", "CONVERTED", "REJECTED", "SPAM"]);

@@ -157,7 +157,7 @@ export default async function AdminDashboardPage({
             label="Nowe leady"
             icon={Inbox}
             value={newLeads}
-            definition="Właściciele z /dla-wlascicieli, z którymi nikt jeszcze nie rozmawiał. Bez podaży to jedyna liczba, która rośnie."
+            definition="Właściciele ze strony głównej, z którymi nikt jeszcze nie rozmawiał. Bez podaży to jedyna liczba, która rośnie."
           />
         </div>
 

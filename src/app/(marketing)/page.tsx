@@ -18,17 +18,17 @@ export const metadata: Metadata = {
   title: "Zarabiaj na pustym parkingu w dni meczowe",
   description:
     "Masz plac, podjazd albo parking firmowy blisko Enea Stadionu lub MTP? Udostępniaj go na wydarzenia — kierowcy rezerwują i płacą z góry. Policz szacowany zarobek w 60 sekund.",
-  alternates: { canonical: "/dla-wlascicieli" },
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Zarabiaj na pustym parkingu w dni meczowe — Parkownia",
     description:
       "Udostępniaj miejsce blisko Enea Stadionu i MTP. Bez gotówki, bez negocjacji. Policz zarobek w 60 sekund.",
-    url: "/dla-wlascicieli",
+    url: "/",
     type: "website",
   },
 };
 
-export default function DlaWlascicieliPage() {
+export default function OwnersLandingPage() {
   return (
     <>
       <JsonLd />

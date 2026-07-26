@@ -27,7 +27,7 @@ export function Calculator() {
   const hydrated = useRef(false);
 
   // Hydrate once from the query string, so a cold-mail link like
-  // /dla-wlascicieli?adres=…&miejsca=30 arrives pre-filled.
+  // /?adres=…&miejsca=30 arrives pre-filled.
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;

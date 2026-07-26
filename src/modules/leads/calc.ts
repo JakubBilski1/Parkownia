@@ -1,7 +1,7 @@
 import { WALK_DETOUR_FACTOR, WALK_SPEED_M_PER_MIN, estimateWalk } from "@/lib/format";
 
 /**
- * Revenue model for the acquisition calculator on /dla-wlascicieli. Every number
+ * Revenue model for the acquisition calculator on the landing at /. Every number
  * here is an OPENLY-STATED ASSUMPTION ("szacunek"), never a promise:
  *   - the per-event rate bands are the agreed widełki, tuned by walking zone;
  *   - the walk model is the app's single one (estimateWalk in @/lib/format:

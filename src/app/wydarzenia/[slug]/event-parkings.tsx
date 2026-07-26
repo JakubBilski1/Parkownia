@@ -71,7 +71,7 @@ export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventP
         action={
           // The landing, not /zostan-hostem: that one is behind the login screen,
           // and nobody creates an account before seeing the money.
-          <LinkButton href={ROUTES.ownersLanding} variant="accent">
+          <LinkButton href={ROUTES.home} variant="accent">
             Policz, ile zarobisz
           </LinkButton>
         }

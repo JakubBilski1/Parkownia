@@ -60,7 +60,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Leady"
-        description="Właściciele, którzy zostawili kontakt na /dla-wlascicieli. Każdy z nich policzył sobie zarobek i kliknął „porozmawiajmy” — dzwoń, dopóki to pamięta."
+        description="Właściciele, którzy zostawili kontakt na stronie głównej. Każdy z nich policzył sobie zarobek i kliknął „porozmawiajmy” — dzwoń, dopóki to pamięta."
       />
 
       <form method="get" className="flex flex-wrap items-end gap-3">
@@ -94,7 +94,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Search
       {items.length === 0 ? (
         <EmptyState
           title="Żaden lead nie pasuje do filtrów"
-          description="Wyczyść wyszukiwanie. Jeśli lista jest pusta od zawsze — nikt jeszcze nie wysłał formularza z /dla-wlascicieli."
+          description="Wyczyść wyszukiwanie. Jeśli lista jest pusta od zawsze — nikt jeszcze nie wysłał formularza ze strony głównej."
         />
       ) : (
         <TableScroll>

@@ -168,7 +168,7 @@ export const notificationChannelEnum = pgEnum("notification_channel", ["EMAIL", 
 
 export const notificationStatusEnum = pgEnum("notification_status", ["SENT", "FAILED"]);
 
-// Supply-acquisition leads (landing /dla-wlascicieli). Object type mirrors the
+// Supply-acquisition leads (the landing at /). Object type mirrors the
 // Polish copy: plac, podjazd, parking firmowy, garaż/podziemie, inne.
 export const leadObjectTypeEnum = pgEnum("lead_object_type", [
   "LOT",
@@ -783,7 +783,7 @@ export const rateLimits = pgTable("rate_limits", {
 });
 
 /* -------------------------------------------------------------------------- */
-/* Leads (supply acquisition — landing /dla-wlascicieli)                      */
+/* Leads (supply acquisition — the landing at /)                              */
 /* -------------------------------------------------------------------------- */
 
 // A prospect who left their parking object through the acquisition landing.

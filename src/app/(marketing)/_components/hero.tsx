@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ROUTES } from "@/components/nav/routes";
 import { buttonVariants } from "@/components/ui";
 
 export function Hero() {
@@ -24,6 +26,16 @@ export function Hero() {
             Jak to działa
           </a>
         </div>
+
+        {/* The way into the working product. A landing that only talks is a leaflet;
+            an owner who can click through to the map sees that the thing exists. */}
+        <p className="mt-6 text-ui text-muted">
+          Chcesz najpierw zobaczyć, jak to działa od strony kierowcy?{" "}
+          <Link href={ROUTES.map} className="text-ink underline underline-offset-4">
+            Otwórz mapę parkingów
+          </Link>
+          .
+        </p>
       </div>
     </section>
   );

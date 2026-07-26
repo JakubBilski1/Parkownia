@@ -74,14 +74,15 @@ export function LoginForm({ next }: { next: string }) {
         <Link href="/nowe-haslo" className="rounded-chip underline underline-offset-4 hover:text-ink">
           Nie pamiętam hasła
         </Link>
+        {/* Self-service registration is off for now — accounts are created in the
+            admin panel. No dead link to a page that no longer exists; the driver
+            does not need one either, because buying never required an account. */}
         <p>
-          Nie masz konta?{" "}
-          <Link
-            href="/rejestracja"
-            className="rounded-chip text-ink underline underline-offset-4"
-          >
-            Załóż je w minutę
-          </Link>
+          Konta zakładamy sami. Chcesz udostępniać parking?{" "}
+          <Link href="/" className="rounded-chip text-ink underline underline-offset-4">
+            Zostaw kontakt
+          </Link>{" "}
+          — odezwiemy się.
         </p>
       </div>
     </form>

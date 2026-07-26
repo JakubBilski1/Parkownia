@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ROUTES } from "@/components/nav/routes";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui";
 
@@ -13,6 +14,14 @@ export function MarketingHeader() {
           Parkownia
         </Link>
         <div className="flex-1" />
+        {/* Hidden on the narrowest screens: the hero carries the same link in prose,
+            and a three-item header wraps on a phone. */}
+        <Link
+          href={ROUTES.map}
+          className="hidden min-h-touch items-center rounded-button px-3 text-ui text-muted transition-colors duration-micro ease-out hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:inline-flex"
+        >
+          Mapa parkingów
+        </Link>
         <ThemeToggle />
         <Link href="/logowanie" className={buttonVariants({ variant: "quiet", size: "sm" })}>
           Zaloguj

@@ -239,3 +239,12 @@ w środku (tak zrobiono na `/panel/parkingi`: `wide` + `lg:grid-cols-2`). Warian
 i `full` zostały wycięte jako spekulacja — nie dodawaj ich z powrotem „na zapas".
 
 **Wymagany Node ≥ 22** (Vitest 4 potrzebuje `util.styleText`). Na Node 21 testy nie wystartują.
+
+**Nie wpisuj polskich znaków wprost w `curl -d` z Git Basha na tej maszynie.** Shell przekodowuje
+`ł ż ę ń ó ś ć` na stronę kodową konsoli, serwer dostaje bajty, które nie są poprawnym UTF-8,
+a `TextDecoder` po cichu zamienia je na `U+FFFD` — i taki `�` zapisuje się do bazy jako
+całkowicie poprawny UTF-8, więc nic nie protestuje. Tak wyszedł pierwszy lead testowy na
+produkcji („Bu�garska", „Test Wdro�eniowy"). Sama aplikacja jest bez winy: formularz w
+przeglądarce zawsze wysyła poprawny UTF-8, a prodowe API zwraca z bazy „Międzynarodowe Targi
+Poznańskie" z pełną diakrytyką. **Payload z polskim tekstem zapisz do pliku i wyślij przez
+`--data-binary @plik`**, a przed wysyłką sprawdź bajty (`ł` to `c5 82`) i brak BOM-a.

@@ -12,6 +12,7 @@ import {
   suggestedRate,
   walkMinutes,
 } from "./calc";
+import { notifyNewLead } from "./notify";
 import type { LeadInput } from "./schemas";
 
 type VenueKey = "ENEA" | "MTP" | "OTHER";
@@ -182,8 +183,19 @@ export async function createLead(
     })
     .returning({ id: leads.id });
 
-  // The e-mail alert to kontakt@parkownia.com is deferred (it needs a pbdevs
-  // template). The lead lives in the DB and will surface in the admin panel.
-  // TODO(dla-wlascicieli): notify on new lead once the `owner-lead` template exists.
-  return row!.id;
+  const leadId = row!.id;
+
+  // Awaited, not fire-and-forget: a serverless-style runtime can freeze the
+  // process the moment the response is written, and a floating promise would be
+  // dropped. notifyNewLead() swallows its own failures, so this cannot fail the
+  // request — the lead is already committed above either way.
+  await notifyNewLead(leadId, input, {
+    estimatedRateGr,
+    estimatedAnnualGrossGr,
+    eventsInReach,
+    walkMinutesEnea,
+    walkMinutesMtp,
+  });
+
+  return leadId;
 }

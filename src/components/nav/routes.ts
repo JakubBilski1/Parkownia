@@ -38,6 +38,7 @@ export const ROUTES = {
   },
   admin: {
     dashboard: "/admin",
+    leads: "/admin/leady",
     moderation: "/admin/moderacja",
     events: "/admin/wydarzenia",
     transactions: "/admin/transakcje",

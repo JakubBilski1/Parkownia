@@ -9,6 +9,8 @@ import { deleteCommissionOverride, setCommissionRule } from "@/modules/admin/com
 import { AdminError } from "@/modules/admin/errors";
 import { createEvent, deleteEvent, updateEvent } from "@/modules/admin/events";
 import { formatMoney } from "@/lib/format";
+import { LEAD_STATUS_LABEL } from "@/modules/admin/labels";
+import { setLeadStatus } from "@/modules/admin/leads";
 import { reviewParking } from "@/modules/admin/moderation";
 import { generatePayouts, markPayoutPaid } from "@/modules/admin/payouts";
 import { requireAdmin } from "@/modules/admin/session";
@@ -257,5 +259,25 @@ export async function deleteEventAction(
     await deleteEvent(text(form, "eventId") ?? "");
     revalidatePath("/admin/wydarzenia");
     return { message: "Wydarzenie usunięte." };
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Leads                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export async function setLeadStatusAction(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  return run(async () => {
+    const status = text(form, "status");
+    const lead = await setLeadStatus({ leadId: text(form, "leadId"), status });
+
+    revalidatePath("/admin/leady");
+    revalidatePath("/admin");
+    return {
+      message: `${lead.contactName}: ${LEAD_STATUS_LABEL[status as keyof typeof LEAD_STATUS_LABEL]}.`,
+    };
   });
 }

@@ -71,3 +71,25 @@ export const COMMISSION_SCOPE_LABEL = {
   USER: "Host",
   PARKING: "Parking",
 } as const;
+
+export const LEAD_STATUS_LABEL = {
+  NEW: "Nowy",
+  CONTACTED: "Skontaktowany",
+  QUALIFIED: "Rokuje",
+  CONVERTED: "Wystawił parking",
+  REJECTED: "Odpadł",
+  SPAM: "Spam",
+} as const;
+
+export const LEAD_OBJECT_TYPE_LABEL = {
+  LOT: "Plac / parking otwarty",
+  DRIVEWAY: "Podjazd / miejsce przy domu",
+  COMPANY_LOT: "Parking firmowy",
+  GARAGE: "Garaż / parking podziemny",
+  OTHER: "Inne",
+} as const;
+
+export const LEAD_CONTACT_PREFERENCE_LABEL = {
+  PHONE: "Woli telefon",
+  EMAIL: "Woli e-mail",
+} as const;

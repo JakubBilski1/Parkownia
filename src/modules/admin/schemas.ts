@@ -141,6 +141,26 @@ export const markPaidSchema = z.object({
 export type MarkPaidInput = z.infer<typeof markPaidSchema>;
 
 /* -------------------------------------------------------------------------- */
+/* Leads (supply acquisition — landing /dla-wlascicieli)                      */
+/* -------------------------------------------------------------------------- */
+
+const leadStatus = z.enum(["NEW", "CONTACTED", "QUALIFIED", "CONVERTED", "REJECTED", "SPAM"]);
+
+export const leadsQuerySchema = z.object({
+  status: leadStatus.optional(),
+  /** Contact name, address, phone or e-mail fragment. */
+  q: z.string().trim().min(2).max(120).optional(),
+  ...cursorLimit,
+});
+export type LeadsQueryInput = z.infer<typeof leadsQuerySchema>;
+
+export const setLeadStatusSchema = z.object({
+  leadId: uuid,
+  status: leadStatus,
+});
+export type SetLeadStatusInput = z.infer<typeof setLeadStatusSchema>;
+
+/* -------------------------------------------------------------------------- */
 /* Venues and events                                                          */
 /* -------------------------------------------------------------------------- */
 

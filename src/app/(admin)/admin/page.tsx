@@ -1,10 +1,19 @@
-import { Banknote, CalendarClock, Percent, ShieldAlert, TrendingUp, Users } from "lucide-react";
+import {
+  Banknote,
+  CalendarClock,
+  Inbox,
+  Percent,
+  ShieldAlert,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Price } from "@/components/ui/price";
 import { formatDateTimePL } from "@/lib/format";
 import { getDashboard } from "@/modules/admin/dashboard";
+import { countNewLeads } from "@/modules/admin/leads";
 import { getAdminSession } from "@/modules/admin/session";
 import { utcToWarsawInput, warsawToUtc } from "@/modules/admin/time";
 import { AccessDenied } from "./_components/access-denied";
@@ -27,10 +36,12 @@ export default async function AdminDashboardPage({
 
   const { from, to } = await searchParams;
 
-  const metrics = await getDashboard({
-    from: warsawToUtc(from),
-    to: warsawToUtc(to),
-  });
+  // Deliberately outside the date filter: an untouched lead is a to-do, not a
+  // statistic for a period.
+  const [metrics, newLeads] = await Promise.all([
+    getDashboard({ from: warsawToUtc(from), to: warsawToUtc(to) }),
+    countNewLeads(),
+  ]);
 
   const { conversion } = metrics;
 
@@ -142,16 +153,33 @@ export default async function AdminDashboardPage({
             value={metrics.pendingReview}
             definition="Parkingi zgłoszone przez hostów, jeszcze nierozpatrzone."
           />
+          <Metric
+            label="Nowe leady"
+            icon={Inbox}
+            value={newLeads}
+            definition="Właściciele z /dla-wlascicieli, z którymi nikt jeszcze nie rozmawiał. Bez podaży to jedyna liczba, która rośnie."
+          />
         </div>
 
-        {metrics.pendingReview > 0 ? (
-          <Link
-            href="/admin/moderacja"
-            className="inline-flex min-h-touch w-fit items-center rounded-button border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-micro ease-out hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            Przejdź do moderacji
-          </Link>
-        ) : null}
+        <div className="flex flex-wrap gap-3">
+          {metrics.pendingReview > 0 ? (
+            <Link
+              href="/admin/moderacja"
+              className="inline-flex min-h-touch w-fit items-center rounded-button border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-micro ease-out hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              Przejdź do moderacji
+            </Link>
+          ) : null}
+
+          {newLeads > 0 ? (
+            <Link
+              href="/admin/leady"
+              className="inline-flex min-h-touch w-fit items-center rounded-button border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-micro ease-out hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              Odezwij się do leadów
+            </Link>
+          ) : null}
+        </div>
       </Section>
 
       <Section title="Najlepsze parkingi" hint="Po GMV w wybranym okresie.">

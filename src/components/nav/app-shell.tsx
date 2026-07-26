@@ -4,6 +4,7 @@ import {
   BarChart3,
   CalendarDays,
   Coins,
+  Inbox,
   LayoutGrid,
   Map,
   QrCode,
@@ -60,6 +61,8 @@ const HOST_SECONDARY: NavItem[] = [
 
 const ADMIN_NAV: NavItem[] = [
   { href: ROUTES.admin.dashboard, label: "Pulpit", icon: BarChart3 },
+  // Second, not last: before there is supply, the leads list IS the daily work.
+  { href: ROUTES.admin.leads, label: "Leady", icon: Inbox },
   { href: ROUTES.admin.moderation, label: "Moderacja", icon: ShieldCheck },
   { href: ROUTES.admin.events, label: "Wydarzenia", icon: CalendarDays },
   { href: ROUTES.admin.transactions, label: "Transakcje", icon: Receipt },

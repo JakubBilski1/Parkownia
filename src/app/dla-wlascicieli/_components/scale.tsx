@@ -51,7 +51,8 @@ export async function Scale() {
           brakuje. To jest luka, którą wypełniasz.
         </p>
 
-        <dl className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Two columns, not three: the grid holds exactly what we can source. */}
+        <dl className="mt-10 grid gap-6 sm:grid-cols-2">
           {eneaCapacity ? (
             <div className="rounded-card border border-line bg-surface p-6">
               <dt className="text-ui text-muted">Pojemność Enea Stadionu</dt>
@@ -72,18 +73,16 @@ export async function Scale() {
             </div>
           ) : null}
 
-          {/* TODO(dane): średnia frekwencja Lecha + footfall MTP — wstawić realne, CYTOWANE liczby
-              przed publikacją (raporty klubu/Ekstraklasy, raport roczny Grupy MTP). Nie zgadywać. */}
-          <div className="rounded-card border border-dashed border-line bg-surface p-6">
-            <dt className="text-ui text-muted">Średnia frekwencja</dt>
-            <dd className="mt-2 font-display text-h1 font-extrabold tracking-tight text-muted">— —</dd>
-            <dd className="mt-1 text-ui text-muted">do uzupełnienia z cytowanego źródła</dd>
-          </div>
+          {/* TODO(dane): średnia frekwencja Lecha + footfall MTP. Trzeci kafelek wraca tu
+              DOPIERO z realną, CYTOWANĄ liczbą (raporty klubu/Ekstraklasy, raport roczny
+              Grupy MTP) — nie zgadywać. Do tego czasu go NIE MA: pusta ramka z napisem
+              „do uzupełnienia” stała na stronie, którą wysyłamy obcym ludziom, i czytała się
+              jako niedokończony produkt. Brak kafelka jest lepszy niż widoczny brak. */}
         </dl>
 
         <p className="mt-6 text-ui text-muted">
-          Liczba wydarzeń pochodzi z naszej bazy; pojemność stadionu to dane obiektu. Frekwencję
-          uzupełnimy o zweryfikowane źródło przed publikacją.
+          Liczba wydarzeń pochodzi z naszej bazy, pojemność stadionu to dane obiektu. Nie podajemy
+          liczb, których nie możemy wskazać źródłem.
         </p>
       </div>
     </section>

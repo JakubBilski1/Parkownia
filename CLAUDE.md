@@ -245,9 +245,12 @@ obiekty i eventy. **To nie jest awaria** — to brak zaakceptowanej podaży.
 
 **Co NIE jest zrobione — nie udawaj, że jest:**
 
-- [ ] **Brak `PATCH /api/me`** → „Moje dane" na `/konto` są read-only (na stronie widać „Telefon —").
-      Telefon da się ustawić tylko przy zakupie. Zły numer = brak SMS-a z kodem i brak sposobu,
-      żeby to naprawić. **Najostrzejsza dziura funkcjonalna, jaka została.**
+- [x] **`PATCH /api/me` + edytowalne „Moje dane" na `/konto`** — imię, nazwisko i telefon poprawia
+      sam użytkownik (RODO art. 16; strona miała dotąd tylko eksport i usunięcie konta). Wysyłane
+      są **wyłącznie zmienione pola**: `undefined` = nie ruszaj, `null` = wyczyść. Zweryfikowane
+      w przeglądarce na tymczasowej stronie podglądu (walidacja numeru, blokada zapisu, toast
+      błędu); **ścieżka sukcesu nie była uruchomiona — wymaga bazy.** Testy integracyjne są
+      w `tests/integration/profile-rectification.test.ts` i czekają na PostGIS.
 - [ ] **`PAYMENT_PROVIDER` nieuzupełniony przez właściciela** — bez tego nic się nie kupi.
       Uwaga: brama KYC (publikacja parkingu zablokowana do przejścia weryfikacji) odpala się
       **tylko** na `PAYMENT_PROVIDER=stripe`, więc dziś nie działa.

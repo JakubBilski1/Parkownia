@@ -15,6 +15,7 @@ import { getProfile } from "@/modules/users/service";
 import { ConsentsPanel, type ConsentView } from "./_components/consents-panel";
 import { DataExportCard } from "./_components/data-export-card";
 import { DeleteAccountCard } from "./_components/delete-account-card";
+import { ProfileForm } from "./_components/profile-form";
 
 export const dynamic = "force-dynamic";
 
@@ -37,15 +38,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-function DataRow({ label, value }: { label: string; value: string | null }) {
-  return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 border-b border-line py-2 last:border-b-0">
-      <dt className="text-ui text-muted">{label}</dt>
-      <dd className="num text-body text-ink">{value ?? "—"}</dd>
-    </div>
   );
 }
 
@@ -83,8 +75,6 @@ export default async function AccountPage() {
   const isHost = profile.roles.some(
     (role) => role === "HOST_INDIVIDUAL" || role === "HOST_BUSINESS",
   );
-
-  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || null;
 
   return (
     <AppShell user={navUser} scroll>
@@ -135,12 +125,18 @@ export default async function AccountPage() {
           </section>
         ) : null}
 
-        <Section title="Moje dane">
-          <dl className="flex flex-col">
-            <DataRow label="Imię i nazwisko" value={fullName} />
-            <DataRow label="E-mail" value={profile.email} />
-            <DataRow label="Telefon" value={profile.phone} />
-          </dl>
+        <Section
+          title="Moje dane"
+          description="Zmiany zapisują się od razu. Numer telefonu poprawisz tutaj — przy zakupie nadpisać się go nie da."
+        >
+          <ProfileForm
+            initial={{
+              email: profile.email,
+              firstName: profile.firstName,
+              lastName: profile.lastName,
+              phone: profile.phone,
+            }}
+          />
         </Section>
 
         <Section

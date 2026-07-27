@@ -13,6 +13,7 @@ import {
 import { conflict, notFound } from "@/lib/api";
 import { revokeAllUserRefreshTokens } from "@/modules/auth/refresh";
 import { listConsents } from "./consents";
+import type { UpdateProfileInput } from "./schemas";
 
 export type UserProfile = {
   id: string;
@@ -46,6 +47,38 @@ export async function getProfile(userId: string): Promise<UserProfile> {
     roles: roles.map((row) => row.role),
     createdAt: user.createdAt,
   };
+}
+
+/**
+ * RODO art. 16 — rectification. Only the fields the user actually sent are
+ * touched: `undefined` means "left alone", `null` means "clear it". Without that
+ * distinction a form that submits three inputs would wipe the two the user never
+ * opened.
+ *
+ * An anonymised account is not editable — `deletedAt` stays in the WHERE so a
+ * deletion cannot be undone one field at a time.
+ */
+export async function updateProfile(
+  userId: string,
+  input: UpdateProfileInput,
+): Promise<UserProfile> {
+  const patch = {
+    ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
+    ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+    ...(input.phone !== undefined ? { phone: input.phone } : {}),
+  };
+
+  const [row] = await db
+    .update(users)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(and(eq(users.id, userId), isNull(users.deletedAt)))
+    .returning({ id: users.id });
+
+  if (!row) {
+    throw notFound("Nie znaleźliśmy tego konta.");
+  }
+
+  return getProfile(userId);
 }
 
 /**

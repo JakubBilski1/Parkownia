@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { POST as bookingsRoute } from "@/app/api/bookings/route";
 import { GET as bookingDetailRoute } from "@/app/api/bookings/[id]/route";
+import { GET as meRoute, PATCH as mePatchRoute } from "@/app/api/me/route";
 import { GET as parkingDetailRoute } from "@/app/api/parkings/[id]/route";
 import { POST as paymentIntentRoute } from "@/app/api/payments/intent/route";
 import { POST as webhookRoute } from "@/app/api/webhooks/[provider]/route";
@@ -144,6 +145,39 @@ export async function postRawWebhook(
       body: rawBody,
     });
     return read(await webhookRoute(request, { params: Promise.resolve({ provider }) }));
+  });
+}
+
+export type ProfileBody = {
+  id: string;
+  email: string;
+  phone: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  error?: { code: string };
+};
+
+export async function getMe(scope: Scope = {}): Promise<ApiResponse<ProfileBody>> {
+  return runInRequestScope({ cookies: scope.cookies, headers: headersFor(scope) }, async () => {
+    const request = new NextRequest("http://localhost/api/me");
+    return read(await meRoute(request, { params: Promise.resolve({}) }));
+  });
+}
+
+/** PATCH /api/me — RODO art. 16, the user correcting their own record. */
+export async function patchMe(
+  body: Record<string, unknown>,
+  scope: Scope = {},
+): Promise<ApiResponse<ProfileBody>> {
+  const headers = headersFor(scope);
+
+  return runInRequestScope({ cookies: scope.cookies, headers }, async () => {
+    const request = new NextRequest("http://localhost/api/me", {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify(body),
+    });
+    return read(await mePatchRoute(request, { params: Promise.resolve({}) }));
   });
 }
 

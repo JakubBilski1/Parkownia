@@ -131,34 +131,63 @@ export function RevenuePanel({
       <div className="lg:col-span-6">
         <Ticket>
           <TicketMain className="p-5 sm:p-6">
-            <p className="text-ui font-semibold uppercase tracking-[0.12em] text-muted">
-              Szacunek roczny
-            </p>
-            <p className="mt-3 flex items-baseline gap-2" aria-live="polite">
-              <span className="num font-mono text-[clamp(2.25rem,7vw,3.25rem)] font-semibold leading-none tracking-[-0.02em] text-ink">
-                {amount.amount}
-              </span>
-              <span className="text-lead text-muted">{amount.currency}</span>
-            </p>
+            {/* Out of reach there is no estimate, and a giant "0 zł" is not the
+                honest way to say so — it reads as a verdict on the place rather
+                than as the absence of a number. Say what happened and what to do
+                next (§6.10), and keep the CTA: a spot too far for the calculator
+                is still worth a conversation. */}
+            {events > 0 ? (
+              <>
+                <p className="text-ui font-semibold uppercase tracking-[0.12em] text-muted">
+                  Szacunek roczny
+                </p>
+                <p className="mt-3 flex items-baseline gap-2" aria-live="polite">
+                  <span className="num font-mono text-[clamp(2.25rem,7vw,3.25rem)] font-semibold leading-none tracking-[-0.02em] text-ink">
+                    {amount.amount}
+                  </span>
+                  <span className="text-lead text-muted">{amount.currency}</span>
+                </p>
 
-            <dl className="mt-6 border-t border-line text-body">
-              <Row term="Przychód na wydarzenie" gr={perEvent} />
-              <Row term="Rocznie brutto" gr={revenue.annualGrossGr} />
-              <Row
-                term={`Prowizja Parkowni (${commissionPct}%)`}
-                gr={revenue.commissionGr}
-                sign="−"
-              />
-            </dl>
+                <dl className="mt-6 border-t border-line text-body">
+                  <Row term="Przychód na wydarzenie" gr={perEvent} />
+                  <Row term="Rocznie brutto" gr={revenue.annualGrossGr} />
+                  <Row
+                    term={`Prowizja Parkowni (${commissionPct}%)`}
+                    gr={revenue.commissionGr}
+                    sign="−"
+                  />
+                </dl>
+              </>
+            ) : (
+              <>
+                <p className="text-ui font-semibold uppercase tracking-[0.12em] text-muted">
+                  Poza zasięgiem kalkulatora
+                </p>
+                <p className="mt-3 text-h3 font-semibold text-ink">
+                  To miejsce jest dalej niż 15 minut pieszo od Enea Stadionu i MTP.
+                </p>
+                <p className="mt-3 text-body text-muted">
+                  Nie policzymy stąd wiarygodnego szacunku, więc go nie pokazujemy. Przesuń pinezkę
+                  bliżej bramy — albo napisz do nas mimo wszystko, bo o dojazdach i cenach w Twojej
+                  okolicy wiesz więcej niż nasza mapa.
+                </p>
+              </>
+            )}
           </TicketMain>
 
           <TicketStub className="p-5 sm:p-6">
-            <p className="text-ui text-muted">
-              {events > 0
-                ? `Przy ${events} wydarzeniach w zasięgu i pełnym obłożeniu. To szacunek, nie gwarancja.`
-                : "W zasięgu 15 minut nie ma jeszcze wydarzeń z naszej bazy — wskaż miejsce bliżej Enei lub MTP, żeby zobaczyć szacunek."}
-            </p>
-            <Button variant="accent" size="lg" block className="mt-4" onClick={onOpenLead}>
+            {events > 0 ? (
+              <p className="text-ui text-muted">
+                Przy {events} wydarzeniach w zasięgu i pełnym obłożeniu. To szacunek, nie gwarancja.
+              </p>
+            ) : null}
+            <Button
+              variant="accent"
+              size="lg"
+              block
+              className={events > 0 ? "mt-4" : undefined}
+              onClick={onOpenLead}
+            >
               Porozmawiajmy o moim miejscu
             </Button>
             <p className="mt-3 text-center text-ui text-muted">

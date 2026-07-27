@@ -312,15 +312,17 @@ export function LeadWizard({
           <>
             {/* Recognition over recall (§6.5): the numbers the calculator worked
                 out are restated here, so nobody has to remember what they set. */}
+            {/* Out of the calculator's reach there is no rate and no estimate;
+                restating them as "0 zł" would be a made-up number, not a recap. */}
             <dl className="rounded-card border border-line bg-surface-2 p-4 text-ui">
               <Summary term="Adres" value={address || "wskazany punkt na mapie"} />
               <Summary term="Miejsca" value={formatSpots(spots)} />
-              <Summary term="Stawka" value={`${formatMoney(rateGr)} / wydarzenie`} />
-              <Summary
-                term="Szacunek roczny"
-                value={formatMoney(annualNetGr)}
-                emphasis
-              />
+              {rateGr > 0 ? (
+                <Summary term="Stawka" value={`${formatMoney(rateGr)} / wydarzenie`} />
+              ) : null}
+              {annualNetGr > 0 ? (
+                <Summary term="Szacunek roczny" value={formatMoney(annualNetGr)} emphasis />
+              ) : null}
             </dl>
 
             <div className="flex flex-col gap-2">

@@ -15,6 +15,7 @@ export { Dialog, useNativeDialog, type DialogProps } from "./dialog";
 export { EmptyState, type EmptyStateProps } from "./empty-state";
 export { Field, type FieldControlProps, type FieldProps } from "./field";
 export { Input, inputBase, type InputProps } from "./input";
+export { NumberField, type NumberFieldProps } from "./number-field";
 export {
   PageContainer,
   type PageContainerProps,

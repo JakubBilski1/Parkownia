@@ -1,3 +1,5 @@
+import { SectionHead } from "./section-head";
+
 // A real temporal sequence, so numbered steps are earned (not decorative
 // 01/02/03). Owner's point of view, not the driver's.
 const STEPS = [
@@ -23,20 +25,36 @@ const STEPS = [
   },
 ];
 
+/**
+ * An index, not a card grid. Four cards in a row is the shape every generated
+ * landing page reaches for (§1); rules and aligned columns say the same thing
+ * and read as something a person set.
+ */
 export function HowItWorks() {
   return (
     <section id="jak-to-dziala" className="border-b border-line bg-surface-2">
       <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:px-6">
-        <h2 className="font-display text-h1 font-extrabold tracking-tight text-ink">Jak to działa</h2>
-        <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <SectionHead
+          label="Jak to działa"
+          title="Cztery kroki, z czego trzy robisz raz"
+          lead="Pierwsze dwa ustawiasz na starcie. Potem zostaje wpuszczenie auta — i przelew."
+        />
+
+        <ol className="mt-12 border-t border-line">
           {STEPS.map((step) => (
-            <li key={step.n}>
+            <li
+              key={step.n}
+              className="grid gap-2 border-b border-line py-6 sm:grid-cols-12 sm:gap-6 sm:py-7"
+            >
               {/* Ordinal stays ink, never the accent — the accent is reserved (§4). */}
-              <span className="font-display text-[2.5rem] font-extrabold leading-none tabular-nums text-ink">
+              <span
+                aria-hidden="true"
+                className="font-display text-h2 font-extrabold leading-none tabular-nums text-muted sm:col-span-1"
+              >
                 {step.n}
               </span>
-              <h3 className="mt-3 text-h3 font-semibold text-ink">{step.title}</h3>
-              <p className="mt-2 text-body text-muted">{step.body}</p>
+              <h3 className="text-h3 font-semibold text-ink sm:col-span-4">{step.title}</h3>
+              <p className="text-body text-muted sm:col-span-7">{step.body}</p>
             </li>
           ))}
         </ol>

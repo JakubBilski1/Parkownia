@@ -122,15 +122,19 @@ export function Dialog({
         onMouseDown={onBackdropMouseDown}
         className="flex h-full w-full items-center justify-center p-4"
       >
+        {/* A column with a scrollable middle, not one tall box: the multi-step
+            lead wizard is taller than a 13" laptop's viewport, and a dialog that
+            overflows puts its own submit button off-screen with no way to reach
+            it. Header and actions stay pinned; only the body scrolls. */}
         <div
           onAnimationEnd={onAnimationEnd}
           className={cn(
-            "w-full max-w-[28rem] rounded-card border border-line bg-surface shadow-float",
+            "flex max-h-[calc(100dvh-2rem)] w-full max-w-[28rem] flex-col rounded-card border border-line bg-surface shadow-float",
             closing ? "animate-dialog-out" : "animate-dialog-in",
             className,
           )}
         >
-          <div className="flex items-start justify-between gap-4 p-4 pb-0">
+          <div className="flex shrink-0 items-start justify-between gap-4 p-4 pb-0">
             <h2
               id={titleId}
               className="font-display text-h3 font-bold text-ink"
@@ -148,13 +152,13 @@ export function Dialog({
           </div>
 
           {description ? (
-            <p className="px-4 pt-2 text-body text-muted">{description}</p>
+            <p className="shrink-0 px-4 pt-2 text-body text-muted">{description}</p>
           ) : null}
 
-          {children ? <div className="p-4">{children}</div> : null}
+          {children ? <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div> : null}
 
           {actions ? (
-            <div className="flex flex-col-reverse gap-2 border-t border-line p-4 sm:flex-row sm:justify-end">
+            <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-line p-4 sm:flex-row sm:justify-end">
               {actions}
             </div>
           ) : null}

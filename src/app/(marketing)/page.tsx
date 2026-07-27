@@ -7,6 +7,7 @@ import { Hero } from "./_components/hero";
 import { HowItWorks } from "./_components/how-it-works";
 import { JsonLd } from "./_components/jsonld";
 import { Scale } from "./_components/scale";
+import { SectionHead } from "./_components/section-head";
 
 // Dynamic, not static: the Scale section reads the events table, and the build
 // (docker build) runs with no database reachable — same reason /wydarzenia is
@@ -47,19 +48,22 @@ export default function OwnersLandingPage() {
 }
 
 // The static shell of the calculator section, shown for the instant before the
-// client island mounts — same box, so nothing jumps.
+// client island mounts — same header, same map box, so nothing jumps.
 function CalculatorFallback() {
   return (
-    <section id="kalkulator" className="border-b border-line bg-surface-2">
+    <section id="kalkulator" className="border-b border-line bg-bg">
       <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:px-6">
-        <h2 className="font-display text-h1 font-extrabold tracking-tight text-ink">
-          Policz swój zarobek
-        </h2>
-        <p className="mt-3 max-w-2xl text-lead text-muted">
-          Wpisz adres obiektu — policzymy dojście do Enea Stadionu i MTP, liczbę wydarzeń w zasięgu
-          i szacowany roczny przychód.
-        </p>
-        <div className="mt-8 h-[300px] w-full rounded-card border border-line bg-surface sm:h-[340px]" />
+        <SectionHead
+          label="Kalkulator"
+          title="Policz swój zarobek"
+          lead="Wpisz adres obiektu — policzymy dojście do Enea Stadionu i MTP, liczbę wydarzeń w zasięgu i szacowany roczny przychód."
+        />
+        <div className="mt-12 grid gap-8 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-5">
+            <div className="h-touch w-full rounded-button border border-line bg-surface" />
+          </div>
+          <div className="h-[320px] w-full rounded-card border border-line bg-surface sm:h-[400px] lg:col-span-7 lg:h-[460px]" />
+        </div>
       </div>
     </section>
   );

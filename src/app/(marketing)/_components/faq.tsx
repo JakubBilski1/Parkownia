@@ -1,3 +1,6 @@
+import { Plus } from "lucide-react";
+import { SectionHead } from "./section-head";
+
 export type FaqItem = { q: string; a: string };
 
 /**
@@ -48,26 +51,31 @@ export const FAQ_ITEMS: FaqItem[] = [
 
 export function Faq() {
   return (
-    <section id="faq" className="bg-surface-2">
-      <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:py-20 lg:px-6">
-        <h2 className="font-display text-h1 font-extrabold tracking-tight text-ink">
-          Pytania, które naprawdę zadajesz
-        </h2>
-        <div className="mt-8 divide-y divide-line border-y border-line">
-          {FAQ_ITEMS.map((item) => (
-            <details key={item.q} className="group py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lead font-semibold text-ink [&::-webkit-details-marker]:hidden">
-                {item.q}
-                <span
-                  aria-hidden="true"
-                  className="shrink-0 text-muted transition-transform duration-micro ease-out group-open:rotate-45 motion-reduce:transition-none"
-                >
-                  +
-                </span>
-              </summary>
-              <p className="mt-3 text-body text-muted">{item.a}</p>
-            </details>
-          ))}
+    <section id="faq" className="bg-bg">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:px-6">
+        <div className="grid gap-10 lg:grid-cols-12 lg:gap-10">
+          <SectionHead
+            className="lg:col-span-4"
+            label="FAQ"
+            title="Pytania, które naprawdę zadajesz"
+            lead="Tam, gdzie odpowiedź zależy od decyzji prawnej, której jeszcze nie podjęliśmy, piszemy to wprost zamiast zmyślać warunek."
+          />
+
+          <div className="border-t border-line lg:col-span-8">
+            {FAQ_ITEMS.map((item) => (
+              <details key={item.q} className="group border-b border-line">
+                <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-4 py-4 text-lead font-semibold text-ink transition-colors duration-micro ease-out hover-hover:hover:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
+                  {item.q}
+                  <Plus
+                    size={20}
+                    aria-hidden="true"
+                    className="shrink-0 text-muted transition-transform duration-micro ease-out group-open:rotate-45 motion-reduce:transition-none"
+                  />
+                </summary>
+                <p className="max-w-2xl pb-5 text-body text-muted">{item.a}</p>
+              </details>
+            ))}
+          </div>
         </div>
       </div>
     </section>

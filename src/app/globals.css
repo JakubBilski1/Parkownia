@@ -50,6 +50,10 @@
 
     /* Focus ring is a system affordance, so it is ink — the accent stays sacred. */
     --focus: #191a1c;
+    /* Same ink, softened, for the ring drawn INSIDE a field's own shape. A hard
+       2px outline offset 2px is right for a link or a button, but on a text input
+       it reads as a browser artifact stacked on the border. See .field-focus. */
+    --focus-ring: rgb(25 26 28 / 0.16);
 
     --overlay: rgb(25 26 28 / 0.45);
 
@@ -85,6 +89,7 @@
     --selected-ink: #1a1918;
 
     --focus: #f1ede7;
+    --focus-ring: rgb(241 237 231 / 0.22);
 
     --overlay: rgb(0 0 0 / 0.62);
 
@@ -123,6 +128,7 @@
       --selected-ink: #1a1918;
 
       --focus: #f1ede7;
+      --focus-ring: rgb(241 237 231 / 0.22);
 
       --overlay: rgb(0 0 0 / 0.62);
 
@@ -201,6 +207,25 @@
   .num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
+  }
+
+  /* A field's focus indicator belongs to the field, not on top of it.
+     The global `:focus-visible` outline (2px, offset 2px) is right for a link or
+     an icon button, but on a rounded text input it draws a second rectangle
+     around the border and reads as a browser artifact — which is exactly what it
+     looked like. Here the border goes ink and a soft ring blooms outside it, so
+     the indicator is still unmistakable (§8 requires one) and still passes the
+     3:1 non-text contrast rule, because the BORDER carries it — the translucent
+     ring is only the halo. Specificity (0,2,0) beats both the base rule and the
+     `border-line` utility, so it wins without !important. */
+  .field-focus:focus-visible {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  .field-focus[aria-invalid="true"]:focus-visible {
+    border-color: var(--danger);
   }
 
   /* Ticket cut-outs: real holes punched through the card, so whatever is behind

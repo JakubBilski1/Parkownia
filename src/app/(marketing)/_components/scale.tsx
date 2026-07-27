@@ -1,6 +1,7 @@
 import { and, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { events, venues } from "@/db/schema";
+import { SectionHead } from "./section-head";
 
 /**
  * Real numbers only. The event count is a live query over our own events table;
@@ -39,37 +40,45 @@ async function getStats(): Promise<ScaleStats> {
 
 export async function Scale() {
   const { eventsNext12mo, eneaCapacity } = await getStats();
+  const hasFigures = eneaCapacity !== null || eventsNext12mo !== null;
 
   return (
-    <section className="border-b border-line bg-bg">
+    <section className="border-b border-line bg-surface-2">
       <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:px-6">
-        <h2 className="font-display text-h1 font-extrabold tracking-tight text-ink">
-          Skala jest realna
-        </h2>
-        <p className="mt-3 max-w-2xl text-lead text-muted">
-          W dzień meczu albo targów pod stadion i na MTP ściągają tłumy — a miejsc do zaparkowania
-          brakuje. To jest luka, którą wypełniasz.
-        </p>
+        <SectionHead
+          label="Skala"
+          title="Skala jest realna"
+          lead="W dzień meczu albo targów pod stadion i na MTP ściągają tłumy — a miejsc do zaparkowania brakuje. To jest luka, którą wypełniasz."
+        />
 
-        {/* Two columns, not three: the grid holds exactly what we can source. */}
-        <dl className="mt-10 grid gap-6 sm:grid-cols-2">
+        {/* Two columns, not three: the grid holds exactly what we can source.
+            With nothing to source (a database hiccup) the whole block is left
+            out — an empty bordered box reads as a section that failed to load.
+            Conditional rendering, not [hidden]: a `grid` utility outranks
+            Preflight's `[hidden]{display:none}` and the box would stay visible. */}
+        {hasFigures ? (
+        <dl className="mt-12 grid border-t border-line sm:grid-cols-2">
           {eneaCapacity ? (
-            <div className="rounded-card border border-line bg-surface p-6">
-              <dt className="text-ui text-muted">Pojemność Enea Stadionu</dt>
-              <dd className="mt-2 font-display text-h1 font-extrabold tabular-nums tracking-tight text-ink">
+            <div className="border-b border-line py-6 sm:border-r sm:pr-8">
+              <dt className="text-ui font-semibold uppercase tracking-[0.12em] text-muted">
+                Pojemność Enea Stadionu
+              </dt>
+              <dd className="mt-3 font-display text-[clamp(2.5rem,7vw,4rem)] font-extrabold leading-none tabular-nums tracking-[-0.03em] text-ink">
                 {eneaCapacity.toLocaleString("pl-PL")}
               </dd>
-              <dd className="mt-1 text-ui text-muted">kibiców na komplecie</dd>
+              <dd className="mt-2 text-body text-muted">kibiców na komplecie</dd>
             </div>
           ) : null}
 
           {eventsNext12mo !== null ? (
-            <div className="rounded-card border border-line bg-surface p-6">
-              <dt className="text-ui text-muted">Wydarzenia w najbliższych 12 miesiącach</dt>
-              <dd className="mt-2 font-display text-h1 font-extrabold tabular-nums tracking-tight text-ink">
+            <div className="border-b border-line py-6 sm:pl-8">
+              <dt className="text-ui font-semibold uppercase tracking-[0.12em] text-muted">
+                Wydarzenia w najbliższych 12 miesiącach
+              </dt>
+              <dd className="mt-3 font-display text-[clamp(2.5rem,7vw,4rem)] font-extrabold leading-none tabular-nums tracking-[-0.03em] text-ink">
                 {eventsNext12mo.toLocaleString("pl-PL")}
               </dd>
-              <dd className="mt-1 text-ui text-muted">mecze Lecha i targi MTP w naszej bazie</dd>
+              <dd className="mt-2 text-body text-muted">mecze Lecha i targi MTP w naszej bazie</dd>
             </div>
           ) : null}
 
@@ -79,10 +88,12 @@ export async function Scale() {
               „do uzupełnienia” stała na stronie, którą wysyłamy obcym ludziom, i czytała się
               jako niedokończony produkt. Brak kafelka jest lepszy niż widoczny brak. */}
         </dl>
+        ) : null}
 
-        <p className="mt-6 text-ui text-muted">
-          Liczba wydarzeń pochodzi z naszej bazy, pojemność stadionu to dane obiektu. Nie podajemy
-          liczb, których nie możemy wskazać źródłem.
+        <p className="mt-6 max-w-2xl text-ui text-muted">
+          {hasFigures
+            ? "Liczba wydarzeń pochodzi z naszej bazy, pojemność stadionu to dane obiektu. Nie podajemy liczb, których nie możemy wskazać źródłem."
+            : "Nie podajemy liczb, których nie możemy wskazać źródłem — a te akurat pochodzą z naszej bazy i chwilowo do niej nie sięgamy."}
         </p>
       </div>
     </section>

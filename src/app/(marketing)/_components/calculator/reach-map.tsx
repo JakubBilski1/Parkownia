@@ -73,7 +73,7 @@ export function ReachMap({
   onPointPick: (p: LngLat) => void;
 }) {
   return (
-    <div className="relative h-[300px] w-full overflow-hidden rounded-card border border-line sm:h-[340px]">
+    <div className="relative h-[320px] w-full overflow-hidden rounded-card border border-line shadow-card sm:h-[400px] lg:h-[460px]">
       <MapView
         onViewportChange={() => {}}
         onReady={(map) => {

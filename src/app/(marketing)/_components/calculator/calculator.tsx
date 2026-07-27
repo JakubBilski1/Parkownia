@@ -2,8 +2,10 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { commissionPctFor, revenueEstimate } from "@/modules/leads/calc";
+import { SectionHead } from "../section-head";
 import { AddressField } from "./address-field";
-import { LeadForm } from "./lead-form";
+import { LeadWizard } from "./lead-wizard";
 import { ReachMap } from "./reach-map";
 import { RevenuePanel } from "./revenue-panel";
 import type { GeocodeItem, OwnerKind, ReachData } from "./types";
@@ -24,6 +26,7 @@ export function Calculator() {
   const [reachLoading, setReachLoading] = useState(false);
   const [reachError, setReachError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [leadOpen, setLeadOpen] = useState(false);
   const hydrated = useRef(false);
 
   // Hydrate once from the query string, so a cold-mail link like
@@ -92,27 +95,36 @@ export function Calculator() {
     if (label !== undefined) setAddress(label);
   }
 
-  return (
-    <section id="kalkulator" className="border-b border-line bg-surface-2">
-      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:px-6">
-        <h2 className="font-display text-h1 font-extrabold tracking-tight text-ink">
-          Policz swój zarobek
-        </h2>
-        <p className="mt-3 max-w-2xl text-lead text-muted">
-          Wpisz adres obiektu — policzymy dojście do Enea Stadionu i MTP, liczbę wydarzeń w zasięgu
-          i szacowany roczny przychód.
-        </p>
+  // One source of truth for the money, shared by the ticket and the wizard's
+  // recap — two components computing the same estimate is how they drift apart.
+  const effectiveRateGr = rateGr ?? reach?.rate?.midGr ?? 0;
+  const commissionPct = commissionPctFor(ownerKind);
+  const revenue = revenueEstimate({
+    rateGr: effectiveRateGr,
+    spots,
+    events: reach?.events.total ?? 0,
+    commissionPct,
+  });
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          <div className="flex flex-col gap-4">
+  return (
+    <section id="kalkulator" className="border-b border-line bg-bg">
+      <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:px-6">
+        <SectionHead
+          label="Kalkulator"
+          title="Policz swój zarobek"
+          lead="Wpisz adres obiektu — policzymy dojście do Enea Stadionu i MTP, liczbę wydarzeń w zasięgu i szacowany roczny przychód."
+        />
+
+        <div className="mt-12 grid gap-8 lg:grid-cols-12 lg:gap-10">
+          <div className="flex flex-col gap-4 lg:col-span-5">
             <div>
-              <span className="mb-1 block text-ui font-semibold text-ink">Adres obiektu</span>
+              <span className="mb-1.5 block text-ui font-semibold text-ink">Adres obiektu</span>
               <AddressField
                 value={address}
                 onChange={setAddress}
                 onPick={(item: GeocodeItem) => pickPoint({ lat: item.lat, lng: item.lng }, item.label)}
               />
-              <p className="mt-1 text-ui text-muted">Albo kliknij miejsce na mapie.</p>
+              <p className="mt-1.5 text-ui text-muted">Albo kliknij miejsce na mapie.</p>
             </div>
             {reach ? <ReachSummary reach={reach} /> : null}
             {reachError ? (
@@ -120,36 +132,52 @@ export function Calculator() {
                 {reachError}
               </p>
             ) : null}
+            {!reach && !reachError ? (
+              <p className="text-body text-muted">
+                {reachLoading
+                  ? "Liczymy…"
+                  : "Wskaż miejsce, żeby zobaczyć potencjał i szacowany zarobek."}
+              </p>
+            ) : null}
           </div>
 
-          <ReachMap
-            point={point}
-            rings={reach?.rings ?? []}
-            venues={reach?.venues ?? []}
-            onPointPick={(next) => pickPoint(next, "Wskazany punkt na mapie")}
-          />
+          <div className="lg:col-span-7">
+            <ReachMap
+              point={point}
+              rings={reach?.rings ?? []}
+              venues={reach?.venues ?? []}
+              onPointPick={(next) => pickPoint(next, "Wskazany punkt na mapie")}
+            />
+          </div>
         </div>
 
         {point && reach ? (
-          <div className="mt-10 border-t border-line pt-10">
+          <div className="mt-12 border-t border-line pt-12">
             <RevenuePanel
               reach={reach}
               spots={spots}
               onSpotsChange={setSpots}
               ownerKind={ownerKind}
               onOwnerKindChange={setOwnerKind}
-              rateGr={rateGr}
+              rateGr={effectiveRateGr}
               onRateChange={setRateGr}
+              commissionPct={commissionPct}
+              revenue={revenue}
+              onOpenLead={() => setLeadOpen(true)}
             />
-            <div className="mt-10 max-w-2xl">
-              <LeadForm address={address} point={point} spots={spots} ownerKind={ownerKind} />
-            </div>
           </div>
-        ) : (
-          <p className="mt-6 text-body text-muted">
-            {reachLoading ? "Liczymy…" : "Wskaż miejsce, żeby zobaczyć potencjał i szacowany zarobek."}
-          </p>
-        )}
+        ) : null}
+
+        <LeadWizard
+          open={leadOpen}
+          onClose={() => setLeadOpen(false)}
+          address={address}
+          point={point}
+          spots={spots}
+          ownerKind={ownerKind}
+          rateGr={effectiveRateGr}
+          annualNetGr={revenue.annualNetGr}
+        />
       </div>
     </section>
   );
@@ -160,24 +188,28 @@ function ReachSummary({ reach }: { reach: ReachData }) {
   const mtp = reach.venues.find((v) => v.key === "MTP");
   return (
     <div className="rounded-card border border-line bg-surface p-4" aria-live="polite">
-      <div className="flex flex-wrap gap-x-6 gap-y-1 text-body">
-        {enea ? (
-          <span className="text-ink">
-            Enea Stadion:{" "}
-            <span className="font-semibold tabular-nums">ok. {enea.walkMinutes} min</span>
-          </span>
-        ) : null}
-        {mtp ? (
-          <span className="text-ink">
-            MTP: <span className="font-semibold tabular-nums">ok. {mtp.walkMinutes} min</span>
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-2 text-ui text-muted">
+      <dl className="grid grid-cols-2 gap-4">
+        {enea ? <Walk term="Enea Stadion" minutes={enea.walkMinutes} /> : null}
+        {mtp ? <Walk term="MTP" minutes={mtp.walkMinutes} /> : null}
+      </dl>
+      <p className="mt-4 border-t border-line pt-3 text-ui text-muted">
         Dojście w linii prostej (z narzutem na trasę). W zasięgu 15 min:{" "}
         <span className="font-semibold tabular-nums text-ink">{reach.events.total}</span> wydarzeń —
         mecze {reach.events.football}, targi {reach.events.tradeFair}, inne {reach.events.other}.
       </p>
+    </div>
+  );
+}
+
+function Walk({ term, minutes }: { term: string; minutes: number }) {
+  return (
+    <div>
+      <dt className="text-ui text-muted">{term}</dt>
+      <dd className="mt-0.5 flex items-baseline gap-1.5">
+        <span className="text-ui text-muted">ok.</span>
+        <span className="font-display text-h3 font-extrabold tabular-nums text-ink">{minutes}</span>
+        <span className="text-ui text-muted">min pieszo</span>
+      </dd>
     </div>
   );
 }

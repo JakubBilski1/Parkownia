@@ -193,34 +193,55 @@ zatrzymana, brak uprawnień) — dlatego migracja pojechała nieprzetestowana w 
 `/prywatnosc`, `/regulamin` → 200. Kalkulator liczy realnymi danymi: punkt 302 m od Enei daje
 `walkMinutes: 5`, `inReach: true`, **8 meczów Lecha** w 12 miesiącach i pas stawek 40–70 zł.
 Geokoder odpowiada. `POST /api/dla-wlascicieli/leads` → **201**, więc zapis leada, przeliczenie
-szacunku po stronie serwera i tabela `leads` działają na żywym PostGIS. W bazie siedzi jeden
-wiersz testowy: `source = 'test-techniczny-2026-07-26'` — do usunięcia.
+szacunku po stronie serwera i tabela `leads` działają na żywym PostGIS. W bazie siedzą dwa
+wiersze testowe: `source = 'test-techniczny-2026-07-26'` (`REJECTED`, ten z krzakami zamiast
+polskich znaków) i `source = 'test-utf8-2026-07-26'` (`NEW`) — oba do usunięcia.
 
 **Uwaga: powyżej ~920 m w linii prostej kalkulator nie pokazuje ŻADNEJ kwoty** (`inReach: false`,
 `events: 0`, `rate: null`) — pasy sięgają 15 minut. Adresaci maili dobierani dalej niż kilometr
 od bramy zobaczą stronę bez liczby.
 
-**Panel klientów i pracowników NIE BYŁ uruchomiony na żywej bazie** (stan 2026-07-26): brak
-lokalnego PostGIS, więc `/admin/klienci`, migracja `0004`, hasła tymczasowe i ścieżka skanera dla
+**Panel klientów i pracowników NIE BYŁ przeklikany** (stan 2026-07-28). Migracja `0004` **jest**
+na prodzie (patrz tabela niżej), ale nikt tą ścieżką nie przeszedł: brak lokalnego PostGIS, więc
+`/admin/klienci`, hasła tymczasowe i ścieżka skanera dla
 pracownika przeszły tylko `tsc`, `lint`, `build` i testy jednostkowe. Pierwsze uruchomienie na
-prodzie jest jednocześnie pierwszym testem — sprawdź w tej kolejności: nadanie roli ADMIN →
+prodzie jest jednocześnie pierwszym testem — sprawdź w tej kolejności: logowanie na konto z rolą
+ADMIN (jest, patrz niżej) →
 `/admin/klienci` → „Dodaj klienta" (hasło pokazuje się raz) → logowanie na to konto →
 „Dodaj pracownika" → logowanie pracownika → `/panel/skaner` widzi parkingi KLIENTA, a `/panel/parkingi`
 odbija na skaner.
 
-**Na produkcji NIE MA konta z rolą ADMIN.** `admin@parkspot.pl` jest w `src/db/seed.ts` za
-`SEED_DEV=1`, a `docker-entrypoint.sh` tej flagi nie ustawia; aplikacja nie daje żadnej ścieżki
-do samodzielnego nadania roli. Bez tego `/admin/*` — w tym `/admin/leady` — jest niedostępne,
-choć leady i tak lądują w bazie. Nadanie: zarejestruj konto, potem raz na bazie
+**Baza produkcyjna da się obejrzeć bez lokalnego Postgresa — i to jest jedyny sposób, jaki
+dziś działa.** Coolify → **Terminal** (lewy pasek) → z listy wybierz kontener
+`localhost -> eob2glq2ngyo9lcyxu98kxfg` (to jest `pbdevs-postgis`) → `psql -U postgres -d parkownia`.
+Port `5432`/`5433` na `135.181.253.104` jest zamknięty z zewnątrz, więc lokalny dev **nie ma jak**
+się z tą bazą połączyć bez tunelu SSH albo wystawienia portu — celowo nie zrobiono ani jednego.
+
+**Zawartość proda — zweryfikowana `psql`-em 2026-07-28** (poprzednie zapisy w tym pliku mówiły
+co innego i były nieaktualne):
+
+| tabela | stan |
+|---|---|
+| migracje | `0000`–`0005`, **wszystkie zaaplikowane** (ostatnia 2026-07-26 02:59 UTC) |
+| `users` | 1 — `kubabilski8@gmail.com`, role `DRIVER` + `HOST_INDIVIDUAL` + **`ADMIN`** |
+| `parkings` | 1 — „Mój dom", Racławicka 83, 5 miejsc, `ALWAYS`, 30 zł/event, status **`REJECTED`** |
+| `events` / `venues` | 17 / 2 — Enea Stadion 9 (25.07–28.11.2026), MTP 8 (08.09–10.12.2026) |
+| `event_parking_availability` | 0 |
+| `leads` | 2, oba testowe |
+| `bookings` / `payments` | 0 / 0 |
+
+**Konto z rolą ADMIN na prodzie ISTNIEJE**, więc `/admin/*` i `/admin/leady` są dostępne po
+zalogowaniu na `kubabilski8@gmail.com`. (Historycznie: `admin@parkspot.pl` z `src/db/seed.ts`
+siedzi za `SEED_DEV=1`, którego `docker-entrypoint.sh` nie ustawia, a aplikacja nie daje ścieżki
+do samodzielnego nadania roli. Kolejne role nadaje się ręcznie:
 `INSERT INTO user_roles (user_id, role) SELECT id, 'ADMIN' FROM users WHERE email = '…'
 ON CONFLICT DO NOTHING;`. Rola czytana jest z bazy przy każdym żądaniu
-(`modules/admin/session.ts`), więc działa bez wylogowania.
+— `modules/admin/session.ts` — więc działa bez wylogowania.)
 
-**Prod nie ma ani jednego parkingu — TAK MA BYĆ.** `docker-entrypoint.sh` celowo nie ustawia
-`SEED_DEV`, a za tą flagą stoją konta testowe i 20 demo-parkingów. Prod dostaje wyłącznie dane
-referencyjne: prowizje, politykę zwrotów, obiekty i 17 eventów. Dlatego mapa jest pusta,
-a każdy event mówi „nie mamy jeszcze parkingu". **To nie jest awaria** — to brak podaży:
-żaden prawdziwy host jeszcze nic nie wystawił.
+**Mapa na prodzie jest pusta, mimo że parking już tam jest.** Jedyny wiersz w `parkings` ma
+status `REJECTED`, więc nie wchodzi do wyników. `docker-entrypoint.sh` celowo nie ustawia
+`SEED_DEV`, więc poza tym prod dostaje wyłącznie dane referencyjne: prowizje, politykę zwrotów,
+obiekty i eventy. **To nie jest awaria** — to brak zaakceptowanej podaży.
 
 **Co NIE jest zrobione — nie udawaj, że jest:**
 

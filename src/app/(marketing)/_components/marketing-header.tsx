@@ -1,9 +1,19 @@
 import Link from "next/link";
+import { getNavUser } from "@/components/nav/current-user";
 import { ROUTES } from "@/components/nav/routes";
+import { UserMenu } from "@/components/nav/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { buttonVariants } from "@/components/ui";
 
-export function MarketingHeader() {
+/**
+ * The front door has to know who walked in. This header hard-coded a "Zaloguj"
+ * button and never looked at the session, which was survivable while the landing
+ * lived at /dla-wlascicieli — but it owns `/` now, so a logged-in owner arriving
+ * at their own site was told to log in, with no route from here to their
+ * account, the host panel or the admin panel.
+ */
+export async function MarketingHeader() {
+  const user = await getNavUser();
+
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg">
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3 lg:px-6">
@@ -23,9 +33,8 @@ export function MarketingHeader() {
           Mapa parkingów
         </Link>
         <ThemeToggle />
-        <Link href="/logowanie" className={buttonVariants({ variant: "quiet", size: "sm" })}>
-          Zaloguj
-        </Link>
+        {/* Renders the "Zaloguj się" button itself when nobody is signed in. */}
+        <UserMenu user={user} />
       </div>
     </header>
   );

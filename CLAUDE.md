@@ -59,6 +59,9 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 - **Kwestionuj mnie.** Jeśli mój pomysł jest zły — powiedz to wprost i zaproponuj alternatywę. Nie chcę potakiwania.
 - **Zatrzymuj się po każdej ukończonej fazie z ROADMAP.md** i czekaj na akceptację.
 - Commituj małymi krokami, po każdym logicznym module.
+- **Commituj I PUSHUJ po każdej zmianie — bez pytania o zgodę** (ustalone 2026-07-28). Push na `main`
+  uruchamia deploy, więc po każdym pushu **poczekaj, aż wejdzie na produkcję, sprawdź to i zgłoś
+  wynik**. Nie mów „gotowe" na podstawie samego pushu — dowodem jest odpowiedź z `parkownia.com`.
 - **Nie rozdmuchuj scope'u.** Lista rzeczy, których świadomie NIE budujemy w MVP, jest w `docs/ROADMAP.md`. Trzymaj się jej.
 
 ---

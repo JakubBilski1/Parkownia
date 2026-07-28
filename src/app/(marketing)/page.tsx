@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Calculator } from "./_components/calculator/calculator";
+import { loadVenueAnchors } from "./_components/calculator/venues-data";
 import { Effort } from "./_components/effort";
 import { Faq } from "./_components/faq";
 import { Hero } from "./_components/hero";
@@ -36,7 +37,7 @@ export default function OwnersLandingPage() {
       <Hero />
       {/* Reads search params (shareable link) — needs a Suspense boundary. */}
       <Suspense fallback={<CalculatorFallback />}>
-        <Calculator />
+        <CalculatorSection />
       </Suspense>
       <HowItWorks />
       <Effort />
@@ -45,6 +46,16 @@ export default function OwnersLandingPage() {
       <Faq />
     </>
   );
+}
+
+/**
+ * Reads the venue coordinates on the server so the map can mark Enea and MTP
+ * from the first frame, then hands them to the client island. Inside the same
+ * Suspense boundary the island already needed, so the query does not hold up
+ * the rest of the page.
+ */
+async function CalculatorSection() {
+  return <Calculator anchors={await loadVenueAnchors()} />;
 }
 
 // The static shell of the calculator section, shown for the instant before the

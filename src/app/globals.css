@@ -48,6 +48,15 @@
     --selected-bg: #191a1c;
     --selected-ink: #eeeeeb;
 
+    /* Overlays drawn on the paper map (the owners' calculator, MapView
+       tone="paper"). Declared here and DELIBERATELY not repeated in either dark
+       copy: that map stays paper whatever the page is doing, so a marker on it
+       must not flip with the page. --selected-bg did flip, and the landmark
+       pins came out white on white paper. */
+    --map-paper-ink: #191a1c;
+    --map-paper-surface: #ffffff;
+    --map-paper-line: #dededa;
+
     /* Focus ring is a system affordance, so it is ink — the accent stays sacred. */
     --focus: #191a1c;
     /* Same ink, softened, for the ring drawn INSIDE a field's own shape. A hard

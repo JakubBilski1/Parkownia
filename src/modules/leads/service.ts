@@ -33,6 +33,29 @@ export type ReachVenue = {
   inReach: boolean;
 };
 
+export type VenueAnchor = { key: VenueKey; name: string; lat: number; lng: number };
+
+/**
+ * The landmarks the calculator measures against, without a point to measure
+ * from. The map needs them before anybody has typed anything: an empty map of
+ * Poznań does not tell an owner why their address matters, and "focus on the
+ * stadium" is the first thing somebody wants to do with it.
+ */
+export async function listVenueAnchors(): Promise<VenueAnchor[]> {
+  const rows = await db
+    .select({ name: venues.name, location: fromPoint(venues.location) })
+    .from(venues);
+
+  return rows
+    .filter((row) => row.location)
+    .map((row) => ({
+      key: venueKey(row.name),
+      name: row.name,
+      lat: row.location.lat,
+      lng: row.location.lng,
+    }));
+}
+
 export type EventsInReach = { total: number; football: number; tradeFair: number; other: number };
 
 export type ReachResult = {

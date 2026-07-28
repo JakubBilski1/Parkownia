@@ -8,11 +8,16 @@ import { AddressField } from "./address-field";
 import { LeadWizard } from "./lead-wizard";
 import { ReachMap } from "./reach-map";
 import { RevenuePanel } from "./revenue-panel";
-import type { GeocodeItem, OwnerKind, ReachData } from "./types";
+import type { GeocodeItem, OwnerKind, ReachData, VenueAnchor } from "./types";
 
 type Point = { lat: number; lng: number };
 
-export function Calculator() {
+/**
+ * `anchors` come from the server (the venues table), so the map can show the
+ * stadium and MTP before anybody has typed an address. An empty array is a
+ * legitimate state — no database, no landmarks, the map still works.
+ */
+export function Calculator({ anchors = [] }: { anchors?: VenueAnchor[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -148,6 +153,7 @@ export function Calculator() {
               point={point}
               rings={reach?.rings ?? []}
               venues={reach?.venues ?? []}
+              anchors={anchors}
               onPointPick={(next) => pickPoint(next, "Wskazany punkt na mapie")}
             />
           </div>

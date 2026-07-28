@@ -9,6 +9,14 @@ export type GeocodeItem = {
   postcode: string | null;
 };
 
+/** A landmark on the map before anything has been picked — no distances yet. */
+export type VenueAnchor = {
+  key: "ENEA" | "MTP" | "OTHER";
+  name: string;
+  lat: number;
+  lng: number;
+};
+
 export type ReachVenue = {
   key: "ENEA" | "MTP" | "OTHER";
   name: string;

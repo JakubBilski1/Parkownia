@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Calculator } from "./_components/calculator/calculator";
 import { loadVenueAnchors } from "./_components/calculator/venues-data";
+import { Cta } from "./_components/cta";
 import { Effort } from "./_components/effort";
 import { Faq } from "./_components/faq";
 import { Hero } from "./_components/hero";
@@ -44,6 +45,8 @@ export default function OwnersLandingPage() {
       {/* async server component — reads real event data */}
       <Scale />
       <Faq />
+      {/* Last on the page on purpose — see cta.tsx. */}
+      <Cta />
     </>
   );
 }

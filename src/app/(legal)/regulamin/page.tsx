@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EntityCard } from "../_components/entity-card";
 
 export const metadata: Metadata = {
   title: "Regulamin",
@@ -26,6 +27,8 @@ export default function TermsPage() {
     <article>
       <h1 className="font-display text-h1 font-extrabold tracking-tight text-ink">Regulamin</h1>
       <p className="mt-2 text-ui text-muted">Wersja z dnia 1 lipca 2026.</p>
+
+      <EntityCard role="provider" />
 
       <div className={prose}>
         <h2>§1. Postanowienia ogólne</h2>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { EntityCard } from "../_components/entity-card";
 
 export const metadata: Metadata = {
   title: "Polityka prywatności",
@@ -25,6 +26,8 @@ export default function PrivacyPage() {
         Polityka prywatności
       </h1>
       <p className="mt-2 text-ui text-muted">Wersja z dnia 1 lipca 2026.</p>
+
+      <EntityCard role="controller" />
 
       <div className={prose}>
         <h2>1. Administrator danych</h2>

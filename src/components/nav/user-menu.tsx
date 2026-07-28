@@ -67,7 +67,9 @@ export function UserMenu({ user, className }: UserMenuProps) {
       },
     );
     setOpen(false);
-    router.refresh();
+    // The cookies are gone server-side; a router.refresh() alone can still paint
+    // the signed-in header from the client cache. Leave the page properly.
+    window.location.assign("/");
   };
 
   return (

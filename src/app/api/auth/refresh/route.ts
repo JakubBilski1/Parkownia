@@ -44,12 +44,23 @@ function safeNext(raw: string | null): string {
  */
 export async function GET(req: NextRequest): Promise<Response> {
   const next = safeNext(req.nextUrl.searchParams.get("next"));
+  /**
+   * A soft bounce comes from a PUBLIC page: the visitor was only passing
+   * through, and a refresh token that turned out to be dead is no reason to
+   * demand a login before they can read the landing. The cookies are cleared
+   * either way, which is also what stops the next request bouncing here again.
+   */
+  const soft = req.nextUrl.searchParams.get("soft") === "1";
 
   try {
     await rotate();
     return NextResponse.redirect(new URL(next, req.nextUrl.origin));
   } catch (error) {
     await clearAuthCookies();
+
+    if (soft) {
+      return NextResponse.redirect(new URL(next, req.nextUrl.origin));
+    }
 
     if (req.headers.get("accept")?.includes("text/html")) {
       const login = new URL("/logowanie", req.nextUrl.origin);

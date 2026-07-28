@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Field, Input } from "@/components/ui";
 import { ApiClientError, postJson } from "@/modules/auth/api-client";
 import { FormError } from "../form-error";
 
 export function LoginForm({ next }: { next: string }) {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,8 +23,13 @@ export function LoginForm({ next }: { next: string }) {
         password: String(form.get("password") ?? ""),
       });
 
-      router.replace(next);
-      router.refresh();
+      // A full document load, not router.replace + refresh. The session arrived
+      // as a cookie the client router knows nothing about, and its cache can
+      // hand back a tree rendered before that cookie existed — a header still
+      // offering "Zaloguj się" to somebody who just logged in. Same reasoning as
+      // the account-deletion card.
+      window.location.assign(next);
+      return;
     } catch (cause) {
       setError(
         cause instanceof ApiClientError

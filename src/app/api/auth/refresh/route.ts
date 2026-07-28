@@ -36,6 +36,26 @@ function safeNext(raw: string | null): string {
 }
 
 /**
+ * A RELATIVE Location, resolved by the browser against the address it is
+ * already on. `NextResponse.redirect()` demands an absolute URL, and the only
+ * origin this handler can see is the one the container is bound to — behind
+ * Coolify's proxy that is http://0.0.0.0:3000, which is where production
+ * actually sent people: a host whose fifteen-minute token expired was bounced
+ * here, rotated fine, and then redirected to an address that exists nowhere
+ * outside the container.
+ *
+ * Guessing the public origin from X-Forwarded-* would work, but it means
+ * trusting headers to build a redirect. A relative Location needs no origin at
+ * all and cannot leak an internal one (RFC 7231 §7.1.2).
+ *
+ * Cookies set through next/headers during this request are still merged into
+ * this response by Next — the rotation and the clearing both survive.
+ */
+function redirectTo(path: string): NextResponse {
+  return new NextResponse(null, { status: 307, headers: { location: path } });
+}
+
+/**
  * The middleware bounces an expired-but-refreshable session here (see
  * src/middleware.ts): it cannot rotate tokens itself, because rotation needs
  * the database and the middleware runs on the Edge. This GET rotates and sends
@@ -54,18 +74,16 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   try {
     await rotate();
-    return NextResponse.redirect(new URL(next, req.nextUrl.origin));
+    return redirectTo(next);
   } catch (error) {
     await clearAuthCookies();
 
     if (soft) {
-      return NextResponse.redirect(new URL(next, req.nextUrl.origin));
+      return redirectTo(next);
     }
 
     if (req.headers.get("accept")?.includes("text/html")) {
-      const login = new URL("/logowanie", req.nextUrl.origin);
-      login.searchParams.set("next", next);
-      return NextResponse.redirect(login);
+      return redirectTo(`/logowanie?next=${encodeURIComponent(next)}`);
     }
 
     return toErrorResponse(error);

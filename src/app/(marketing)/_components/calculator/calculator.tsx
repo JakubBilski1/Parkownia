@@ -119,12 +119,14 @@ export function Calculator() {
           <div className="flex flex-col gap-4 lg:col-span-5">
             <div>
               <span className="mb-1.5 block text-ui font-semibold text-ink">Adres obiektu</span>
+              {/* The "or click the map" hint lives inside the field now, on the
+                  same line that carries "szukam…" and "nothing found" — one
+                  place under the input that always says where things stand. */}
               <AddressField
                 value={address}
                 onChange={setAddress}
                 onPick={(item: GeocodeItem) => pickPoint({ lat: item.lat, lng: item.lng }, item.label)}
               />
-              <p className="mt-1.5 text-ui text-muted">Albo kliknij miejsce na mapie.</p>
             </div>
             {reach ? <ReachSummary reach={reach} /> : null}
             {reachError ? (

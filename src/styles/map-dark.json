@@ -2,7 +2,8 @@
   "version": 8,
   "name": "Parkownia — Zmierzch (dark)",
   "metadata": {
-    "parkownia:note": "Ciemny wariant powstaje przez odbarwienie i przyciemnienie rastra OSM — to proteza, nie docelowy styl. Raster nie da sie odwrocic tonalnie bez zamiany napisow w papke. Produkcja: kafelki wektorowe (MapTiler / Protomaps) ze stylem na tokenach Zmierzchu. Patrz docs/DESIGN_SYSTEM.md.",
+    "parkownia:note": "Raster OSM to rozwiazanie deweloperskie. Polityka tile.openstreetmap.org zabrania ruchu produkcyjnego. Docelowo: kafelki wektorowe (MapTiler / Protomaps) ze stylem na tokenach Zmierzchu. Patrz docs/DESIGN_SYSTEM.md.",
+    "parkownia:inversion": "Ten styl NIE dziala sam. Kafle OSM sa rysowane pod jasne tlo: czarny napis na bialym. Poprzednia wersja probowala zrobic z nich ciemna mape samym przyciemnieniem (brightness-max 0.42) i to jest wlasnie powod, dla ktorego nazwy ulic znikaly — dociemnianie sciska napis i tlo w te sama szarosc. Zamiast tego raster jest tu tylko odbarwiany, a odwrocenie tonalne robi filtr CSS na samym canvasie (.map-tiles-inverted w globals.css), dzieki czemu napisy wychodza jasne na ciemnym. Konsekwencja: kolor warstwy background jest podany PRZED odwroceniem, wiec #E5E6E7 to docelowe #1A1918. Zmieniasz jedno — zmien drugie.",
     "parkownia:tokens": {
       "bg": "#1A1918",
       "accent": "#C93A3A"
@@ -26,7 +27,7 @@
       "id": "background",
       "type": "background",
       "paint": {
-        "background-color": "#1A1918"
+        "background-color": "#E5E6E7"
       }
     },
     {
@@ -34,11 +35,11 @@
       "type": "raster",
       "source": "osm",
       "paint": {
-        "raster-saturation": -0.9,
-        "raster-contrast": -0.15,
+        "raster-saturation": -1,
+        "raster-contrast": 0.1,
         "raster-brightness-min": 0,
-        "raster-brightness-max": 0.42,
-        "raster-opacity": 0.85,
+        "raster-brightness-max": 1,
+        "raster-opacity": 1,
         "raster-fade-duration": 200
       }
     }

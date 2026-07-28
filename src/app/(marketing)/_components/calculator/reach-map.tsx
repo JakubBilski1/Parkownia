@@ -75,6 +75,7 @@ export function ReachMap({
   return (
     <div className="relative h-[320px] w-full overflow-hidden rounded-card border border-line shadow-card sm:h-[400px] lg:h-[460px]">
       <MapView
+        tone="paper"
         onViewportChange={() => {}}
         onReady={(map) => {
           map.on("click", (event) => {

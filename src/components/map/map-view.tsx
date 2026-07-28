@@ -65,6 +65,16 @@ export type MapViewProps = {
   onReady?: (map: MapLibreMap) => void;
   /** Tapping the map itself is how a driver dismisses a selected pin. */
   onBackgroundClick?: () => void;
+  /**
+   * "auto" follows the page theme and is what the driver's map wants: at night,
+   * outside a stadium, a white rectangle in the face is the wrong answer.
+   *
+   * "paper" pins the map to the light style whatever the page is doing. The
+   * owners' calculator is the one place that earns it — there the map is a
+   * document somebody reads to find their own street, on a desk, in daylight,
+   * and legibility beats matching the page.
+   */
+  tone?: "auto" | "paper";
   children?: React.ReactNode;
   className?: string;
 };
@@ -78,6 +88,7 @@ export function MapView({
   onViewportChange,
   onReady,
   onBackgroundClick,
+  tone = "auto",
   children,
   className,
 }: MapViewProps) {
@@ -85,7 +96,8 @@ export function MapView({
   const mapRef = useRef<MapLibreMap | null>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [styleEpoch, setStyleEpoch] = useState(0);
-  const theme = useResolvedTheme();
+  const pageTheme = useResolvedTheme();
+  const theme = tone === "paper" ? "light" : pageTheme;
 
   const viewportHandler = useRef(onViewportChange);
   viewportHandler.current = onViewportChange;
@@ -93,6 +105,10 @@ export function MapView({
   readyHandler.current = onReady;
   const backgroundHandler = useRef(onBackgroundClick);
   backgroundHandler.current = onBackgroundClick;
+  // Read at creation time so the first painted frame is already the right
+  // style; the effect below keeps it in step afterwards.
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -100,7 +116,7 @@ export function MapView({
 
     const instance = new maplibregl.Map({
       container,
-      style: STYLES.light,
+      style: STYLES[themeRef.current],
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       attributionControl: { compact: true },
@@ -140,6 +156,18 @@ export function MapView({
       setMap(null);
     };
   }, []);
+
+  /**
+   * The dark map is the light raster turned inside out (see globals.css and
+   * map-dark.json). The class goes on imperatively rather than through
+   * className: the value is read from matchMedia during render, and putting it
+   * in the server-rendered markup would be a hydration mismatch.
+   */
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.classList.toggle("map-tiles-inverted", theme === "dark");
+  }, [theme]);
 
   useEffect(() => {
     const instance = mapRef.current;

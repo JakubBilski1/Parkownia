@@ -293,6 +293,23 @@
   .press:active {
     transform: scale(0.97);
   }
+
+  /*
+   * Dark map, done by inverting the tiles rather than dimming them.
+   *
+   * OSM raster is drawn for a light page: near-black lettering on near-white
+   * paper. Dimming it (the old brightness-max: 0.42) pushes the label and the
+   * paper into the same grey and the street names disappear — which is exactly
+   * how the calculator map read. Inverting keeps the separation and puts the
+   * lettering where a dark map wants it: light type on a dark ground.
+   *
+   * The filter sits on the canvas alone. Markers, pins and controls are DOM
+   * siblings of it, so they keep their own colours — the accent pin must not
+   * come out cyan.
+   */
+  .map-tiles-inverted .maplibregl-canvas {
+    filter: invert(1);
+  }
 }
 
 @keyframes ps-fade-in {

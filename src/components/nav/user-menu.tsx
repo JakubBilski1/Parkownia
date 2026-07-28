@@ -17,12 +17,30 @@ export type SessionUser = {
   isEmployee?: boolean;
 };
 
+/**
+ * Where the panel opens, which depends on where the trigger sits.
+ *
+ * "bottom-end" is the header case: the button lives at the right edge of a wide
+ * bar, so the panel hangs down and lines up with that edge.
+ *
+ * "top-start" is the sidebar case. There the button sits at the LEFT edge, near
+ * the bottom of a full-height column — and anchoring a 14rem panel by its right
+ * edge to a 6rem button puts most of it at a negative x, which is exactly how
+ * the admin panel's menu came out: a sliver against the left edge of the
+ * screen, with the items off it.
+ */
+const PLACEMENT = {
+  "bottom-end": "right-0 top-[calc(100%+0.5rem)]",
+  "top-start": "left-0 bottom-[calc(100%+0.5rem)]",
+} as const;
+
 export type UserMenuProps = {
   user?: SessionUser | null;
   className?: string;
+  placement?: keyof typeof PLACEMENT;
 };
 
-export function UserMenu({ user, className }: UserMenuProps) {
+export function UserMenu({ user, className, placement = "bottom-end" }: UserMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +110,10 @@ export function UserMenu({ user, className }: UserMenuProps) {
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-56 flex-col rounded-card border border-line bg-surface p-1 shadow-float"
+          className={cn(
+            "absolute z-50 flex w-56 max-w-[calc(100vw-1.5rem)] flex-col rounded-card border border-line bg-surface p-1 shadow-float",
+            PLACEMENT[placement],
+          )}
         >
           <MenuLink href={ROUTES.bookings} onNavigate={() => setOpen(false)}>
             Moje rezerwacje

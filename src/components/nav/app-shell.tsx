@@ -277,9 +277,11 @@ export function AdminShell({ children, user }: AppShellProps) {
           </ul>
         </nav>
 
+        {/* Bottom-left of a full-height column: the panel has to open upward and
+            align with the left edge, or it lands off the screen. */}
         <div className="mt-3 hidden flex-col items-start gap-2 md:flex">
           <ThemeToggle />
-          <UserMenu user={user} />
+          <UserMenu user={user} placement="top-start" />
         </div>
       </aside>
 

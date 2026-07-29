@@ -198,7 +198,9 @@ export default function HostDashboardPage() {
         </>
       ) : null}
 
-      <nav aria-label="Skróty" className="grid gap-2 sm:grid-cols-2">
+      {/* A hairline, because without it these tiles sit directly under the
+          payouts empty state and read as part of it. */}
+      <nav aria-label="Skróty" className="grid gap-2 border-t border-line pt-4 sm:grid-cols-2">
         <ShortcutLink href={ROUTES.host.parkings} label="Moje parkingi" />
         <ShortcutLink href={ROUTES.host.events} label="Nadchodzące wydarzenia" />
         <ShortcutLink href={ROUTES.host.payouts} label="Wypłaty i weryfikacja" />

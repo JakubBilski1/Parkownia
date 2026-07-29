@@ -246,6 +246,36 @@ status `REJECTED`, więc nie wchodzi do wyników. `docker-entrypoint.sh` celowo 
 `SEED_DEV`, więc poza tym prod dostaje wyłącznie dane referencyjne: prowizje, politykę zwrotów,
 obiekty i eventy. **To nie jest awaria** — to brak zaakceptowanej podaży.
 
+## Audyt produkcji 2026-07-28/29 — stan mailingu
+
+**POCZTA NA PRODUKCJI JEST W TRYBIE `console` — NIC NIE WYCHODZI.** Panel `/admin/mailing`
+mówi to wprost na górze ekranu. Dotyczy **wszystkiego**, nie tylko kampanii: kodu wjazdu po
+rezerwacji, resetu hasła, alertu o nowym leadzie, powiadomień o moderacji. Wysyłka „udaje się",
+zapisuje historię, a treść ląduje w logu kontenera. Do naprawy: `EMAIL_PROVIDER=pbdevs` +
+`MAIL_API_KEY` w Coolify, plus szablon `owner-campaign` w panelu pocztowym (źródło:
+`docs/mail-templates/owner-campaign.mjml`, temat `{{subject}}`).
+
+**DNS pod wysyłkę jest niekompletny** (sprawdzone `Resolve-DnsName` przez 1.1.1.1):
+`SPF = v=spf1 include:spf.spacemail.com ~all` (autoryzuje wyłącznie spacemail), DKIM tylko
+`spacemail._domainkey`, a **DMARC nie istnieje**. Gmail i Yahoo wymagają DMARC od masowych
+nadawców — bez tego wysyłka masowa nie dociera.
+
+**Aplikacja nazywa 12 szablonów, w repo jest 1** (`owner-campaign.mjml`). Pozostałe muszą
+istnieć po stronie `mail.pbdevs.com`; brakujący szablon = 404 z serwisu i **cicha** nieudana
+wysyłka (patrz komentarz w `modules/notifications/email.ts`).
+
+**Wypisanie z kampanii to `mailto:`**, nie ma nagłówka `List-Unsubscribe` ani tabeli wykluczeń
+w bazie — po wypisaniu nic nie blokuje ponownej wysyłki.
+
+**`docs/LEGAL_RESEARCH.md` zakazuje cold-mailingu** („Zero cold-mailingu/cold-SMS do
+właścicieli", art. 398 PKE obejmuje też B2B). Panel „Mailing" i landing są zbudowane pod
+akwizycję — ta sprzeczność jest decyzją właściciela, nie usterką do naprawienia w kodzie.
+
+**Zweryfikowane jako świadomy projekt, nie dziura:** `/moje-rezerwacje` odpowiada 200 bez
+logowania, bo zakup bez konta jest celowy — gość dostaje podpisane ciasteczko
+`ps_booking_grants` (`modules/bookings/session.ts`) z prawem odczytu i anulowania **wyłącznie**
+własnych rezerwacji.
+
 **Co NIE jest zrobione — nie udawaj, że jest:**
 
 - [x] **`PATCH /api/me` + edytowalne „Moje dane" na `/konto`** — imię, nazwisko i telefon poprawia

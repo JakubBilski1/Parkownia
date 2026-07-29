@@ -17,9 +17,16 @@ import { FieldError, SubmitButton, useActionToast } from "./action-form";
 export function ModerationActions({
   parkingId,
   title,
+  /**
+   * "rejected" is the second chance: the parking already carries a rejection,
+   * so the only move left is to take it back. Offering "Odrzuć" again there
+   * would be a button that changes nothing but the wording of the reason.
+   */
+  state: queue = "pending",
 }: {
   parkingId: string;
   title: string;
+  state?: "pending" | "rejected";
 }) {
   const [state, formAction] = useActionState(reviewParkingAction, IDLE);
   const [rejecting, setRejecting] = useState(false);
@@ -27,6 +34,19 @@ export function ModerationActions({
   useActionToast(state, () => setRejecting(false));
 
   const reasonError = state.status === "error" ? state.fields?.reason : undefined;
+
+  if (queue === "rejected") {
+    return (
+      <form action={formAction} className="flex w-full flex-col items-start gap-2">
+        <input type="hidden" name="parkingId" value={parkingId} />
+        <input type="hidden" name="decision" value="ACTIVE" />
+        <SubmitButton variant="accent">Cofnij odrzucenie i zatwierdź</SubmitButton>
+        <p className="text-ui text-muted">
+          Parking trafi na mapę, powód odrzucenia zniknie, a host dostanie o tym maila.
+        </p>
+      </form>
+    );
+  }
 
   return (
     <div className="flex w-full items-center justify-between gap-3">

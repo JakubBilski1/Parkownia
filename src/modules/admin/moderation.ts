@@ -184,7 +184,15 @@ export async function reviewParking(input: unknown): Promise<ReviewResult> {
 
     if (!current) throw notFound("Parking");
 
-    if (current.status !== "PENDING_REVIEW") {
+    /**
+     * REJECTED is reviewable again, PENDING_REVIEW obviously is. A rejection is
+     * a decision a human made in a hurry — sometimes wrongly, sometimes before
+     * the host fixed the thing over the phone — and until this was allowed there
+     * was no way back from it: the admin panel offered no action on a rejected
+     * parking, so the only listing on production sat unpublishable and the map
+     * stayed empty. Approving one that was rejected clears the reason with it.
+     */
+    if (current.status !== "PENDING_REVIEW" && current.status !== "REJECTED") {
       throw new AdminError(
         "INVALID_STATE",
         422,

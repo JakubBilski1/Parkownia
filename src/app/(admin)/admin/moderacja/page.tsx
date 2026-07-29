@@ -158,11 +158,13 @@ export default async function ModerationPage({ searchParams }: { searchParams: S
                     ) : null}
                   </CardBody>
 
-                  {status === "PENDING_REVIEW" ? (
+                  {/* A rejection is reversible from here — see modules/admin/moderation.ts. */}
+                  {status === "PENDING_REVIEW" || status === "REJECTED" ? (
                     <CardFooter>
                       <ModerationActions
                         parkingId={parking.id}
                         title={parking.title ?? "Parking bez nazwy"}
+                        state={status === "REJECTED" ? "rejected" : "pending"}
                       />
                     </CardFooter>
                   ) : null}

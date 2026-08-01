@@ -14,7 +14,14 @@ export const FAQ_ITEMS: FaqItem[] = [
     q: "Kto odpowiada, jeśli ktoś uszkodzi albo ukradnie auto na moim terenie?",
     // TODO(legal): finalna odpowiedź zależy od modelu (najem miejsca vs przechowanie)
     // i od audytu regulaminu — LEGAL_RESEARCH.md §2.5. Bez porady prawnej.
-    a: "Zasady odpowiedzialności określa regulamin, który przygotowujemy z prawnikiem. Co do zasady udostępniasz miejsce postojowe, a nie bierzesz pojazd pod dozór — ale ostateczne warunki potwierdzamy przed startem. Chcesz je poznać wcześniej? Napisz do nas.",
+    //
+    // Nie mówi już "regulamin, który przygotowujemy": regulamin JEST
+    // opublikowany (/regulamin, wersja 2026-07-01) i ktoś, kto kliknie w stopkę,
+    // zobaczy gotowy dokument — a poprzednia odpowiedź twierdziła, że go nie ma.
+    // Sprzeczność w miejscu, w którym dostawca ocenia, czy można nam wierzyć.
+    // Nowa wersja mówi dokładnie to, co §2 regulaminu: dokument obejmuje dziś
+    // serwis, nie transakcje, a odpowiedzialność ustalamy indywidualnie.
+    a: "Opublikowany regulamin opisuje dziś sam serwis — nie obejmuje jeszcze rezerwacji ani rozliczeń (§2). Zasady odpowiedzialności ustalamy więc indywidualnie, na piśmie, zanim wystawisz pierwsze miejsce. Co do zasady udostępniasz miejsce postojowe, a nie bierzesz auta pod dozór — ale nie chcemy, żebyś opierał się na jednym zdaniu z FAQ. Napisz, a prześlemy warunki.",
   },
   {
     q: "Czy muszę mieć firmę? A jeśli jestem osobą prywatną?",

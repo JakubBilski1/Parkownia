@@ -2,7 +2,8 @@
 
 import { Check } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Button, Checkbox, Field, Input, NumberField } from "@/components/ui";
 
 type Errors = Partial<Record<"address" | "spots" | "contactName" | "contact" | "consent", string>>;
@@ -20,8 +21,12 @@ type Errors = Partial<Record<"address" | "spots" | "contactName" | "contact" | "
  * reach them.
  */
 export function CtaForm() {
+  const searchParams = useSearchParams();
   const [address, setAddress] = useState("");
   const [spots, setSpots] = useState(10);
+  // Set once the visitor types here themselves. After that the calculator stops
+  // reaching in — their own words beat anything we can infer.
+  const edited = useRef(false);
   const [contactName, setContactName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -32,6 +37,27 @@ export function CtaForm() {
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  /**
+   * Somebody who typed their address into the calculator, watched it work out
+   * what they could earn, and scrolled down was then asked for the same address
+   * again. At the bottom of a funnel that is a pure tax on the person most
+   * likely to convert.
+   *
+   * The calculator already mirrors its state into the query string, so this
+   * reads from there rather than reaching across components — which also means a
+   * shared link like /?adres=…&miejsca=30 arrives with both filled in.
+   */
+  const paramAddress = searchParams.get("adres");
+  const paramSpots = Number(searchParams.get("miejsca"));
+
+  useEffect(() => {
+    if (edited.current) return;
+    if (paramAddress && paramAddress.trim().length >= 3) setAddress(paramAddress);
+    if (Number.isFinite(paramSpots) && paramSpots >= 1 && paramSpots <= 100) {
+      setSpots(Math.round(paramSpots));
+    }
+  }, [paramAddress, paramSpots]);
 
   function validate(): Errors {
     const found: Errors = {};
@@ -110,7 +136,10 @@ export function CtaForm() {
           <Input
             {...control}
             value={address}
-            onChange={(event) => setAddress(event.target.value)}
+            onChange={(event) => {
+              edited.current = true;
+              setAddress(event.target.value);
+            }}
             placeholder="np. Bułgarska 17, Poznań"
             autoComplete="street-address"
           />
@@ -122,7 +151,10 @@ export function CtaForm() {
           <NumberField
             id={control.id}
             value={spots}
-            onValueChange={setSpots}
+            onValueChange={(next) => {
+              edited.current = true;
+              setSpots(next);
+            }}
             min={1}
             max={100}
             steppers

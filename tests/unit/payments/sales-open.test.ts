@@ -15,8 +15,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  */
 async function loadCanAcceptPayments() {
   vi.resetModules();
-  const module = await import("@/modules/payments/factory");
-  return module.canAcceptPayments;
+  const factory = await import("@/modules/payments/factory");
+  return factory.canAcceptPayments;
 }
 
 const ORIGINAL = {

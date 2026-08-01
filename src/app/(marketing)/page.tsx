@@ -28,6 +28,18 @@ export const metadata: Metadata = {
       "Udostępniaj miejsce blisko Enea Stadionu i MTP. Bez gotówki, bez negocjacji. Policz zarobek w 60 sekund.",
     url: "/",
     type: "website",
+    // Named here, unlike on every other page, because declaring `openGraph` in a
+    // segment REPLACES the inherited object — including the images that
+    // app/opengraph-image.tsx contributes. Every page got the card except this
+    // one, which is the single page the acquisition mail links to.
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Parkownia — parking na mecz i targi w Poznaniu",
+      },
+    ],
   },
 };
 

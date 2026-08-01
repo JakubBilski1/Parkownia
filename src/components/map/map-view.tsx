@@ -156,6 +156,15 @@ export function MapView({
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       attributionControl: { compact: true },
+      // Not for screenshots: the dark map puts `filter: invert(1)` on this
+      // canvas (globals.css), and a filtered WebGL canvas makes Chrome composite
+      // the drawing buffer a second time. With the default false that buffer is
+      // already gone by then, so the very first frame composites as pure black —
+      // which, inverted from a white background layer, is exactly the blank map
+      // /mapa served in Zmierzch. Every tile was drawn; the compositor had
+      // nothing left to read. Keeping the buffer costs memory on a screen whose
+      // whole job is to be legible in the rain.
+      canvasContextAttributes: { preserveDrawingBuffer: true },
       // Camera moves are feedback, not decoration. MapLibre already downgrades
       // flyTo/easeTo to a jump under prefers-reduced-motion, so no camera call
       // here may pass essential: true — that flag would override the driver's
@@ -211,6 +220,10 @@ export function MapView({
     const container = containerRef.current;
     if (!container) return;
     container.classList.toggle("map-tiles-inverted", theme === "dark");
+    // The composited result changed even though nothing on the map did. Ask for
+    // a frame so the compositor has something current to filter — see the
+    // preserveDrawingBuffer note above for what happens when it does not.
+    mapRef.current?.triggerRepaint();
   }, [theme]);
 
   useEffect(() => {

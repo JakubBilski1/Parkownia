@@ -109,6 +109,8 @@ export function MapView({
   // style; the effect below keeps it in step afterwards.
   const themeRef = useRef(theme);
   themeRef.current = theme;
+  /** The style the live map instance actually carries. See the effect below. */
+  const appliedTheme = useRef(theme);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -136,6 +138,10 @@ export function MapView({
     instance.on("load", () => {
       emit();
       readyHandler.current?.(instance);
+      // Children go up only once the style is loaded. EventOverlay and the
+      // calculator's rings call addSource() the moment they see a map, and
+      // MapLibre refuses that against a style still in flight.
+      setMap(instance);
     });
     instance.on("moveend", emit);
     instance.on("click", (event) => {
@@ -144,7 +150,7 @@ export function MapView({
     });
 
     mapRef.current = instance;
-    setMap(instance);
+    appliedTheme.current = themeRef.current;
 
     const observer = new ResizeObserver(() => instance.resize());
     observer.observe(container);
@@ -169,9 +175,23 @@ export function MapView({
     container.classList.toggle("map-tiles-inverted", theme === "dark");
   }, [theme]);
 
+  /**
+   * Only a real theme change may reach setStyle. The map is constructed with
+   * the style it needs (see above), so the first run of this effect has nothing
+   * to change — but calling setStyle anyway lands while the constructor's style
+   * is still loading, and MapLibre answers by throwing the half-built style away
+   * and rebuilding it ("Unable to perform style diff: Style is not done
+   * loading"). The rebuild never repaints on its own, so the canvas stays blank
+   * until something forces a frame. That is exactly how /mapa shipped: tiles
+   * fetched with 200, nothing drawn, and the map appearing only once the driver
+   * dragged it. Black in Zmierzch, cream in Bilet — the inverting filter had
+   * nothing to do with it.
+   */
   useEffect(() => {
     const instance = mapRef.current;
     if (!instance) return;
+    if (appliedTheme.current === theme) return;
+    appliedTheme.current = theme;
     instance.setStyle(STYLES[theme]);
     const onStyleLoad = () => setStyleEpoch((epoch) => epoch + 1);
     instance.once("styledata", onStyleLoad);

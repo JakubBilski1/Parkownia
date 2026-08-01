@@ -38,7 +38,7 @@ const button = cva(
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof button> & {
-    /** Adds a spinner and blocks re-submission; the label stays put (no layout shift). */
+    /** Adds a spinner beside the label and blocks re-submission. */
     loading?: boolean;
   };
 
@@ -61,7 +61,20 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           className="h-4 w-4 animate-spin rounded-pill border-2 border-current border-t-transparent"
         />
       ) : null}
-      <span>{children}</span>
+      {/*
+       * The wrapper keeps the children together so the spinner sits beside the
+       * whole label rather than between an icon and its word — but it has to lay
+       * them out itself.
+       *
+       * It used to be a bare <span>. As the button's only flex item it was
+       * blockified, which meant the button's own `items-center gap-2` applied to
+       * nothing, and Tailwind's preflight (`svg { display: block }`) then put
+       * every icon on its own line ABOVE its label. That is what "Wznów
+       * sprzedaż" looked like, and "Pobierz moje dane", and the scanner's manual
+       * entry, and every add/delete button in /admin/klienci — eleven of them,
+       * all broken the same way by one line here.
+       */}
+      <span className="inline-flex items-center gap-2">{children}</span>
     </button>
   );
 });

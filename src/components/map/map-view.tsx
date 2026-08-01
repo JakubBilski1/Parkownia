@@ -8,6 +8,7 @@ import maplibregl, {
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -109,8 +110,41 @@ export function MapView({
   // style; the effect below keeps it in step afterwards.
   const themeRef = useRef(theme);
   themeRef.current = theme;
-  /** The style the live map instance actually carries. See the effect below. */
+  /** The style the live map instance actually carries. See syncStyle below. */
   const appliedTheme = useRef(theme);
+  const styleLoadedRef = useRef(false);
+
+  /**
+   * The only path to setStyle, and it refuses two calls that used to happen.
+   *
+   * One: the theme the map was BUILT with. The constructor already applied it,
+   * so re-applying is pure loss.
+   *
+   * Two: any call against a style still loading. MapLibre answers those by
+   * throwing the half-built style away and rebuilding it ("Unable to perform
+   * style diff: Style is not done loading"), and the rebuild never repaints on
+   * its own — the canvas stays blank until a drag or a resize forces a frame.
+   * That is how /mapa shipped: every tile fetched with 200, nothing drawn, and
+   * the map appearing on first touch. Black in Zmierzch, cream in Bilet — the
+   * inverting filter had nothing to do with it.
+   *
+   * Both fired on a normal load, and the second one still would after fixing
+   * only the first: ThemeProvider starts at "system" and reads localStorage in
+   * an effect, so anybody who ever picked a theme by hand gets a theme change
+   * milliseconds after mount, while the first style is mid-flight. A change that
+   * arrives that early is held here and applied by the load handler.
+   */
+  const syncStyle = useCallback(() => {
+    const instance = mapRef.current;
+    if (!instance || !styleLoadedRef.current) return;
+    const next = themeRef.current;
+    if (appliedTheme.current === next) return;
+
+    appliedTheme.current = next;
+    instance.setStyle(STYLES[next]);
+    // Sources and layers are wiped by setStyle; the children re-add themselves.
+    instance.once("styledata", () => setStyleEpoch((epoch) => epoch + 1));
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -136,12 +170,15 @@ export function MapView({
 
     const emit = () => viewportHandler.current(readViewport(instance));
     instance.on("load", () => {
+      styleLoadedRef.current = true;
       emit();
       readyHandler.current?.(instance);
       // Children go up only once the style is loaded. EventOverlay and the
       // calculator's rings call addSource() the moment they see a map, and
       // MapLibre refuses that against a style still in flight.
       setMap(instance);
+      // A theme that resolved while the map was still building waits until here.
+      syncStyle();
     });
     instance.on("moveend", emit);
     instance.on("click", (event) => {
@@ -159,9 +196,10 @@ export function MapView({
       observer.disconnect();
       instance.remove();
       mapRef.current = null;
+      styleLoadedRef.current = false;
       setMap(null);
     };
-  }, []);
+  }, [syncStyle]);
 
   /**
    * The dark map is the light raster turned inside out (see globals.css and
@@ -175,30 +213,9 @@ export function MapView({
     container.classList.toggle("map-tiles-inverted", theme === "dark");
   }, [theme]);
 
-  /**
-   * Only a real theme change may reach setStyle. The map is constructed with
-   * the style it needs (see above), so the first run of this effect has nothing
-   * to change — but calling setStyle anyway lands while the constructor's style
-   * is still loading, and MapLibre answers by throwing the half-built style away
-   * and rebuilding it ("Unable to perform style diff: Style is not done
-   * loading"). The rebuild never repaints on its own, so the canvas stays blank
-   * until something forces a frame. That is exactly how /mapa shipped: tiles
-   * fetched with 200, nothing drawn, and the map appearing only once the driver
-   * dragged it. Black in Zmierzch, cream in Bilet — the inverting filter had
-   * nothing to do with it.
-   */
   useEffect(() => {
-    const instance = mapRef.current;
-    if (!instance) return;
-    if (appliedTheme.current === theme) return;
-    appliedTheme.current = theme;
-    instance.setStyle(STYLES[theme]);
-    const onStyleLoad = () => setStyleEpoch((epoch) => epoch + 1);
-    instance.once("styledata", onStyleLoad);
-    return () => {
-      instance.off("styledata", onStyleLoad);
-    };
-  }, [theme]);
+    syncStyle();
+  }, [theme, syncStyle]);
 
   const value = useMemo<MapContextValue>(() => ({ map, styleEpoch }), [map, styleEpoch]);
 

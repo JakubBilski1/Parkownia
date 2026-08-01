@@ -7,6 +7,7 @@ import { getNavUser } from "@/components/nav/current-user";
 import { Badge, PageContainer } from "@/components/ui";
 import { formatDatePL, formatTimeRangePL } from "@/lib/format";
 import { listEventParkings } from "@/modules/events/parkings";
+import { canAcceptPayments } from "@/modules/payments/factory";
 import { getEventBySlug } from "@/modules/events/service";
 import { EVENT_CATEGORY_ICON, EVENT_CATEGORY_LABEL } from "../event-meta";
 import { EventParkings } from "./event-parkings";
@@ -69,6 +70,7 @@ export default async function EventPage({ params }: PageProps) {
         venue={{ lat: event.venue.location.lat, lng: event.venue.location.lng, name: event.venue.name }}
         radiusMeters={event.searchRadiusMeters}
         parkings={parkings}
+        salesOpen={canAcceptPayments()}
       />
 
       <p className="mt-4 max-w-2xl text-ui text-muted">

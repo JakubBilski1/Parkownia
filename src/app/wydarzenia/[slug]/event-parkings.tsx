@@ -18,11 +18,13 @@ type EventParkingsProps = {
   venue: { lat: number; lng: number; name: string };
   radiusMeters: number;
   parkings: EventParking[];
+  /** False while no PSP is configured — see modules/payments/factory.ts. */
+  salesOpen: boolean;
 };
 
 const VENUE_ZOOM = 14;
 
-export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventParkingsProps) {
+export function EventParkings({ eventId, venue, radiusMeters, parkings, salesOpen }: EventParkingsProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Desktop-only cross-highlight: hovering a rail card raises its pin (neutral),
   // never selects it. Harmless on touch — selection (accent) always outranks it.
@@ -183,13 +185,25 @@ export function EventParkings({ eventId, venue, radiusMeters, parkings }: EventP
                         </span>
                       </div>
 
-                      <LinkButton
-                        href={ROUTES.reserve(parking.id, { eventId })}
-                        variant="accent"
-                        className="min-w-[9rem]"
-                      >
-                        Zarezerwuj
-                      </LinkButton>
+                      {salesOpen ? (
+                        <LinkButton
+                          href={ROUTES.reserve(parking.id, { eventId })}
+                          variant="accent"
+                          className="min-w-[9rem]"
+                        >
+                          Zarezerwuj
+                        </LinkButton>
+                      ) : (
+                        // The link still goes to the parking, which now explains
+                        // itself instead of opening a checkout that cannot end.
+                        <LinkButton
+                          href={ROUTES.reserve(parking.id, { eventId })}
+                          variant="quiet"
+                          className="min-w-[9rem]"
+                        >
+                          Zobacz miejsce
+                        </LinkButton>
+                      )}
                     </div>
                   </CardBody>
                 </Card>

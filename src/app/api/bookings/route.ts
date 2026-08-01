@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { clientIp, enforceRateLimit } from "@/lib/rate-limit";
-import { toApiError } from "@/modules/bookings/errors";
+import { DomainError, toApiError } from "@/modules/bookings/errors";
 import { createBookingSchema } from "@/modules/bookings/schemas";
 import { placeBooking } from "@/modules/bookings/service";
 import { getViewer, grantBookingAccess } from "@/modules/bookings/session";
+import { canAcceptPayments } from "@/modules/payments/factory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,15 @@ const WINDOW_SECONDS = 60;
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    // Before anything is written or held. With no PSP configured this booking
+    // could never be paid for (see modules/payments/factory.ts), and creating it
+    // anyway is what left drivers on a spinner that never resolved while their
+    // e-mail and phone sat in the database. The UI closes the shop too; this is
+    // the half that a hand-written request cannot walk past.
+    if (!canAcceptPayments()) {
+      throw new DomainError("SALES_CLOSED");
+    }
+
     const viewer = await getViewer(request);
     await enforceRateLimit(
       `bookings:${viewer.userId ?? clientIp(request)}`,

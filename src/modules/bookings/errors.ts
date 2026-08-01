@@ -16,6 +16,7 @@ export type DomainErrorCode =
   | "BOOKING_NOT_CANCELLABLE"
   | "PAYMENT_NOT_FOUND"
   | "PAYMENT_PROVIDER_DOWN"
+  | "SALES_CLOSED"
   | "HOST_CANNOT_BE_PAID"
   | "FORBIDDEN"
   | "UNAUTHORIZED"
@@ -37,6 +38,7 @@ const STATUS: Record<DomainErrorCode, number> = {
   BOOKING_NOT_CANCELLABLE: 422,
   PAYMENT_NOT_FOUND: 404,
   PAYMENT_PROVIDER_DOWN: 503,
+  SALES_CLOSED: 503,
   HOST_CANNOT_BE_PAID: 422,
   FORBIDDEN: 403,
   UNAUTHORIZED: 401,
@@ -66,6 +68,10 @@ const MESSAGE: Record<DomainErrorCode, string> = {
   PAYMENT_NOT_FOUND: "Nie znaleźliśmy płatności dla tej rezerwacji.",
   PAYMENT_PROVIDER_DOWN:
     "Operator płatności nie odpowiada. Środki nie zostały pobrane. Spróbuj ponownie za chwilę.",
+  // Not "try again in a moment" — trying again will not help until somebody
+  // configures a PSP, and saying otherwise sends people round a loop.
+  SALES_CLOSED:
+    "Nie uruchomiliśmy jeszcze rezerwacji online. Nic nie zostało zamówione ani opłacone. Zostaw adres na stronie parkingu, a damy znać, gdy ruszymy.",
   HOST_CANNOT_BE_PAID: "Ten parking nie przyjmuje teraz płatności. Wybierz inny.",
   FORBIDDEN: "Nie masz dostępu do tej rezerwacji.",
   UNAUTHORIZED: "Zaloguj się, aby zobaczyć swoje rezerwacje.",

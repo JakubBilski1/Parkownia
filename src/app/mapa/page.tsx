@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { MapScreen } from "@/components/map/map-screen";
 import { AppShell } from "@/components/nav/app-shell";
 import { getNavUser } from "@/components/nav/current-user";
+import { canAcceptPayments } from "@/modules/payments/factory";
 
 export const metadata: Metadata = {
   title: "Mapa parkingów",
@@ -23,7 +24,7 @@ export default async function MapPage() {
 
   return (
     <AppShell user={user}>
-      <MapScreen />
+      <MapScreen salesOpen={canAcceptPayments()} />
     </AppShell>
   );
 }

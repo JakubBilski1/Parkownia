@@ -23,7 +23,12 @@ import {
   type MapFilters,
 } from "./types";
 
-export function MapScreen() {
+/**
+ * salesOpen is resolved on the server (modules/payments/factory.ts) and handed
+ * down rather than fetched: the sheet must never render a "Zarezerwuj" it cannot
+ * honour, not even for the frame before a request comes back.
+ */
+export function MapScreen({ salesOpen }: { salesOpen: boolean }) {
   const router = useRouter();
   const mapRef = useRef<MapLibreMap | null>(null);
 
@@ -222,6 +227,7 @@ export function MapScreen() {
       </div>
 
       <ParkingSheet
+        salesOpen={salesOpen}
         parkingId={selectedId}
         distanceMeters={selectedDistance}
         onClose={() => setSelectedId(null)}

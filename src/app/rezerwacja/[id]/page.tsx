@@ -1,8 +1,10 @@
 import { ArrowLeft, Ruler, ShieldCheck, Umbrella } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SalesClosed } from "@/components/sales-closed";
 import { Card, CardBody } from "@/components/ui/card";
 import { Price } from "@/components/ui/price";
+import { canAcceptPayments } from "@/modules/payments/factory";
 import { formatDatePL, formatHeight, formatTimeRangePL } from "@/lib/format";
 import { DomainError } from "@/modules/bookings/errors";
 import { eventBookingWindow, quotePrice } from "@/modules/bookings/pricing";
@@ -52,6 +54,7 @@ export default async function CheckoutPage({
   }
 
   const { parking, event } = context;
+  const salesOpen = canAcceptPayments();
 
   const window = event
     ? eventBookingWindow(event)
@@ -99,9 +102,13 @@ export default async function CheckoutPage({
       </Link>
 
       <header className="flex flex-col gap-1">
-        <h1 className="font-display text-h1 font-extrabold text-ink">Rezerwacja</h1>
+        <h1 className="font-display text-h1 font-extrabold text-ink">
+          {salesOpen ? "Rezerwacja" : "To miejsce"}
+        </h1>
         <p className="text-body text-muted">
-          Płacisz teraz, kod dostaniesz od razu po płatności.
+          {salesOpen
+            ? "Płacisz teraz, kod dostaniesz od razu po płatności."
+            : "Możesz je obejrzeć. Rezerwacji jeszcze nie uruchomiliśmy."}
         </p>
       </header>
 
@@ -200,6 +207,16 @@ export default async function CheckoutPage({
                 <p className="text-body text-muted">Nie pobraliśmy żadnych pieniędzy.</p>
               </CardBody>
             </Card>
+          ) : !salesOpen ? (
+            // Last line of defence as well as the visible one: this page is
+            // reachable by a bare link, so the closure lives here rather than
+            // only on the button that leads here.
+            <SalesClosed
+              parkingId={parkingId}
+              eventId={event?.id}
+              source="checkout"
+              variant="full"
+            />
           ) : (
             <CheckoutForm
               parkingId={parkingId}

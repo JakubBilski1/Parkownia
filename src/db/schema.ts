@@ -960,6 +960,35 @@ export const emailCampaignRecipients = pgTable(
   ],
 );
 
+/**
+ * Drivers who wanted to buy before we could sell.
+ *
+ * While no PSP is configured the checkout is closed rather than broken (see
+ * modules/payments/factory.ts), and this is where the demand it would have taken
+ * goes instead. Not a marketing list: `event_id` records WHICH match somebody
+ * wanted a space for, which is the one number worth having while supply is being
+ * built by hand — it says which venue to knock on doors around next.
+ */
+export const driverSignups = pgTable(
+  "driver_signups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: citext("email").notNull(),
+    /** What they were looking at. Null when they came from the map at large. */
+    parkingId: uuid("parking_id").references(() => parkings.id, { onDelete: "set null" }),
+    eventId: uuid("event_id").references(() => events.id, { onDelete: "set null" }),
+    source: text("source"),
+    ...timestamps,
+  },
+  (table) => [
+    // One row per address per event, so a second click is not a second lead —
+    // but wanting a space for two different matches is two signals, not one.
+    unique("driver_signups_email_event_unique").on(table.email, table.eventId),
+    index("driver_signups_event_idx").on(table.eventId),
+    index("driver_signups_created_at_idx").on(table.createdAt),
+  ],
+);
+
 export const emailSuppressionReasonEnum = pgEnum("email_suppression_reason", [
   /** They clicked the link in the footer. */
   "UNSUBSCRIBED",

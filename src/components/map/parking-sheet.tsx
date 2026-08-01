@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SalesClosed } from "@/components/sales-closed";
 import { Button, Price, Sheet, Skeleton } from "@/components/ui";
 import { ParkingCard } from "./parking-card";
 import { parkingDetailSchema, type ParkingDetail } from "./types";
@@ -17,6 +18,8 @@ export type ParkingSheetProps = {
   onReserve: (parkingId: string) => void;
   /** Straight-line metres from the current reference point, if we know it. */
   distanceMeters?: number | null;
+  /** False while no PSP is configured: the sale is closed, not broken. */
+  salesOpen: boolean;
 };
 
 /**
@@ -29,6 +32,7 @@ export function ParkingSheet({
   onClose,
   onReserve,
   distanceMeters,
+  salesOpen,
 }: ParkingSheetProps) {
   const [state, setState] = useState<LoadState>({ status: "idle" });
 
@@ -74,17 +78,23 @@ export function ParkingSheet({
       // that is the only place a thumb reaches without a second hand (Fitts).
       footer={
         ready && ready.priceGr !== null ? (
-          <div className="flex items-center gap-3">
-            <Price gr={ready.priceGr} size="md" className="shrink-0" />
-            <Button
-              variant="accent"
-              size="lg"
-              block
-              onClick={() => onReserve(ready.id)}
-            >
-              Zarezerwuj
-            </Button>
-          </div>
+          salesOpen ? (
+            <div className="flex items-center gap-3">
+              <Price gr={ready.priceGr} size="md" className="shrink-0" />
+              <Button
+                variant="accent"
+                size="lg"
+                block
+                onClick={() => onReserve(ready.id)}
+              >
+                Zarezerwuj
+              </Button>
+            </div>
+          ) : (
+            // No "Zarezerwuj" that leads to a checkout nothing can complete. The
+            // price stays: it is the honest part, and it is why they tapped.
+            <SalesClosed parkingId={ready.id} source="map-sheet" variant="compact" />
+          )
         ) : undefined
       }
     >

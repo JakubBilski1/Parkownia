@@ -44,6 +44,7 @@ const config: Config = {
       "scan-bad": "var(--scan-bad)",
 
       focus: "var(--focus)",
+      geo: "var(--geo)",
       overlay: "var(--overlay)",
     },
     fontFamily: {

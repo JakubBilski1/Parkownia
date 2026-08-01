@@ -12,7 +12,7 @@ import { ClusterLayer } from "./cluster-layer";
 import { EventOverlay } from "./event-overlay";
 import { GeolocateButton } from "./geolocate-button";
 import { circleBounds, straightLineMeters } from "./geo-display";
-import { MapView, type Viewport } from "./map-view";
+import { MapMarker, MapView, type Viewport } from "./map-view";
 import { MapFiltersBar } from "./map-filters";
 import { ParkingSheet } from "./parking-sheet";
 import {
@@ -140,6 +140,7 @@ export function MapScreen({ salesOpen }: { salesOpen: boolean }) {
           }
           radiusMeters={selectedEvent?.searchRadiusMeters ?? 1500}
         />
+        {userPosition ? <UserDot position={userPosition} /> : null}
       </MapView>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -234,5 +235,35 @@ export function MapScreen({ salesOpen }: { salesOpen: boolean }) {
         onReserve={(parkingId) => router.push(ROUTES.reserve(parkingId))}
       />
     </div>
+  );
+}
+
+/**
+ * Where the driver is. The button that finds it is labelled "Pokaż moją
+ * lokalizację" and, until this existed, showed nothing: it flew the map to the
+ * right place, put no mark on it, and — since there is rarely a parking where
+ * somebody happens to be standing — landed on "W tym miejscu nie mamy jeszcze
+ * parkingów". Indistinguishable from a button that does not work, which is
+ * exactly how it was reported.
+ *
+ * A ring under the dot, not a pin: a pin points at something chosen, and this is
+ * not a choice. It sits below the price pins in the stack so it can never hide
+ * the thing being sold.
+ */
+function UserDot({ position }: { position: LngLat }) {
+  return (
+    <MapMarker lng={position.lng} lat={position.lat} zIndex={5}>
+      <span
+        aria-hidden="true"
+        // MapMarker anchors at the bottom; the shift puts the dot's centre on
+        // the coordinate instead of hanging it above.
+        className="pointer-events-none block translate-y-1/2"
+      >
+        <span className="relative block h-4 w-4">
+          <span className="absolute inset-0 rounded-pill bg-geo/25" />
+          <span className="absolute inset-[3px] rounded-pill border-2 border-surface bg-geo shadow-float" />
+        </span>
+      </span>
+    </MapMarker>
   );
 }

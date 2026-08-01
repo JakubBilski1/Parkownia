@@ -64,6 +64,12 @@
        it reads as a browser artifact stacked on the border. See .field-focus. */
     --focus-ring: rgb(25 26 28 / 0.16);
 
+    /* Where the driver is standing. A blue, because that is the convention every
+       map app has taught people, and deliberately NOT the accent: the accent
+       means "this is where you pay" (DESIGN_PRINCIPLES §4) and a dot that
+       borrowed it would read as a place to buy. */
+    --geo: #1f6feb;
+
     --overlay: rgb(25 26 28 / 0.45);
 
     --shadow-card: 0 1px 2px rgb(25 26 28 / 0.06), 0 10px 24px -16px rgb(25 26 28 / 0.24);
@@ -99,6 +105,8 @@
 
     --focus: #f1ede7;
     --focus-ring: rgb(241 237 231 / 0.22);
+
+    --geo: #4d8ff5;
 
     --overlay: rgb(0 0 0 / 0.62);
 
@@ -138,6 +146,8 @@
 
       --focus: #f1ede7;
       --focus-ring: rgb(241 237 231 / 0.22);
+
+      --geo: #4d8ff5;
 
       --overlay: rgb(0 0 0 / 0.62);
 

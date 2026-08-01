@@ -15,9 +15,12 @@ import { Badge, Button, Price } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import {
   estimateWalk,
+  formatDistanceAway,
   formatHeight,
   formatSpots,
   formatWalkDistance,
+  isWalkable,
+  WALK_PLAUSIBLE_MAX_MINUTES,
   WALK_SPEED_M_PER_MIN,
 } from "@/lib/format";
 import type { ParkingDetail } from "./types";
@@ -65,6 +68,7 @@ function walkLabel(parking: ParkingDetail, straightLineMeters: number | null): s
   if (typeof parking.distanceMeters === "number") {
     const meters = parking.distanceMeters;
     const minutes = Math.max(1, Math.round(meters / WALK_SPEED_M_PER_MIN));
+    if (minutes > WALK_PLAUSIBLE_MAX_MINUTES) return formatDistanceAway(meters);
     const distance =
       meters < 1000
         ? `ok. ${Math.round(meters / 10) * 10} m`
@@ -72,6 +76,10 @@ function walkLabel(parking: ParkingDetail, straightLineMeters: number | null): s
     return `${distance} pieszo · ok. ${minutes} min`;
   }
   if (straightLineMeters === null) return null;
+  // Beyond a plausible walk this is measured from wherever the driver happens to
+  // be sitting, so calling it "pieszo" would be absurd — 21 km and 265 minutes
+  // is what it said before. State the distance and drop the verb.
+  if (!isWalkable(straightLineMeters)) return formatDistanceAway(straightLineMeters);
   return `${formatWalkDistance(straightLineMeters)} · ok. ${estimateWalk(straightLineMeters).minutes} min`;
 }
 

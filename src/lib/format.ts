@@ -152,6 +152,30 @@ export function estimateWalk(straightLineMeters: number): WalkEstimate {
   return { meters, minutes };
 }
 
+/**
+ * Past this, a walking time stops being information and starts being noise.
+ *
+ * A pin measured against the driver's own position rather than a venue showed
+ * "265 min" to somebody sitting 21 km away — an arithmetically correct answer to
+ * a question nobody asked, on a 60 px label with room for one fact. Nobody walks
+ * four hours to a football match; 45 minutes is already the generous end of what
+ * somebody will do to save on parking.
+ *
+ * Callers use this to decide whether to CLAIM a walk, not to change the maths.
+ */
+export const WALK_PLAUSIBLE_MAX_MINUTES = 45;
+
+export function isWalkable(straightLineMeters: number): boolean {
+  return estimateWalk(straightLineMeters).minutes <= WALK_PLAUSIBLE_MAX_MINUTES;
+}
+
+/** "ok. 21 km stąd" — distance without implying anybody would walk it. */
+export function formatDistanceAway(straightLineMeters: number): string {
+  const meters = Math.round(straightLineMeters);
+  if (meters < 1000) return `ok. ${Math.round(meters / 10) * 10} m stąd`;
+  return `ok. ${(meters / 1000).toFixed(1).replace(".", ",")} km stąd`;
+}
+
 /** "ok. 850 m pieszo" / "ok. 1,2 km pieszo". Never presented as exact. */
 export function formatWalkDistance(straightLineMeters: number): string {
   const { meters } = estimateWalk(straightLineMeters);

@@ -2,7 +2,12 @@
 
 import Supercluster from "supercluster";
 import { useMemo } from "react";
-import { estimateWalk, WALK_SPEED_M_PER_MIN } from "@/lib/format";
+import {
+  estimateWalk,
+  isWalkable,
+  WALK_PLAUSIBLE_MAX_MINUTES,
+  WALK_SPEED_M_PER_MIN,
+} from "@/lib/format";
 import { straightLineMeters } from "./geo-display";
 import { MapMarker, useMapLibre, type Viewport } from "./map-view";
 import { ClusterBubble, PricePin } from "./price-pin";
@@ -24,12 +29,24 @@ type Placed = {
   lift: number;
 };
 
+/**
+ * Minutes on the pin, or nothing.
+ *
+ * Nothing is a real answer here. With no event picked the reference is the
+ * driver's own position, so somebody opening the map from home 21 km away was
+ * shown "265 min" — correct arithmetic, useless on a 60 px label, and it reads
+ * as a broken number rather than as "you are far away". Past the plausible walk
+ * the pin drops the claim and shows the price alone; the sheet, which has room
+ * for a sentence, says the distance instead.
+ */
 function walkMinutes(pin: MapPin, reference: LngLat | null): number | null {
   if (typeof pin.walkMeters === "number") {
-    return Math.max(1, Math.round(pin.walkMeters / WALK_SPEED_M_PER_MIN));
+    const minutes = Math.max(1, Math.round(pin.walkMeters / WALK_SPEED_M_PER_MIN));
+    return minutes <= WALK_PLAUSIBLE_MAX_MINUTES ? minutes : null;
   }
   if (!reference) return null;
-  return estimateWalk(straightLineMeters(reference, { lng: pin.lng, lat: pin.lat })).minutes;
+  const meters = straightLineMeters(reference, { lng: pin.lng, lat: pin.lat });
+  return isWalkable(meters) ? estimateWalk(meters).minutes : null;
 }
 
 /**

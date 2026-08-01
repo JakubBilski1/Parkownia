@@ -26,6 +26,16 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  /**
+   * Without this every og:url and canonical ships as a relative path ("/"),
+   * which no scraper accepts — the link renders as a bare row of text wherever
+   * it is pasted. That is the state the acquisition mail would have gone out in.
+   *
+   * NEXT_PUBLIC_APP_URL is a build arg in the image (see .env.example); the
+   * literal is the fallback so a build without it still emits absolute URLs
+   * rather than silently going back to relative ones.
+   */
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://parkownia.com"),
   title: {
     default: "Parkownia — parking na mecz i targi w Poznaniu",
     template: "%s · Parkownia",
@@ -33,6 +43,17 @@ export const metadata: Metadata = {
   description:
     "Zarezerwuj miejsce parkingowe przy Enea Stadionie i MTP. Płacisz z góry, wjeżdżasz na kod.",
   applicationName: "Parkownia",
+  // public/icons/ existed and nothing referenced it, so the browser tab was
+  // blank and /favicon.ico answered 404. The manifest is deliberately NOT here:
+  // it describes the host's scanner PWA (start_url /panel/skaner) and belongs to
+  // the host shell, not to every visitor's "install app" prompt.
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     locale: "pl_PL",
@@ -41,6 +62,7 @@ export const metadata: Metadata = {
     description:
       "Zarezerwuj miejsce parkingowe przy Enea Stadionie i MTP. Płacisz z góry, wjeżdżasz na kod.",
   },
+  twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
 };
 

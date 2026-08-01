@@ -319,6 +319,43 @@
   .map-tiles-inverted .maplibregl-canvas {
     filter: invert(1);
   }
+
+  /*
+   * Theme-swapped bitmaps. A PNG wordmark cannot be recoloured by CSS, so a
+   * two-tone mark ships as two files and one of them is hidden.
+   *
+   * Same shape as the palette at the top of this file, and the same trap: the
+   * theme lives in TWO places — the explicit toggle and the OS preference — so
+   * every rule needs both copies, and the media copy must key on
+   * `:root:not([data-theme])`. `:not([data-theme="light"])` would also match
+   * data-theme="dark", tie on specificity and override somebody who picked
+   * light by hand. That already shipped once.
+   */
+  .on-light-only {
+    display: inline-block;
+  }
+
+  .on-dark-only {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .on-light-only {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .on-dark-only {
+    display: inline-block;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .on-light-only {
+      display: none;
+    }
+
+    :root:not([data-theme]) .on-dark-only {
+      display: inline-block;
+    }
+  }
 }
 
 @keyframes ps-fade-in {

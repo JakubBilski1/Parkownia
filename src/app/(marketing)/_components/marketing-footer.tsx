@@ -1,18 +1,36 @@
+import Image from "next/image";
 import Link from "next/link";
+import pbDevsOnDark from "@/../public/brand/pbdevs-on-dark.png";
+import pbDevsOnLight from "@/../public/brand/pbdevs-on-light.png";
 
 /**
- * A typographic rendition of the PB Devs mark ("PB | DEVS"), not their SVG —
- * there is no asset in this repo. Drop one at public/pbdevs.svg and this becomes
- * an <Image>; until then this keeps the shape of the wordmark without pretending
- * to be the logo file.
+ * The real PB Devs wordmark, taken from pbdevs.com. It is one colour on
+ * transparency and cannot be recoloured, so both tones ship and CSS hides one
+ * (.on-light-only / .on-dark-only in globals.css).
+ *
+ * The mark carries the link's accessible name — this is somebody else's brand,
+ * so it is named rather than left to the surrounding text.
  */
 function PbDevsMark() {
   return (
-    <span className="inline-flex items-baseline gap-1.5" aria-hidden="true">
-      <span className="font-display text-ui font-extrabold tracking-tight">PB</span>
-      <span className="h-3 w-px translate-y-0.5 bg-current opacity-40" />
-      <span className="text-ui font-medium tracking-[0.18em]">DEVS</span>
-    </span>
+    <>
+      <Image
+        src={pbDevsOnLight}
+        alt="PB Devs"
+        height={14}
+        className="on-light-only w-auto"
+        // 21 KB below the fold on every marketing page; never worth a
+        // render-blocking fetch.
+        loading="lazy"
+      />
+      <Image
+        src={pbDevsOnDark}
+        alt="PB Devs"
+        height={14}
+        className="on-dark-only w-auto"
+        loading="lazy"
+      />
+    </>
   );
 }
 
@@ -61,11 +79,13 @@ export function MarketingFooter() {
             href="https://pbdevs.com"
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex items-center gap-1.5 rounded-chip text-muted transition-colors duration-micro hover-hover:hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex items-center gap-2 rounded-chip text-muted transition-colors duration-micro hover-hover:hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             <span>Built by</span>
+            {/* The mark's alt is the name; the hidden copy only adds what a
+                sighted user gets from the icon-less new-tab convention. */}
             <PbDevsMark />
-            <span className="sr-only">PB Devs — otwiera się w nowej karcie</span>
+            <span className="sr-only">— otwiera się w nowej karcie</span>
           </a>
         </nav>
       </div>

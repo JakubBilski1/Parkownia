@@ -114,7 +114,10 @@ export function SalesClosed({ parkingId, eventId, source, variant = "full" }: Sa
         />
       </label>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
+      {/* The sheet on the map is ~340 px wide. Side by side the row split its
+          width evenly and broke the label over two lines, so the button keeps
+          its own width and the field gives way instead. */}
+      <div className="flex flex-col gap-2 min-[26rem]:flex-row">
         <input
           type="email"
           required
@@ -124,12 +127,13 @@ export function SalesClosed({ parkingId, eventId, source, variant = "full" }: Sa
           aria-label="Twój e-mail"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="min-h-touch w-full rounded-card border border-line bg-surface px-3 text-body text-ink placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="min-h-touch w-full min-w-0 flex-1 rounded-card border border-line bg-surface px-3 text-body text-ink placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         />
         <Button
           type="submit"
           variant="accent"
           size="lg"
+          className="shrink-0 whitespace-nowrap"
           loading={state.kind === "sending"}
           disabled={state.kind === "sending"}
         >

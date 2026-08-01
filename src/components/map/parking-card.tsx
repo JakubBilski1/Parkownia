@@ -100,6 +100,9 @@ export function ParkingCard({
   const accessLabel = parking.accessType
     ? ACCESS_TYPE_LABEL[parking.accessType]
     : undefined;
+  const hasDetails = Boolean(
+    typeLabel || accessLabel || parking.maxVehicleHeightCm || parking.entranceNotes,
+  );
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
@@ -170,37 +173,43 @@ export function ParkingCard({
         </ul>
       ) : null}
 
-      <dl className="flex flex-col gap-2 rounded-card border border-line bg-surface-2 p-3">
-        {typeLabel ? (
-          <div className="flex items-start justify-between gap-4">
-            <dt className="text-ui text-muted">Rodzaj</dt>
-            <dd className="text-ui text-ink">{typeLabel}</dd>
-          </div>
-        ) : null}
-        {accessLabel ? (
-          <div className="flex items-start justify-between gap-4">
-            <dt className="text-ui text-muted">Wjazd</dt>
-            <dd className="text-ui text-ink">{accessLabel}</dd>
-          </div>
-        ) : null}
-        {parking.maxVehicleHeightCm ? (
-          <div className="flex items-start justify-between gap-4">
-            <dt className="flex items-center gap-1.5 text-ui text-muted">
-              <Ruler size={14} aria-hidden="true" />
-              Maksymalna wysokość auta
-            </dt>
-            <dd className="num text-ui font-semibold text-ink">
-              {formatHeight(parking.maxVehicleHeightCm)}
-            </dd>
-          </div>
-        ) : null}
-        {parking.entranceNotes ? (
-          <div className="flex items-start justify-between gap-4">
-            <dt className="text-ui text-muted">Dojazd</dt>
-            <dd className="text-ui text-ink">{parking.entranceNotes}</dd>
-          </div>
-        ) : null}
-      </dl>
+      {/* The box is the frame around the rows, so it only exists when a row
+          does. A host who filled in nothing beyond the five required fields —
+          which the parking form explicitly invites — was getting an empty
+          bordered rectangle under the price, reading as a broken component. */}
+      {hasDetails ? (
+        <dl className="flex flex-col gap-2 rounded-card border border-line bg-surface-2 p-3">
+          {typeLabel ? (
+            <div className="flex items-start justify-between gap-4">
+              <dt className="text-ui text-muted">Rodzaj</dt>
+              <dd className="text-ui text-ink">{typeLabel}</dd>
+            </div>
+          ) : null}
+          {accessLabel ? (
+            <div className="flex items-start justify-between gap-4">
+              <dt className="text-ui text-muted">Wjazd</dt>
+              <dd className="text-ui text-ink">{accessLabel}</dd>
+            </div>
+          ) : null}
+          {parking.maxVehicleHeightCm ? (
+            <div className="flex items-start justify-between gap-4">
+              <dt className="flex items-center gap-1.5 text-ui text-muted">
+                <Ruler size={14} aria-hidden="true" />
+                Maksymalna wysokość auta
+              </dt>
+              <dd className="num text-ui font-semibold text-ink">
+                {formatHeight(parking.maxVehicleHeightCm)}
+              </dd>
+            </div>
+          ) : null}
+          {parking.entranceNotes ? (
+            <div className="flex items-start justify-between gap-4">
+              <dt className="text-ui text-muted">Dojazd</dt>
+              <dd className="text-ui text-ink">{parking.entranceNotes}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
 
       {parking.description ? (
         <p className="text-body text-ink">{parking.description}</p>

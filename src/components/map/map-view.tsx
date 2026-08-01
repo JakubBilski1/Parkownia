@@ -156,15 +156,6 @@ export function MapView({
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
       attributionControl: { compact: true },
-      // Not for screenshots: the dark map puts `filter: invert(1)` on this
-      // canvas (globals.css), and a filtered WebGL canvas makes Chrome composite
-      // the drawing buffer a second time. With the default false that buffer is
-      // already gone by then, so the very first frame composites as pure black —
-      // which, inverted from a white background layer, is exactly the blank map
-      // /mapa served in Zmierzch. Every tile was drawn; the compositor had
-      // nothing left to read. Keeping the buffer costs memory on a screen whose
-      // whole job is to be legible in the rain.
-      canvasContextAttributes: { preserveDrawingBuffer: true },
       // Camera moves are feedback, not decoration. MapLibre already downgrades
       // flyTo/easeTo to a jump under prefers-reduced-motion, so no camera call
       // here may pass essential: true — that flag would override the driver's
@@ -188,17 +179,17 @@ export function MapView({
       setMap(instance);
       // A theme that resolved while the map was still building waits until here.
       syncStyle();
-      // And one more frame, once there is something to show.
+      // And one more frame once there is something to show. Cheap insurance:
+      // the theme class lands in an effect that runs long before the first tile,
+      // so the repaint it asks for hits an empty canvas and nothing requests
+      // another.
       //
-      // The dark map filters this canvas (`filter: invert(1)`, globals.css) and
-      // a filtered WebGL canvas composites black unless a frame is drawn with
-      // the filter already in place. The class goes on in an effect, which runs
-      // long before the first tile — so the repaint that effect asks for lands
-      // on an empty canvas and nothing requests another. Hence this one, after
-      // the paint rather than before it.
-      //
-      // preserveDrawingBuffer alone did NOT fix this: the attribute is set and
-      // the canvas still came up black until something forced a redraw.
+      // Do NOT read this as the cure for a blank map. A long hunt for one —
+      // black in Zmierzch, patchy in Bilet — ended with the symptom reproducing
+      // in the light theme with `filter: none` on a correctly sized canvas, and
+      // clearing on any window resize. That is the automation harness, not this
+      // component. preserveDrawingBuffer was tried here and removed again: it
+      // changed nothing and costs memory on every map a driver opens.
       requestAnimationFrame(() => instance.triggerRepaint());
     });
     instance.on("moveend", emit);

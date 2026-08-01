@@ -1,7 +1,8 @@
 import { and, count, desc, eq, sql, sum } from "drizzle-orm";
 import { db } from "@/db";
-import { bookings, parkings, payoutItems, payouts, users } from "@/db/schema";
+import { bookings, payoutItems, payouts, users } from "@/db/schema";
 import type { PayoutStatus } from "@/db/types";
+import { countMyParkings } from "@/modules/parkings/service";
 
 export type PayoutReportRow = {
   payoutId: string;
@@ -82,6 +83,19 @@ export type HostEarnings = {
    * how to get their first booking.
    */
   parkingsCount: number;
+  /**
+   * Where the host's parkings stand with moderation. The dashboard used to show
+   * a host with one REJECTED parking two zeroes and nothing else: no sale, no
+   * reason, and no hint that the decision was already made and was theirs to
+   * answer. The reason itself lives on the parking; this is only enough to say
+   * so on the first screen.
+   */
+  moderation: {
+    active: number;
+    pendingReview: number;
+    rejected: number;
+    draft: number;
+  };
   payouts: HostPayoutRow[];
 };
 
@@ -102,10 +116,7 @@ export async function getHostEarnings(hostId: string): Promise<HostEarnings> {
     .from(payouts)
     .where(and(eq(payouts.hostId, hostId), eq(payouts.status, "PENDING")));
 
-  const [owned] = await db
-    .select({ parkingsCount: count(parkings.id) })
-    .from(parkings)
-    .where(eq(parkings.ownerId, hostId));
+  const owned = await countMyParkings(hostId);
 
   const history = await db
     .select({
@@ -124,7 +135,13 @@ export async function getHostEarnings(hostId: string): Promise<HostEarnings> {
     totalGr: settled?.totalGr ?? 0,
     pendingPayoutGr: pending?.amountGr ?? 0,
     bookingCount: settled?.bookingCount ?? 0,
-    parkingsCount: owned?.parkingsCount ?? 0,
+    parkingsCount: owned.total,
+    moderation: {
+      active: owned.active,
+      pendingReview: owned.pendingReview,
+      rejected: owned.rejected,
+      draft: owned.draft,
+    },
     payouts: history,
   };
 }

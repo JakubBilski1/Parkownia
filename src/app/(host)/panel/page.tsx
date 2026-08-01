@@ -32,6 +32,14 @@ const earningsSchema = z.object({
   totalGr: z.int(),
   pendingPayoutGr: z.int(),
   parkingsCount: z.number().optional(),
+  moderation: z
+    .object({
+      active: z.number(),
+      pendingReview: z.number(),
+      rejected: z.number(),
+      draft: z.number(),
+    })
+    .optional(),
   payouts: z.array(payoutSchema).default([]),
 });
 
@@ -149,7 +157,9 @@ export default function HostDashboardPage() {
                 </Button>
               }
             />
-          ) : null}
+          ) : (
+            <ModerationNotice moderation={state.earnings.moderation} />
+          )}
 
           <section className="flex flex-col gap-2">
             <h2 className="font-display text-h3 font-bold text-ink">Wypłaty</h2>
@@ -200,10 +210,22 @@ export default function HostDashboardPage() {
 
       {/* A hairline, because without it these tiles sit directly under the
           payouts empty state and read as part of it. */}
-      <nav aria-label="Skróty" className="grid gap-2 border-t border-line pt-4 sm:grid-cols-2">
-        <ShortcutLink href={ROUTES.host.parkings} label="Moje parkingi" />
-        <ShortcutLink href={ROUTES.host.events} label="Nadchodzące wydarzenia" />
-        <ShortcutLink href={ROUTES.host.payouts} label="Wypłaty i weryfikacja" />
+      <nav aria-label="Skróty" className="grid gap-2 border-t border-line pt-4 sm:grid-cols-3">
+        <ShortcutLink
+          href={ROUTES.host.parkings}
+          label="Moje parkingi"
+          hint="Dodaj, popraw, sprawdź status"
+        />
+        <ShortcutLink
+          href={ROUTES.host.events}
+          label="Nadchodzące wydarzenia"
+          hint="Udostępnij miejsca na mecz albo targi"
+        />
+        <ShortcutLink
+          href={ROUTES.host.payouts}
+          label="Wypłaty i weryfikacja"
+          hint="Konto do przelewu i historia"
+        />
       </nav>
 
       <p className="flex items-center gap-2 text-ui text-muted">
@@ -215,13 +237,71 @@ export default function HostDashboardPage() {
   );
 }
 
-function ShortcutLink({ href, label }: { href: string; label: string }) {
+/**
+ * A shortcut says where it goes and what is behind it. With the label alone
+ * these read as three empty boxes with a word in them — an unfinished screen,
+ * which is a bad first impression for a host who just signed up.
+ */
+function ShortcutLink({ href, label, hint }: { href: string; label: string; hint: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex min-h-touch items-center rounded-card border border-line bg-surface px-3 text-ui font-semibold text-ink transition-colors duration-micro ease-out hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      className="flex min-h-touch flex-col justify-center gap-0.5 rounded-card border border-line bg-surface px-3 py-2 transition-colors duration-micro ease-out hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
-      {label}
+      <span className="text-ui font-semibold text-ink">{label}</span>
+      <span className="text-ui text-muted">{hint}</span>
     </Link>
+  );
+}
+
+type Moderation = { active: number; pendingReview: number; rejected: number; draft: number };
+
+/**
+ * What moderation is doing with this host's parkings, on the screen they land
+ * on. Ordered by what costs them money soonest: a rejection is a decision
+ * waiting for their answer, a draft is work they left unfinished, a review is
+ * ours to finish. Silent when everything is live — a green "all fine" banner on
+ * every load is noise.
+ */
+function ModerationNotice({ moderation }: { moderation?: Moderation }) {
+  if (!moderation) return null;
+
+  const { rejected, draft, pendingReview, active } = moderation;
+  if (rejected === 0 && draft === 0 && pendingReview === 0) return null;
+
+  const lines: string[] = [];
+  if (rejected > 0) {
+    lines.push(
+      rejected === 1
+        ? "Jeden parking został odrzucony. Powód jest przy nim — popraw i wyślij ponownie."
+        : `${rejected} parkingi zostały odrzucone. Powód jest przy każdym — popraw i wyślij ponownie.`,
+    );
+  }
+  if (draft === 1) lines.push("Jeden parking jest szkicem — nie wyszedł jeszcze do sprawdzenia.");
+  else if (draft > 1) lines.push(`${draft} parkingi są szkicami — nie wyszły do sprawdzenia.`);
+  if (pendingReview === 1) lines.push("Jeden parking czeka na nasze sprawdzenie.");
+  else if (pendingReview > 1) lines.push(`${pendingReview} parkingi czekają na nasze sprawdzenie.`);
+
+  const blocking = rejected > 0 || draft > 0;
+
+  return (
+    <Card className={blocking ? "border-danger" : undefined}>
+      <CardBody className="flex flex-col items-start gap-2">
+        <p className="text-body font-semibold text-ink">
+          {active === 0 ? "Żaden Twój parking nie jest jeszcze widoczny dla kierowców" : "Uwagi do Twoich parkingów"}
+        </p>
+        {lines.map((line) => (
+          <p key={line} className="text-ui text-muted">
+            {line}
+          </p>
+        ))}
+        <Link
+          href={ROUTES.host.parkings}
+          className="text-ui font-semibold text-accent underline underline-offset-2"
+        >
+          Otwórz moje parkingi
+        </Link>
+      </CardBody>
+    </Card>
   );
 }

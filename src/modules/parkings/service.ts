@@ -355,6 +355,44 @@ export async function listMyParkings(session: Session): Promise<HostParkingRow[]
     .orderBy(desc(parkings.updatedAt));
 }
 
+export type HostParkingCounts = {
+  total: number;
+  active: number;
+  pendingReview: number;
+  rejected: number;
+  draft: number;
+};
+
+/**
+ * Where a host's parkings stand, in one row. Two screens need it and both used
+ * to guess: the dashboard showed a host with a rejected parking two zeroes and
+ * no explanation, and the events page told them nothing was happening nearby
+ * when the truth was that nothing of theirs is ACTIVE, so nothing could be.
+ */
+export async function countMyParkings(hostId: string): Promise<HostParkingCounts> {
+  const filter = (status: string) =>
+    sql<number>`count(*) filter (where ${parkings.status} = ${status})`.mapWith(Number);
+
+  const [row] = await db
+    .select({
+      total: sql<number>`count(*)`.mapWith(Number),
+      active: filter("ACTIVE"),
+      pendingReview: filter("PENDING_REVIEW"),
+      rejected: filter("REJECTED"),
+      draft: filter("DRAFT"),
+    })
+    .from(parkings)
+    .where(eq(parkings.ownerId, hostId));
+
+  return {
+    total: row?.total ?? 0,
+    active: row?.active ?? 0,
+    pendingReview: row?.pendingReview ?? 0,
+    rejected: row?.rejected ?? 0,
+    draft: row?.draft ?? 0,
+  };
+}
+
 export type OwnerParkingView = SelectParking & {
   photos: PhotoView[];
   completeness: CompletenessResult;

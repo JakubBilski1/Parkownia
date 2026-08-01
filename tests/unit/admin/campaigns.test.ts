@@ -85,8 +85,10 @@ describe("templateData", () => {
     ctaUrl: undefined,
   };
 
+  const UNSUB = "https://parkownia.com/wypisz/token-testowy";
+
   it("fills every slot, empty for the unused ones", () => {
-    const data = templateData(draft, { name: null });
+    const data = templateData(draft, { name: null, unsubscribeUrl: UNSUB });
     expect(data.p1).toBe("Jeden");
     expect(data.p2).toBe("Dwa");
     expect(data.p3).toBe("");
@@ -94,24 +96,30 @@ describe("templateData", () => {
   });
 
   it("falls back to the first paragraph for the inbox preheader", () => {
-    expect(templateData(draft, { name: null }).preheader).toBe("Jeden");
+    expect(templateData(draft, { name: null, unsubscribeUrl: UNSUB }).preheader).toBe("Jeden");
   });
 
   it("greets by name when there is one", () => {
-    expect(templateData(draft, { name: "Jan" }).greeting).toBe("Dzień dobry, Jan");
-    expect(templateData(draft, { name: null }).greeting).toBe("Dzień dobry");
+    expect(templateData(draft, { name: "Jan", unsubscribeUrl: UNSUB }).greeting).toBe("Dzień dobry, Jan");
+    expect(templateData(draft, { name: null, unsubscribeUrl: UNSUB }).greeting).toBe("Dzień dobry");
   });
 
   it("resolves the CTA into a boolean, because the template cannot branch", () => {
-    expect(templateData(draft, { name: null }).hasCta).toBe(false);
+    expect(templateData(draft, { name: null, unsubscribeUrl: UNSUB }).hasCta).toBe(false);
     const withCta = templateData(
       { ...draft, ctaLabel: "Kliknij", ctaUrl: "https://parkownia.com/" },
-      { name: null },
+      { name: null, unsubscribeUrl: UNSUB },
     );
     expect(withCta.hasCta).toBe(true);
   });
 
-  it("always carries a way out", () => {
-    expect(String(templateData(draft, { name: null }).unsubscribeUrl)).toMatch(/^mailto:/);
+  // The footer link is per recipient and mints a real unsubscribe (see
+  // modules/admin/unsubscribe.ts). It used to be a mailto: — a request to a
+  // human, which stopped nothing — and this assertion is what would notice it
+  // sliding back.
+  it("carries the recipient's own way out, not a mailto", () => {
+    const url = String(templateData(draft, { name: null, unsubscribeUrl: UNSUB }).unsubscribeUrl);
+    expect(url).toBe(UNSUB);
+    expect(url).not.toMatch(/^mailto:/);
   });
 });

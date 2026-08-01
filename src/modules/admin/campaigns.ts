@@ -10,6 +10,12 @@ import {
 import { getEmailProvider } from "@/modules/notifications";
 import { invalidState, notFound } from "./errors";
 import { campaignDraftSchema, campaignIdSchema, sendCampaignSchema } from "./schemas";
+import {
+  findSuppressed,
+  hashUnsubscribeToken,
+  newUnsubscribeToken,
+  unsubscribeUrl,
+} from "./unsubscribe";
 
 /**
  * Bulk send from the admin panel: the operator pastes a list of addresses, writes
@@ -262,9 +268,6 @@ export function normalizeDraft(input: unknown): CampaignDraft {
   };
 }
 
-const UNSUBSCRIBE_MAILTO =
-  "mailto:kontakt@parkownia.com?subject=Wypisz%20mnie%20z%20wiadomo%C5%9Bci";
-
 /**
  * The flat, display-ready variables the mail template interpolates. Six numbered
  * slots instead of a loop, and a boolean instead of a branch, because the template
@@ -277,7 +280,7 @@ const UNSUBSCRIBE_MAILTO =
  */
 export function templateData(
   draft: CampaignDraft,
-  recipient: { name: string | null },
+  recipient: { name: string | null; unsubscribeUrl: string },
 ): Record<string, unknown> {
   const data: Record<string, unknown> = {
     subject: draft.subject,
@@ -287,7 +290,10 @@ export function templateData(
     hasCta: Boolean(draft.ctaLabel && draft.ctaUrl),
     ctaLabel: draft.ctaLabel ?? "",
     ctaUrl: draft.ctaUrl ?? "",
-    unsubscribeUrl: UNSUBSCRIBE_MAILTO,
+    // One link per recipient, so a click stops the next campaign by itself
+    // (modules/admin/unsubscribe.ts). The mailto it replaced was a request to a
+    // human and stopped nothing.
+    unsubscribeUrl: recipient.unsubscribeUrl,
   };
 
   for (let i = 0; i < MAX_PARAGRAPHS; i += 1) {
@@ -306,6 +312,8 @@ export type SendSummary = {
   recipientCount: number;
   sentCount: number;
   failedCount: number;
+  /** Addresses dropped because they had unsubscribed. Reported, never silent. */
+  suppressedCount: number;
   /** Provider reasons, deduplicated — enough to act on, without a wall of text. */
   errors: string[];
 };
@@ -324,7 +332,22 @@ export async function sendCampaign(input: unknown, adminUserId: string): Promise
     );
   }
 
-  const annotated = await annotateConsent(parsedRecipients);
+  // Before consent, before anything: people who already told us to stop. This is
+  // the one rule no operator declaration can override, so it is not a check the
+  // form can tick past — the addresses simply leave the list.
+  const suppressed = await findSuppressed(parsedRecipients.map((r) => r.email));
+  const allowed = parsedRecipients.filter((r) => !suppressed.has(r.email));
+  const suppressedCount = parsedRecipients.length - allowed.length;
+
+  if (allowed.length === 0) {
+    throw invalidState(
+      suppressedCount > 0
+        ? `Wszystkie ${suppressedCount} adresów z tej listy wypisało się z wiadomości. Nie ma do kogo wysłać.`
+        : "Lista adresatów jest pusta. Wklej listę i sprawdź ją przed wysyłką.",
+    );
+  }
+
+  const annotated = await annotateConsent(allowed);
   const withoutConsent = annotated.filter((r) => r.consent !== "GRANTED");
 
   if (withoutConsent.length > 0 && !parsed.consentOverride) {
@@ -332,6 +355,10 @@ export async function sendCampaign(input: unknown, adminUserId: string): Promise
       `${withoutConsent.length} z ${annotated.length} adresów nie ma u nas zgody marketingowej. Zaznacz oświadczenie o podstawie prawnej albo usuń te adresy z listy.`,
     );
   }
+
+  // One secret per recipient, minted here and never stored: the row keeps only
+  // its HMAC, the mail carries the token.
+  const tokens = new Map(annotated.map((r) => [r.email, newUnsubscribeToken()]));
 
   const campaignId = await db.transaction(async (tx) => {
     const [campaign] = await tx
@@ -360,6 +387,7 @@ export async function sendCampaign(input: unknown, adminUserId: string): Promise
         email: recipient.email,
         name: recipient.name,
         consent: recipient.consent,
+        unsubscribeTokenHash: hashUnsubscribeToken(tokens.get(recipient.email)!),
       })),
     );
 
@@ -382,7 +410,10 @@ export async function sendCampaign(input: unknown, adminUserId: string): Promise
         .send({
           to: recipient.email,
           template: "owner-campaign",
-          data: templateData(draft, recipient),
+          data: templateData(draft, {
+            name: recipient.name,
+            unsubscribeUrl: unsubscribeUrl(tokens.get(recipient.email)!),
+          }),
           // One address, one campaign, one mail — even if this runs twice.
           idempotencyKey: `campaign:${campaignId}:${recipient.email}`,
         })
@@ -437,6 +468,7 @@ export async function sendCampaign(input: unknown, adminUserId: string): Promise
     recipientCount: annotated.length,
     sentCount,
     failedCount,
+    suppressedCount,
     errors: [...errors].slice(0, 5),
   };
 }

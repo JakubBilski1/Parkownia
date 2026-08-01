@@ -942,6 +942,12 @@ export const emailCampaignRecipients = pgTable(
     error: text("error"),
     providerRef: text("provider_ref"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
+    // HMAC of the random token behind this row's unsubscribe link — same rule as
+    // refresh and action tokens: the secret goes out in the mail, only the hash
+    // is stored. Per recipient rather than per address, so the link also says
+    // WHICH campaign somebody walked away from. Null on rows written before the
+    // link existed.
+    unsubscribeTokenHash: text("unsubscribe_token_hash"),
     ...timestamps,
   },
   (table) => [
@@ -950,7 +956,42 @@ export const emailCampaignRecipients = pgTable(
     unique("email_campaign_recipients_unique").on(table.campaignId, table.email),
     index("email_campaign_recipients_campaign_idx").on(table.campaignId),
     index("email_campaign_recipients_email_idx").on(table.email),
+    uniqueIndex("email_campaign_recipients_unsub_key").on(table.unsubscribeTokenHash),
   ],
+);
+
+export const emailSuppressionReasonEnum = pgEnum("email_suppression_reason", [
+  /** They clicked the link in the footer. */
+  "UNSUBSCRIBED",
+  /** Marked as spam, bounced hard, or a complaint arrived by another route. */
+  "COMPLAINT",
+  /** Put there by hand from the admin panel. */
+  "MANUAL",
+]);
+
+/**
+ * Addresses we may never mail again. Deliberately NOT a flag on `leads`: most of
+ * the list is cold addresses that were never a lead, and an unsubscribe has to
+ * survive the lead row being deleted. One row, one address, forever — nothing
+ * here is ever removed by the application.
+ *
+ * `sendCampaign` subtracts this list before it writes a single recipient row, so
+ * an unsubscribed address cannot be reached even by pasting it in again.
+ */
+export const emailSuppressions = pgTable(
+  "email_suppressions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: citext("email").notNull(),
+    reason: emailSuppressionReasonEnum("reason").notNull().default("UNSUBSCRIBED"),
+    /** Which campaign they walked away from, when we know. */
+    campaignId: uuid("campaign_id").references(() => emailCampaigns.id, {
+      onDelete: "set null",
+    }),
+    note: text("note"),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("email_suppressions_email_key").on(table.email)],
 );
 
 /* -------------------------------------------------------------------------- */

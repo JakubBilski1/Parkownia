@@ -99,6 +99,8 @@ export type PayoutStatus = (typeof schema.payoutStatusEnum.enumValues)[number];
 export type CommissionScope = (typeof schema.commissionScopeEnum.enumValues)[number];
 export type NotificationChannel = (typeof schema.notificationChannelEnum.enumValues)[number];
 export type NotificationStatus = (typeof schema.notificationStatusEnum.enumValues)[number];
+export type EmailSuppressionReason =
+  (typeof schema.emailSuppressionReasonEnum.enumValues)[number];
 
 export type { Pkd, RefundRule, ScheduleSlot, WeeklySchedule } from "./schema";
 export type { BoundingBox, Point } from "./geo";

@@ -28,7 +28,14 @@ type CheckResult = {
   invalid: string[];
   duplicates: number;
   truncated: boolean;
-  counts: { total: number; granted: number; missing: number; unknown: number };
+  counts: {
+    total: number;
+    granted: number;
+    missing: number;
+    unknown: number;
+    /** Already unsubscribed. Dropped at send time whatever the operator ticks. */
+    suppressed: number;
+  };
 };
 
 const CONSENT_LABEL: Record<Consent, string> = {
@@ -79,7 +86,10 @@ export function CampaignComposer({ maxRecipients }: { maxRecipients: number }) {
   const errors = state.status === "error" ? state.fields : undefined;
   const paragraphs = splitPreview(body);
   const withoutConsent = check ? check.counts.missing + check.counts.unknown : 0;
-  const canSend = Boolean(check && check.counts.total > 0 && (withoutConsent === 0 || consentOverride));
+  // What will actually leave. The unsubscribed are subtracted on the server no
+  // matter what is ticked here, so the button may not promise to reach them.
+  const willSend = check ? check.counts.total - check.counts.suppressed : 0;
+  const canSend = Boolean(check && willSend > 0 && (withoutConsent === 0 || consentOverride));
 
   async function runCheck() {
     setChecking(true);
@@ -144,6 +154,14 @@ export function CampaignComposer({ maxRecipients }: { maxRecipients: number }) {
                 {check.counts.total} adresatów ·{" "}
                 <span className="text-ink">{check.counts.granted} ze zgodą</span> ·{" "}
                 {check.counts.missing} bez zgody · {check.counts.unknown} nieznanych
+                {check.counts.suppressed > 0 ? (
+                  <>
+                    {" · "}
+                    <span className="text-danger">
+                      {check.counts.suppressed} wypisanych — nie pójdzie
+                    </span>
+                  </>
+                ) : null}
               </p>
             ) : null}
           </div>
@@ -330,7 +348,7 @@ export function CampaignComposer({ maxRecipients }: { maxRecipients: number }) {
           <div>
             <Button variant="accent" size="lg" disabled={!canSend} onClick={() => setConfirming(true)}>
               <Send size={16} aria-hidden="true" />
-              {check ? `Wyślij do ${check.counts.total} adresów` : "Najpierw sprawdź listę"}
+              {check ? `Wyślij do ${willSend} adresów` : "Najpierw sprawdź listę"}
             </Button>
           </div>
         </section>
@@ -354,7 +372,7 @@ export function CampaignComposer({ maxRecipients }: { maxRecipients: number }) {
       <Dialog
         open={confirming}
         onClose={() => setConfirming(false)}
-        title={`Wysłać do ${check?.counts.total ?? 0} adresów?`}
+        title={`Wysłać do ${willSend} adresów?`}
         description={
           withoutConsent > 0
             ? `Wśród nich ${withoutConsent} bez zgody marketingowej — zapiszemy Twoje oświadczenie przy tej kampanii. Wiadomości nie da się wycofać.`

@@ -4,7 +4,6 @@ import { LocateFixed } from "lucide-react";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/toast";
-import { useMapLibre } from "./map-view";
 import type { LngLat } from "./types";
 
 export type GeolocateButtonProps = {
@@ -13,12 +12,20 @@ export type GeolocateButtonProps = {
 };
 
 /**
- * "Gdzie jestem" is a driver's first move on an unfamiliar map. It flies rather
- * than jumps: the movement is what tells them the map they are looking at is
- * still the same map (MapLibre downgrades it to a jump under reduced motion).
+ * "Gdzie jestem" is a driver's first move on an unfamiliar map.
+ *
+ * The button does not touch the map itself, and that is the fix rather than a
+ * style choice. It used to call useMapLibre() and fly the map — but it is
+ * rendered in the bottom control strip, a SIBLING of <MapView>, so it sat
+ * outside MapContext.Provider and read the default `{ map: null }`. The
+ * optional chain on `map?.flyTo` then swallowed it: geolocation succeeded, the
+ * pins recalculated their distances from the new position, and the map never
+ * moved. It looked precisely like a dead button, and was reported as one.
+ *
+ * Moving the camera belongs to whoever owns the map instance, so the position
+ * goes up and the caller decides.
  */
 export function GeolocateButton({ onLocated, className }: GeolocateButtonProps) {
-  const { map } = useMapLibre();
   const { toast } = useToast();
   const [locating, setLocating] = useState(false);
 
@@ -41,7 +48,6 @@ export function GeolocateButton({ onLocated, className }: GeolocateButtonProps) 
           lat: position.coords.latitude,
         };
         onLocated(point);
-        map?.flyTo({ center: [point.lng, point.lat], zoom: 15, duration: 400 });
       },
       (error) => {
         setLocating(false);
@@ -59,7 +65,7 @@ export function GeolocateButton({ onLocated, className }: GeolocateButtonProps) 
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 30_000 },
     );
-  }, [map, onLocated, toast]);
+  }, [onLocated, toast]);
 
   return (
     <button

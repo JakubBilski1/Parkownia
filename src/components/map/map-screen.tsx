@@ -76,6 +76,20 @@ export function MapScreen({ salesOpen }: { salesOpen: boolean }) {
 
   const selectPin = useCallback((pinId: string) => setSelectedId(pinId), []);
 
+  /**
+   * Moving the camera lives here because the map instance does. The button is
+   * rendered outside <MapView>, so it cannot reach MapContext — which is how it
+   * spent its life calling flyTo on null and doing nothing visible.
+   *
+   * It flies rather than jumps: the movement is what tells a driver the map they
+   * are looking at is still the same map. MapLibre downgrades it to a jump under
+   * prefers-reduced-motion by itself.
+   */
+  const showUserPosition = useCallback((point: LngLat) => {
+    setUserPosition(point);
+    mapRef.current?.flyTo({ center: [point.lng, point.lat], zoom: 15, duration: 400 });
+  }, []);
+
   const chooseEvent = useCallback(
     (event: MapEvent) => {
       const next = event.id === selectedEventId ? null : event;
@@ -176,7 +190,7 @@ export function MapScreen({ salesOpen }: { salesOpen: boolean }) {
           there and covering it would breach the tile licence. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-end gap-3 p-3 pb-[calc(1.75rem+env(safe-area-inset-bottom))]">
         <GeolocateButton
-          onLocated={setUserPosition}
+          onLocated={showUserPosition}
           className="pointer-events-auto mr-1"
         />
 

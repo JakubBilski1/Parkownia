@@ -24,18 +24,27 @@ export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> &
      * are exactly that population. Status must be readable without hue.
      */
     icon: LucideIcon;
+    /**
+     * Tints the icon alone, for a taxonomy the tones do not cover — event
+     * categories each carry their own colour, and there are more of them than
+     * `tone` should ever grow to. The label keeps the tone's colour, so this can
+     * never make the text unreadable, and the word still says what the badge
+     * means without it.
+     */
+    iconStyle?: React.CSSProperties;
   };
 
 export function Badge({
   className,
   tone,
   icon: Icon,
+  iconStyle,
   children,
   ...props
 }: BadgeProps) {
   return (
     <span className={cn(badge({ tone }), className)} {...props}>
-      <Icon size={14} aria-hidden="true" className="shrink-0" />
+      <Icon size={14} aria-hidden="true" className="shrink-0" style={iconStyle} />
       <span>{children}</span>
     </span>
   );

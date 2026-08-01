@@ -10,60 +10,64 @@ import {
 import type { EventSummary } from "@/modules/events/service";
 import { LinkButton } from "@/modules/events/ui/link-button";
 import {
+  EVENT_CATEGORY_COLOUR,
   EVENT_CATEGORY_ICON,
   EVENT_CATEGORY_LABEL,
-  matchColours,
-  type MatchColours,
 } from "./event-meta";
 
 /**
- * What kind of event this is: icon plus word, on every card.
+ * What kind of event this is: icon, word, and now the category's own colour on
+ * the icon.
  *
- * A fixture is also marked by its clubs' colours, but colour must never be the
- * only carrier (DESIGN_PRINCIPLES §4) — 8% of men cannot separate these reds and
- * greens, and football crowds are exactly that audience. Without this the grid
- * said "match" in colour alone and said nothing at all about a fair. The icon is
- * the same one the event's own page uses, so the list and the detail agree.
+ * Colour must never be the only carrier (DESIGN_PRINCIPLES §4) — 8% of men
+ * cannot separate these greens and browns, and a football crowd is exactly that
+ * audience — so the word stays and does the work on its own. The icon is the
+ * same one the event's own page uses, so the list and the detail agree.
  */
 function CategoryTag({ category }: { category: EventSummary["category"] }) {
   const Icon = EVENT_CATEGORY_ICON[category];
   return (
     <span className="inline-flex items-center gap-1.5 font-mono text-ui uppercase tracking-[0.14em] text-muted">
-      <Icon size={14} aria-hidden="true" className="shrink-0" />
+      <Icon
+        size={14}
+        aria-hidden="true"
+        className="shrink-0"
+        style={{ color: EVENT_CATEGORY_COLOUR[category] }}
+      />
       {EVENT_CATEGORY_LABEL[category]}
     </span>
   );
 }
 
 /**
- * A fixture's colours: the away side washed softly in from the corner, and both
- * clubs as a two-tone band down the edge — a scarf laid over the card.
+ * The category's colour: washed softly in from the corner, and a band down the
+ * edge — the same treatment the clubs' colours used to get, now carrying
+ * something every card actually has.
  *
- * Only the away colour washes. Lech is the home side of every fixture we sell, so
- * its blue on every card would differentiate nothing; the wash carries what
- * changes, the band carries the pairing exactly.
+ * It replaced a two-tone scarf built from the two clubs in a fixture title. That
+ * painted football and nothing else: a fair, a concert and a marathon were
+ * indistinguishable, which is backwards for a grid whose whole job is to let a
+ * driver pick between kinds of evening. The band is one colour now because it
+ * encodes one fact — there is no pairing to show.
  *
- * Only fixtures get this. A trade fair has no opponent, so a colour there would
- * encode nothing and would just be decoration — which DESIGN_PRINCIPLES §1 calls
- * slop, and which would turn the grid into a rainbow the accent has to shout over.
- *
- * The band sits under the card's own padding rather than pushing it, so a fixture
- * card and a fair card still align in the same row.
+ * The band sits under the card's own padding rather than pushing it, so every
+ * card still aligns in its row.
  */
-function ClubColours({ home, away }: MatchColours) {
+function CategoryColour({ category }: { category: EventSummary["category"] }) {
+  const colour = EVENT_CATEGORY_COLOUR[category];
   return (
     <>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-30"
-        style={{ background: `radial-gradient(120% 90% at 100% 100%, ${away} 0%, transparent 62%)` }}
+        className="pointer-events-none absolute inset-0 opacity-25"
+        style={{
+          background: `radial-gradient(120% 90% at 100% 100%, ${colour} 0%, transparent 62%)`,
+        }}
       />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 left-0 w-[5px]"
-        style={{
-          background: `linear-gradient(180deg, ${home} 0%, ${home} 50%, ${away} 50%, ${away} 100%)`,
-        }}
+        style={{ background: colour }}
       />
     </>
   );
@@ -119,11 +123,9 @@ function GhostDay({ date, className }: { date: Date; className: string }) {
  * is where you pay" rather than "this is a link".
  */
 export function NextEventHero({ event }: { event: EventSummary }) {
-  const colours = event.category === "FOOTBALL" ? matchColours(event.title) : null;
-
   return (
     <Card className="relative mb-4 overflow-hidden lg:mb-6">
-      {colours ? <ClubColours {...colours} /> : null}
+      <CategoryColour category={event.category} />
       <GhostDay date={event.startsAt} className="right-3 top-1 text-[8rem]/none sm:text-[11rem]/none" />
 
       <CardBody className="relative flex flex-col gap-2 p-5 sm:p-6 lg:p-8">
@@ -165,11 +167,9 @@ export function NextEventHero({ event }: { event: EventSummary }) {
 
 /** Every event after the first: the hero's language, turned down. */
 export function EventCard({ event }: { event: EventSummary }) {
-  const colours = event.category === "FOOTBALL" ? matchColours(event.title) : null;
-
   return (
     <Card className="relative flex h-full w-full flex-col overflow-hidden">
-      {colours ? <ClubColours {...colours} /> : null}
+      <CategoryColour category={event.category} />
       <GhostDay date={event.startsAt} className="right-2 top-1 text-[6.5rem]/none" />
 
       <CardBody className="relative flex flex-1 flex-col gap-1.5">

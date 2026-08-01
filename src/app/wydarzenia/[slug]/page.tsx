@@ -9,7 +9,7 @@ import { formatDatePL, formatTimeRangePL } from "@/lib/format";
 import { listEventParkings } from "@/modules/events/parkings";
 import { canAcceptPayments } from "@/modules/payments/factory";
 import { getEventBySlug } from "@/modules/events/service";
-import { EVENT_CATEGORY_ICON, EVENT_CATEGORY_LABEL } from "../event-meta";
+import { EVENT_CATEGORY_COLOUR, EVENT_CATEGORY_ICON, EVENT_CATEGORY_LABEL } from "../event-meta";
 import { EventParkings } from "./event-parkings";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +48,14 @@ export default async function EventPage({ params }: PageProps) {
 
       <header className="mb-4 flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge icon={Icon} tone="neutral">
+          {/* Same colour the grid gave this category, so arriving here from a
+              card is continuous. The badge stays neutral otherwise — only the
+              icon is tinted, and the word carries the meaning on its own. */}
+          <Badge
+            icon={Icon}
+            tone="neutral"
+            iconStyle={{ color: EVENT_CATEGORY_COLOUR[event.category] }}
+          >
             {EVENT_CATEGORY_LABEL[event.category]}
           </Badge>
           <span className="num text-ui text-muted">

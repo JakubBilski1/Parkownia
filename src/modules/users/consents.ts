@@ -14,8 +14,13 @@ import type { ConsentKind } from "@/db/types";
  * truth about what the user actually agreed to.
  */
 export const CONSENT_VERSIONS: Record<ConsentKind, string> = {
-  TERMS: "2026-07-01",
-  PRIVACY: "2026-07-01",
+  // Bumped 2026-08-01: the terms gained the waiting list and the map as named
+  // electronic services and a paragraph on liability; the policy gained the
+  // waiting list, technical data, mailing records, and corrected Stripe from a
+  // live recipient to a future one. Rows written before that keep saying
+  // 2026-07-01, which is the truth about what those people agreed to.
+  TERMS: "2026-08-01",
+  PRIVACY: "2026-08-01",
   MARKETING_EMAIL: "2026-07-01",
   MARKETING_SMS: "2026-07-01",
 };

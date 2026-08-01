@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { db } from "@/db";
 import { driverSignups } from "@/db/schema";
+import { CONSENT_VERSIONS } from "@/modules/users/consents";
 
 /**
  * Demand recorded while the shop is shut.
@@ -16,6 +17,15 @@ export const waitlistInputSchema = z.object({
   parkingId: z.uuid().optional(),
   eventId: z.uuid().optional(),
   source: z.string().max(64).optional(),
+  /**
+   * Not optional and not defaulted. The mail this list exists to send is a
+   * commercial communication however friendly its wording, and art. 398 PKE
+   * wants prior consent for that — so the server refuses the row rather than
+   * storing an address it could never lawfully use.
+   */
+  privacyConsent: z.literal(true, {
+    message: "Bez tej zgody nie możemy zapisać Twojego adresu.",
+  }),
   /** Honeypot. A human never fills it; same trick as the owners' lead form. */
   website: z.string().max(200).optional(),
 });
@@ -30,6 +40,10 @@ export async function addToWaitlist(input: WaitlistInput): Promise<void> {
       parkingId: input.parkingId ?? null,
       eventId: input.eventId ?? null,
       source: input.source ?? null,
+      privacyConsent: true,
+      // Pinned, so a row keeps telling the truth about what was agreed to even
+      // after the policy is rewritten.
+      privacyConsentVersion: CONSENT_VERSIONS.PRIVACY,
     })
     // Clicking twice is not two people. The unique key is (email, event), so the
     // same address still counts once per event it asked about.

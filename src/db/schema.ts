@@ -978,6 +978,16 @@ export const driverSignups = pgTable(
     parkingId: uuid("parking_id").references(() => parkings.id, { onDelete: "set null" }),
     eventId: uuid("event_id").references(() => events.id, { onDelete: "set null" }),
     source: text("source"),
+
+    // RODO/PKE, same shape as `leads`. The mail this list exists to send is a
+    // commercial communication whatever we call it (art. 398 PKE covers B2B
+    // too — docs/LEGAL_RESEARCH.md), so the consent is explicit and the version
+    // of the policy in force at the time is pinned. The first cut of this table
+    // shipped with neither: an address collected by a one-field form with no
+    // consent and no link to the policy.
+    privacyConsent: boolean("privacy_consent").notNull().default(false),
+    privacyConsentVersion: text("privacy_consent_version"),
+
     ...timestamps,
   },
   (table) => [

@@ -25,7 +25,7 @@ export default function PrivacyPage() {
       <h1 className="font-display text-h1 font-extrabold tracking-tight text-ink">
         Polityka prywatności
       </h1>
-      <p className="mt-2 text-ui text-muted">Wersja z dnia 1 lipca 2026.</p>
+      <p className="mt-2 text-ui text-muted">Wersja z dnia 1 sierpnia 2026.</p>
 
       <EntityCard role="controller" />
 
@@ -58,6 +58,26 @@ export default function PrivacyPage() {
             elektronicznej. Zgodę możesz w każdej chwili wycofać.
           </li>
           <li>
+            <strong>Lista oczekujących (kierowcy):</strong> e-mail, a także parking lub
+            wydarzenie, które oglądałeś, gdy się zapisywałeś. Zapisujesz się sam, przyciskiem
+            „Powiadom mnie”, dopóki nie uruchomiliśmy rezerwacji online. Cel: jedna wiadomość o
+            starcie oraz informacja, w okolicy których obiektów jest realny popyt — podstawa:
+            art. 6 ust. 1 lit. a RODO oraz odrębna zgoda z art. 398 Prawa komunikacji
+            elektronicznej. Zgodę możesz w każdej chwili wycofać.
+          </li>
+          <li>
+            <strong>Dane techniczne i bezpieczeństwo:</strong> adres IP oraz nagłówek przeglądarki
+            (user-agent) przy wysyłaniu formularzy. Cel: limity zgłoszeń i ochrona serwisu przed
+            nadużyciami — podstawa: art. 6 ust. 1 lit. f RODO. IP przechowujemy wyłącznie w oknie
+            liczenia limitu (minuty) i nie budujemy z niego profili.
+          </li>
+          <li>
+            <strong>Wiadomości, które wysyłamy:</strong> treść wysłanej wiadomości i lista
+            adresatów, a także lista adresów wykluczonych z wysyłki. Cel: rozliczalność (art. 5
+            ust. 2 RODO) i dowód, że wypisanie zostało uszanowane — podstawa: art. 6 ust. 1 lit. c
+            oraz lit. f RODO.
+          </li>
+          <li>
             <strong>Dochodzenie i obrona roszczeń:</strong> art. 6 ust. 1 lit. f RODO.
           </li>
         </ul>
@@ -76,23 +96,36 @@ export default function PrivacyPage() {
           </li>
           <li>dostawca magazynu plików (zdjęcia obiektów);</li>
           <li>
-            operator płatności (Stripe) — na etapie zakupu rezerwacji; działa też jako odrębny
-            administrator w zakresie przeciwdziałania oszustwom i obowiązków instytucji płatniczej.
+            <strong>operator płatności (Stripe) — jeszcze nie działa.</strong> Rezerwacji online
+            nie uruchomiliśmy (§2 Regulaminu), więc dziś nie przekazujemy Stripe’owi żadnych
+            danych. Wymieniamy go, bo to operator, z którym startujemy: gdy płatności ruszą,
+            będzie przetwarzał dane zakupu i będzie też odrębnym administratorem w zakresie
+            przeciwdziałania oszustwom i obowiązków instytucji płatniczej. Zaktualizujemy wtedy tę
+            politykę i podamy datę.
           </li>
         </ul>
 
         <h2>4. Przekazywanie poza Europejski Obszar Gospodarczy</h2>
         <p>
-          Część danych (np. w związku z płatnościami przez Stripe) może być przekazywana do Stanów
-          Zjednoczonych na podstawie decyzji adekwatności EU–US Data Privacy Framework lub
-          standardowych klauzul umownych (art. 46 RODO). Kopię zabezpieczeń możesz uzyskać, pisząc na{" "}
+          <strong>Dziś nie przekazujemy Twoich danych poza EOG.</strong> Hosting i baza stoją w
+          Niemczech, a płatności nie działają. Gdy uruchomimy rezerwacje online, część danych
+          zakupu będzie trafiać do Stanów Zjednoczonych w związku z obsługą płatności — na
+          podstawie decyzji adekwatności EU–US Data Privacy Framework lub standardowych klauzul
+          umownych (art. 46 RODO). Kopię zabezpieczeń możesz uzyskać, pisząc na{" "}
           <a href="mailto:kontakt@parkownia.com">kontakt@parkownia.com</a>.
         </p>
 
         <h2>5. Jak długo przechowujemy dane</h2>
         <ul>
           <li>dane z formularza dla właścicieli — do 24 miesięcy od ostatniego kontaktu lub do wniesienia sprzeciwu;</li>
+          <li>lista oczekujących — do wysłania wiadomości o starcie, nie dłużej niż 12 miesięcy, albo do wycofania zgody;</li>
           <li>dane marketingowe — do czasu wycofania zgody;</li>
+          <li>historia wysyłek (treść i adresaci) — 24 miesiące, na wypadek pytania „co dokładnie do mnie napisaliście”;</li>
+          <li>
+            lista adresów wykluczonych z wysyłki — <strong>bezterminowo</strong>. To jedyny sposób,
+            żeby po wypisaniu nie trafić do Ciebie ponownie; skasowanie tego wpisu działałoby
+            przeciwko Tobie. Trzymamy w niej wyłącznie sam adres.
+          </li>
           <li>dane związane z umową i roszczeniami — do upływu terminów przedawnienia.</li>
         </ul>
 

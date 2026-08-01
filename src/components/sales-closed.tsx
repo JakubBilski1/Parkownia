@@ -2,7 +2,8 @@
 
 import { Check } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui";
+import Link from "next/link";
+import { Button, Checkbox } from "@/components/ui";
 
 type SalesClosedProps = {
   /** What they were looking at, so the signal says which venue to work next. */
@@ -31,19 +32,34 @@ type State =
  */
 export function SalesClosed({ parkingId, eventId, source, variant = "full" }: SalesClosedProps) {
   const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!email.trim()) return;
+    if (!consent) {
+      setState({
+        kind: "error",
+        message: "Zaznacz zgodę — bez niej nie możemy zapisać Twojego adresu.",
+      });
+      return;
+    }
 
     setState({ kind: "sending" });
     try {
       const response = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), parkingId, eventId, source, website }),
+        body: JSON.stringify({
+          email: email.trim(),
+          parkingId,
+          eventId,
+          source,
+          privacyConsent: true,
+          website,
+        }),
       });
 
       if (!response.ok) {
@@ -114,35 +130,53 @@ export function SalesClosed({ parkingId, eventId, source, variant = "full" }: Sa
         />
       </label>
 
-      {/* The sheet on the map is ~340 px wide. Side by side the row split its
-          width evenly and broke the label over two lines, so the button keeps
-          its own width and the field gives way instead. */}
-      <div className="flex flex-col gap-2 min-[26rem]:flex-row">
-        <input
-          type="email"
-          required
-          inputMode="email"
-          autoComplete="email"
-          placeholder="jan@example.com"
-          aria-label="Twój e-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="min-h-touch w-full min-w-0 flex-1 rounded-card border border-line bg-surface px-3 text-body text-ink placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-        />
-        <Button
-          type="submit"
-          variant="accent"
-          size="lg"
-          className="shrink-0 whitespace-nowrap"
-          loading={state.kind === "sending"}
-          disabled={state.kind === "sending"}
-        >
-          Powiadom mnie
-        </Button>
-      </div>
+      {/* Stacked at every width. Side by side, the sheet on the map (~340 px)
+          split the row evenly and broke the button label over two lines — and
+          the consent below has to sit above the button anyway, since it is the
+          thing the button confirms. */}
+      <input
+        type="email"
+        required
+        inputMode="email"
+        autoComplete="email"
+        placeholder="jan@example.com"
+        aria-label="Twój e-mail"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="min-h-touch w-full rounded-card border border-line bg-surface px-3 text-body text-ink placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      />
+
+      {/* The first version of this form asked for an address with no consent and
+          no link to the policy. The mail it exists to send is a commercial
+          communication whatever its wording, and art. 398 PKE wants consent
+          before one — so this is not decoration, and the server rejects the row
+          without it rather than trusting the box. */}
+      <Checkbox
+        checked={consent}
+        onChange={(e) => setConsent(e.target.checked)}
+        label={
+          <>
+            Zgadzam się na przetwarzanie mojego adresu i na jedną wiadomość o
+            uruchomieniu rezerwacji.{" "}
+            <Link href="/prywatnosc">Polityka prywatności</Link>.
+          </>
+        }
+      />
+
+      <Button
+        type="submit"
+        variant="accent"
+        size="lg"
+        block
+        loading={state.kind === "sending"}
+        disabled={state.kind === "sending"}
+      >
+        Powiadom mnie
+      </Button>
 
       <p className="text-ui text-muted">
-        Adres używamy wyłącznie do tej jednej wiadomości.
+        Nie wysyłamy nic poza tym. Zgodę cofniesz, odpisując na tę wiadomość albo
+        pisząc na kontakt@parkownia.com.
       </p>
     </form>
   );

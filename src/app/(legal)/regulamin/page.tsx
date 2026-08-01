@@ -26,7 +26,7 @@ export default function TermsPage() {
   return (
     <article>
       <h1 className="font-display text-h1 font-extrabold tracking-tight text-ink">Regulamin</h1>
-      <p className="mt-2 text-ui text-muted">Wersja z dnia 1 lipca 2026.</p>
+      <p className="mt-2 text-ui text-muted">Wersja z dnia 1 sierpnia 2026.</p>
 
       <EntityCard role="provider" />
 
@@ -50,14 +50,32 @@ export default function TermsPage() {
           <li>dostęp do treści informacyjnych Serwisu;</li>
           <li>
             formularz kontaktowy dla właścicieli miejsc, umożliwiający pozostawienie danych w celu
-            nawiązania współpracy oraz orientacyjny kalkulator przychodu.
+            nawiązania współpracy oraz orientacyjny kalkulator przychodu;
+          </li>
+          <li>
+            przeglądanie mapy miejsc parkingowych i kalendarza wydarzeń — w celach informacyjnych,
+            bez możliwości rezerwacji;
+          </li>
+          <li>
+            zapis na listę oczekujących („Powiadom mnie”), czyli pozostawienie adresu e-mail, żeby
+            otrzymać jedną wiadomość, gdy uruchomimy rezerwacje online.
           </li>
         </ul>
         <p>
           Funkcje transakcyjne (rezerwacja i opłacanie miejsc, rozliczenia z właścicielami) są w
           przygotowaniu i zostaną objęte odrębnymi lub uzupełnionymi postanowieniami przed ich
           uruchomieniem. Do czasu ich udostępnienia niniejszy regulamin nie reguluje sprzedaży ani
-          płatności.
+          płatności, a Serwis nie przyjmuje rezerwacji — próba jej złożenia kończy się komunikatem,
+          że sprzedaż nie została uruchomiona. Do tego czasu nie dochodzi więc do zawarcia umowy
+          sprzedaży ani do pobrania jakiejkolwiek płatności.
+        </p>
+        <p>
+          <strong>Zasady odpowiedzialności za pojazd i za miejsce postojowe</strong> — w tym za
+          uszkodzenie lub kradzież auta na terenie udostępnionym przez właściciela — nie są objęte
+          niniejszym regulaminem. Ustalamy je indywidualnie, na piśmie, w rozmowie z każdym
+          właścicielem przed udostępnieniem przez niego pierwszego miejsca, i obejmiemy je odrębnymi
+          postanowieniami przed uruchomieniem rezerwacji. Jeśli chcesz poznać te warunki wcześniej,
+          napisz na <a href="mailto:kontakt@parkownia.com">kontakt@parkownia.com</a>.
         </p>
 
         <h2>§3. Warunki techniczne</h2>

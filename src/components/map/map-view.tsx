@@ -188,6 +188,18 @@ export function MapView({
       setMap(instance);
       // A theme that resolved while the map was still building waits until here.
       syncStyle();
+      // And one more frame, once there is something to show.
+      //
+      // The dark map filters this canvas (`filter: invert(1)`, globals.css) and
+      // a filtered WebGL canvas composites black unless a frame is drawn with
+      // the filter already in place. The class goes on in an effect, which runs
+      // long before the first tile — so the repaint that effect asks for lands
+      // on an empty canvas and nothing requests another. Hence this one, after
+      // the paint rather than before it.
+      //
+      // preserveDrawingBuffer alone did NOT fix this: the attribute is set and
+      // the canvas still came up black until something forced a redraw.
+      requestAnimationFrame(() => instance.triggerRepaint());
     });
     instance.on("moveend", emit);
     instance.on("click", (event) => {

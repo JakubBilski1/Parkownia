@@ -142,6 +142,14 @@ CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego sa
 - [x] **Panel leadów `/admin/leady`** + kafelek „Nowe leady" na pulpicie + alert e-mail na
       `LEAD_ALERT_EMAIL` przy każdym zgłoszeniu (szablon `owner-lead` musi istnieć w pbdevs —
       dopóki nie istnieje, wysyłka tylko ostrzega w logu, lead i tak jest w bazie i w panelu)
+- [x] **`/admin/akwizycja` — research podaży pod Eneą i MTP** (2026-08-11). 73 zmapowane place
+      (6462 miejsca, z czego **3998 już płatnych** — APCOA stoi przy samej Enei, Grupa MTP ma swoje,
+      więc do zdobycia jest 2464), 34 właścicieli bez zmapowanego placu i 12 ulic zabudowy
+      mieszkaniowej. Do tego playbook per segment (pitch, decydent, cykl, ryzyko, legalny kanał)
+      i **analiza prowizji**: 50/30 jest odwrócone — wyższa stawka trafia w segment z LEPSZĄ
+      alternatywą (karton i gotówka), bo firma alternatywy nie ma. Propozycja 30/25 + kohorta
+      założycielska 20%; mechanizm już istnieje (nadpisania `USER` w `commission_rules`, bez migracji).
+      **Dane są SNAPSHOTEM OSM w repo, nie tabelą** — celowo, patrz mina niżej.
 
 ## PRODUKCJA ŻYJE (zweryfikowane 2026-07-16)
 
@@ -321,6 +329,31 @@ pod swoimi shellami. **Poszerzenie płaci się tylko wtedy, gdy treść potrafi 
 jednokolumnowa lista kart rozciągnięta do 1152px to regres. Jeśli poszerzasz, zmień też siatkę
 w środku (tak zrobiono na `/panel/parkingi`: `wide` + `lg:grid-cols-2`). Warianty `default`
 i `full` zostały wycięte jako spekulacja — nie dodawaj ich z powrotem „na zapas".
+
+**Powierzchnia budynku NIE JEST powierzchnią parkingu.** Pierwsze podejście do researchu
+w `/admin/akwizycja` liczyło pojemność z obrysów budynków i landuse'ów — wyszło „4278 miejsc"
+na boisku piłkarskim i „4452" na terenie samego MTP, czyli na obiekcie, który jest POPYTEM,
+nie podażą. Jednostką analizy jest wyłącznie poligon `amenity=parking`; budynki i POI wokół służą
+tylko do ustalenia, **czyj** jest plac (to napędza approach). Jeśli kiedyś regenerujesz dataset:
+place bez zmapowanego parkingu trafiają na listę rekonesansu **bez żadnej liczby miejsc**, bo
+zmyślona pojemność jest gorsza niż jej brak. Drugi wniosek z tych samych danych: **OSM prawie nie
+mapuje prywatnych placów**, więc salony, parafie i podwórza spółdzielni z tej listy wypadają —
+a to najlepiej konwertujące segmenty. Lista z OSM jest startem, nie rynkiem.
+
+**Dataset akwizycji jest w repo, nie w bazie — świadomie.** `src/modules/acquisition/dataset.ts`
+to snapshot, nie feed. Powody: migracje są w tym projekcie najdroższym trybem awarii (patrz
+`geography(Point,4326)` wyżej), nie ma lokalnego PostGIS do przetestowania nowej, a prod nie ma
+takiej tabeli, więc strona oparta o bazę pojechałaby pusta. **Cena:** strona nie pamięta, z kim
+już rozmawiałeś — status „zadzwonione / odmowa / podpisane" wymaga tabeli i jest następnym krokiem.
+Przed rozjazdem snapshotu z aplikacją broni `tests/unit/acquisition/dataset.test.ts`: przelicza
+każdą minutę dojścia przez `estimateWalk` i każdą stawkę przez `suggestedRate`, więc zmiana modelu
+spacerowego albo pasów cenowych wywala testy zamiast po cichu kłamać w terenie.
+
+**Strony admina nie da się dziś obejrzeć bez obejścia** — `getAdminSession()` potrzebuje bazy,
+której lokalnie nie ma. `/admin/akwizycja` eksportuje `ResearchView` właśnie po to: montujesz
+ją na tymczasowym route bez auth, oglądasz, usuwasz route. Tak zweryfikowano oba motywy tej strony
+(headless Chrome z `--user-data-dir` na osobnym profilu, żeby nie ruszać przeglądarki użytkownika;
+`?motyw=light|dark` na stronie podglądu stempluje `data-theme`, bo Windows wymusza jeden z nich).
 
 **Wymagany Node ≥ 22** (Vitest 4 potrzebuje `util.styleText`). Na Node 21 testy nie wystartują.
 

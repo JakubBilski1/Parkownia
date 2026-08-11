@@ -12,6 +12,7 @@ import {
   Receipt,
   ShieldCheck,
   SquareParking,
+  Target,
   Ticket,
   User,
   Users,
@@ -74,6 +75,9 @@ const ADMIN_NAV: NavItem[] = [
   // Third: a lead becomes a client here, and the client's staff accounts live
   // behind the same page. Self-service sign-up is off, so this is the only door.
   { href: ROUTES.admin.clients, label: "Klienci", icon: Users },
+  // Before the supply exists, the target list is the other half of the daily
+  // work — the half that produces the leads the list above converts.
+  { href: ROUTES.admin.acquisition, label: "Akwizycja", icon: Target },
   { href: ROUTES.admin.mailing, label: "Mailing", icon: Mail },
   { href: ROUTES.admin.moderation, label: "Moderacja", icon: ShieldCheck },
   { href: ROUTES.admin.events, label: "Wydarzenia", icon: CalendarDays },

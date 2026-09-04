@@ -24,6 +24,8 @@ Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (fi
 - `docs/DESIGN_SYSTEM.md` — tokeny i komponenty (szkielet — wypełni się po wyborze kierunku wizualnego)
 - `docs/ROADMAP.md` — fazy wdrożenia
 - `docs/RISKS.md` — ryzyka
+- `docs/LEADS_ICP.md` — brief dla generatora leadów: kogo kwalifikować, kogo odrzucać,
+  co ma być w rekordzie (pitch i kanały są w `src/modules/acquisition/segments.ts`)
 
 ---
 

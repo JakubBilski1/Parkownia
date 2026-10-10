@@ -27,9 +27,13 @@ export async function Hero() {
   return (
     <section className="border-b border-line bg-bg">
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+        {/* grid-cols-1 is not decoration: without an explicit track the single
+            implicit column sizes to min-content, and the fixture rows' nowrap
+            titles pushed it to 478px on a 390px phone — the whole page scrolled
+            sideways. minmax(0,1fr) lets the column shrink and `truncate` work. */}
         <div
           className={cn(
-            "grid gap-10 py-14 sm:py-20 lg:gap-10",
+            "grid grid-cols-1 gap-10 py-14 sm:py-20 lg:gap-10",
             fixtures ? "lg:grid-cols-12" : "",
           )}
         >

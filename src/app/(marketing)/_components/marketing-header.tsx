@@ -32,7 +32,9 @@ export async function MarketingHeader() {
         >
           Mapa parkingów
         </Link>
-        <ThemeToggle />
+        {/* Hidden below sm for the same reason: logo + 150px toggle + login measured
+            416px on a 390px phone. The theme still follows the system there. */}
+        <ThemeToggle className="hidden sm:inline-flex" />
         {/* Renders the "Zaloguj się" button itself when nobody is signed in. */}
         <UserMenu user={user} />
       </div>

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { hash as argon2Hash } from "@node-rs/argon2";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { db } from "./index";
 import type { Point } from "./geo";
 import {
@@ -50,22 +50,37 @@ const MTP = {
   capacity: null,
 };
 
-// All timestamps UTC. Kick-off 20:00 Europe/Warsaw = 18:00Z under CEST and
-// 19:00Z after DST ends (2026-10-25). Fairs run 09:00–17:00 local, same shift.
+// All timestamps UTC. Europe/Warsaw is UTC+2 until 2026-10-25 and again from
+// 2027-03-28, UTC+1 in between. Fairs run 09:00–17:00 local, same shift.
+//
+// Upcoming fixtures were checked against lechpoznan.pl and uefa.com on
+// 2026-10-10. Pogoń has no kick-off time yet, so 20:00 local stands in until the
+// league sets it. Spring Ekstraklasa matches are left out on purpose: only the
+// framework schedule exists (dates ±1 day, no times), and wrong dates are what
+// this list was just corrected for. Add them once the league publishes them.
+// Past fixtures stay as first seeded — nothing shows them any more.
 const MATCHES: Array<{ opponent: string; startsAt: string }> = [
   { opponent: "Cracovia", startsAt: "2026-07-25T18:00:00Z" },
   { opponent: "Piast Gliwice", startsAt: "2026-08-08T18:00:00Z" },
   { opponent: "Jagiellonia Białystok", startsAt: "2026-08-22T18:00:00Z" },
   { opponent: "Raków Częstochowa", startsAt: "2026-09-05T18:00:00Z" },
   { opponent: "Radomiak Radom", startsAt: "2026-09-19T18:00:00Z" },
-  { opponent: "Korona Kielce", startsAt: "2026-10-17T18:00:00Z" },
-  { opponent: "Wisła Kraków", startsAt: "2026-10-31T19:00:00Z" },
-  { opponent: "Zagłębie Lubin", startsAt: "2026-11-07T19:00:00Z" },
+  { opponent: "Bayer 04 Leverkusen", startsAt: "2026-10-15T16:45:00Z" },
+  { opponent: "Korona Kielce", startsAt: "2026-10-18T15:30:00Z" },
+  { opponent: "Sunderland AFC", startsAt: "2026-10-22T16:45:00Z" },
+  { opponent: "Wisła Kraków", startsAt: "2026-10-31T16:30:00Z" },
+  { opponent: "Zagłębie Lubin", startsAt: "2026-11-08T19:15:00Z" },
   { opponent: "Pogoń Szczecin", startsAt: "2026-11-28T19:00:00Z" },
+  { opponent: "Ferencvárosi TC", startsAt: "2026-12-10T20:00:00Z" },
+  { opponent: "SCU Torreense", startsAt: "2027-01-21T20:00:00Z" },
 ];
 
 const MATCH_DURATION_MS = 2 * 60 * 60 * 1000;
 
+// Fair dates from the official register (Monitor Polski 2026 poz. 782) and the
+// organisers' sites, checked 2026-10-10. Only events that bring cars: smaller
+// entries from the same register stay out, because the calculator counts every
+// event as a full sales day.
 const FAIRS: Array<{
   title: string;
   startsAt: string;
@@ -98,20 +113,21 @@ const FAIRS: Array<{
   },
   {
     title: "Caravans Salon",
-    startsAt: "2026-10-08T07:00:00Z",
-    endsAt: "2026-10-11T15:00:00Z",
+    startsAt: "2026-10-15T07:00:00Z",
+    endsAt: "2026-10-18T15:00:00Z",
     category: "TRADE_FAIR",
   },
   {
     title: "Tour Salon",
-    startsAt: "2026-10-09T07:00:00Z",
-    endsAt: "2026-10-11T15:00:00Z",
+    startsAt: "2026-10-16T07:00:00Z",
+    endsAt: "2026-10-18T15:00:00Z",
     category: "TRADE_FAIR",
   },
   {
     title: "Poznań Game Arena",
-    startsAt: "2026-11-13T08:00:00Z",
-    endsAt: "2026-11-15T16:00:00Z",
+    // Closes on the day DST ends, so 17:00 local is already 16:00Z.
+    startsAt: "2026-10-23T07:00:00Z",
+    endsAt: "2026-10-25T16:00:00Z",
     category: "TRADE_FAIR",
   },
   {
@@ -120,6 +136,44 @@ const FAIRS: Array<{
     endsAt: "2026-12-13T16:00:00Z",
     category: "SPORTS",
   },
+  {
+    title: "BUDMA",
+    startsAt: "2027-01-26T08:00:00Z",
+    endsAt: "2027-01-29T16:00:00Z",
+    category: "TRADE_FAIR",
+  },
+  {
+    title: "Meble Polska",
+    startsAt: "2027-02-23T08:00:00Z",
+    endsAt: "2027-02-26T16:00:00Z",
+    category: "TRADE_FAIR",
+  },
+  {
+    title: "Poznań Motor Show",
+    startsAt: "2027-04-22T07:00:00Z",
+    endsAt: "2027-04-25T15:00:00Z",
+    category: "TRADE_FAIR",
+  },
+  {
+    title: "Pyrkon",
+    startsAt: "2027-06-18T07:00:00Z",
+    endsAt: "2027-06-20T15:00:00Z",
+    category: "FESTIVAL",
+  },
+];
+
+// Seeded under a wrong date until the 2026-10-10 check. Event ids derive from
+// the start time, so a corrected date alone would land as a SECOND event next to
+// the stale one — the insert skips on conflict and never deletes. Moving the
+// stale row in place keeps its id, and with it any booking, declaration or
+// driver signup already pointing at it.
+const RESCHEDULED: Array<{ venueId: string; title: string; seededAt: string }> = [
+  { venueId: ENEA.id, title: "Lech Poznań – Korona Kielce", seededAt: "2026-10-17T18:00:00Z" },
+  { venueId: ENEA.id, title: "Lech Poznań – Wisła Kraków", seededAt: "2026-10-31T19:00:00Z" },
+  { venueId: ENEA.id, title: "Lech Poznań – Zagłębie Lubin", seededAt: "2026-11-07T19:00:00Z" },
+  { venueId: MTP.id, title: "Caravans Salon", seededAt: "2026-10-08T07:00:00Z" },
+  { venueId: MTP.id, title: "Tour Salon", seededAt: "2026-10-09T07:00:00Z" },
+  { venueId: MTP.id, title: "Poznań Game Arena", seededAt: "2026-11-13T08:00:00Z" },
 ];
 
 async function seedVenues(): Promise<void> {
@@ -172,8 +226,46 @@ async function seedEvents(): Promise<number> {
     });
   }
 
-  await db.insert(events).values(rows).onConflictDoNothing({ target: events.id });
+  try {
+    await moveRescheduledEvents(rows);
+  } catch (error) {
+    // Worst case is a stale duplicate next to the corrected event; a throw here
+    // would stop the container and roll the whole deploy back instead.
+    console.warn("seed: moving rescheduled events failed:", error instanceof Error ? error.message : error);
+  }
+  // No conflict target on purpose: a moved row keeps its old id, so its corrected
+  // twin collides on the natural key (venue, title, starts_at), not on the id.
+  await db.insert(events).values(rows).onConflictDoNothing();
   return rows.length;
+}
+
+async function moveRescheduledEvents(rows: InsertEvent[]): Promise<void> {
+  for (const stale of RESCHEDULED) {
+    const target = rows.find((r) => r.venueId === stale.venueId && r.title === stale.title);
+    if (!target?.id) {
+      // Boot must not die over a cleanup step — docker-entrypoint runs this seed.
+      console.warn(`seed: no current event for rescheduled "${stale.title}", skipped.`);
+      continue;
+    }
+    // The corrected row is already there (fresh database seeded earlier): moving
+    // the stale one onto the same natural key would violate the unique index.
+    const [already] = await db
+      .select({ id: events.id })
+      .from(events)
+      .where(eq(events.id, target.id));
+    if (already) continue;
+
+    const staleId = seedId("event", `${stale.venueId}:${stale.title}:${stale.seededAt}`);
+    const moved = await db
+      .update(events)
+      .set({ startsAt: target.startsAt, endsAt: target.endsAt })
+      // Already moved on an earlier boot: nothing to change, nothing to log.
+      .where(and(eq(events.id, staleId), ne(events.startsAt, target.startsAt)))
+      .returning({ id: events.id });
+    if (moved.length > 0) {
+      console.log(`seed: moved "${stale.title}" from ${stale.seededAt} to ${target.startsAt.toISOString()}.`);
+    }
+  }
 }
 
 async function seedCommissionRules(): Promise<void> {

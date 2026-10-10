@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ROUTES } from "@/components/nav/routes";
 import { buttonVariants } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { COMMISSION_PCT } from "@/modules/leads/calc";
 import { FixturesPanel } from "./fixtures";
 import { loadFixtures } from "./fixtures-data";
 
@@ -9,7 +10,10 @@ import { loadFixtures } from "./fixtures-data";
 // "10 000+ zadowolonych kierowców" until it is true (§1).
 const FACTS = [
   { term: "Płatność z góry", detail: "BLIK albo karta — zanim kierowca ruszy spod domu." },
-  { term: "Prowizja 50% / 30%", detail: "Osoba prywatna / firma. Potrącana automatycznie." },
+  {
+    term: `Prowizja ${COMMISSION_PCT.business}%`,
+    detail: "Tyle samo dla osoby prywatnej i firmy. Potrącana automatycznie.",
+  },
   { term: "Wjazd na kod QR", detail: "Skanujesz telefonem. Działa też bez internetu." },
 ];
 

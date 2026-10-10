@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatDatePL, formatDateTimePL } from "@/lib/format";
 import { getClient } from "@/modules/admin/clients";
+import { COMMISSION_PCT } from "@/modules/leads/calc";
 import { getAdminSession } from "@/modules/admin/session";
 import { AccessDenied } from "../../_components/access-denied";
 import {
@@ -50,7 +51,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
 
       <div className="flex flex-wrap items-center gap-2">
         <Badge icon={client.isBusiness ? Building2 : User} tone="neutral">
-          {client.isBusiness ? "Firma · prowizja 30%" : "Osoba prywatna · prowizja 50%"}
+          {client.isBusiness
+            ? `Firma · prowizja ${COMMISSION_PCT.business}%`
+            : `Osoba prywatna · prowizja ${COMMISSION_PCT.individual}%`}
         </Badge>
         <Badge
           icon={client.payoutsEnabled ? ShieldCheck : CircleSlash}

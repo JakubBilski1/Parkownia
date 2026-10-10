@@ -9,8 +9,16 @@ import { COMMISSION_PCT, revenueEstimate } from "@/modules/leads/calc";
  * The conclusion is argued, not asserted: see FINDINGS at the bottom.
  */
 
-/** The two rates in force today (commission_rules GLOBAL_*, seeded 2026-01-01). */
-export const CURRENT = COMMISSION_PCT;
+/**
+ * The two rates this analysis argues against — the 2026-01-01 seed, in force until
+ * 2026-10-10. Pinned, not read from COMMISSION_PCT: the owner acted on the finding
+ * (one 25% rate for everybody, see DECIDED), and the arithmetic below only makes
+ * sense against the split it was written about.
+ */
+export const CURRENT = { individual: 50, business: 30 } as const;
+
+/** What the analysis led to — the live rates. */
+export const DECIDED = COMMISSION_PCT;
 
 /**
  * What the host does INSTEAD of using us. This is the number that decides whether

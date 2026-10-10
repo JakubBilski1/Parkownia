@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CURRENT,
+  DECIDED,
   FOUNDING_PCT,
   PROPOSED,
   SCENARIO_RESULTS,
@@ -12,13 +13,18 @@ import { COMMISSION_PCT } from "@/modules/leads/calc";
 
 /**
  * The commission argument on /admin/akwizycja is arithmetic, and it has to stay
- * arithmetic. If somebody edits the global rates, the page must move with them
- * rather than keep asserting a conclusion about numbers that no longer apply.
+ * arithmetic. It is pinned to the 50/30 split it was written about; the live
+ * rates it led to are DECIDED, read from the app's single source.
  */
 
 describe("commission analysis", () => {
-  it("reads today's rates from the app's single source, not a copy", () => {
-    expect(CURRENT).toBe(COMMISSION_PCT);
+  it("reads the decided rates from the app's single source, not a copy", () => {
+    expect(DECIDED).toBe(COMMISSION_PCT);
+  });
+
+  it("went at least as far as the proposal for both owner kinds", () => {
+    expect(DECIDED.individual).toBeLessThanOrEqual(PROPOSED.individual);
+    expect(DECIDED.business).toBeLessThanOrEqual(PROPOSED.business);
   });
 
   it("proposes a lower rate than today for both owner kinds", () => {

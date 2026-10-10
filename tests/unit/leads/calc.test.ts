@@ -49,11 +49,11 @@ describe("leads calculator", () => {
       expect(r.commissionGr + r.annualNetGr).toBe(r.annualGrossGr);
     });
 
-    it("keeps more for a business (30%) than an individual (50%)", () => {
+    it("leaves a business and an individual the same take-home (one rate since 2026-10-10)", () => {
       const base = { rateGr: 3000, spots: 20, events: 12 };
       const indiv = revenueEstimate({ ...base, commissionPct: COMMISSION_PCT.individual });
       const biz = revenueEstimate({ ...base, commissionPct: COMMISSION_PCT.business });
-      expect(biz.annualNetGr).toBeGreaterThan(indiv.annualNetGr);
+      expect(biz.annualNetGr).toBe(indiv.annualNetGr);
     });
 
     it("is zero across the board with zero events in reach", () => {
@@ -65,8 +65,8 @@ describe("leads calculator", () => {
 
   describe("commissionPctFor", () => {
     it("maps owner kind to the mirrored commission_rules rates", () => {
-      expect(commissionPctFor("INDIVIDUAL")).toBe(50);
-      expect(commissionPctFor("BUSINESS")).toBe(30);
+      expect(commissionPctFor("INDIVIDUAL")).toBe(25);
+      expect(commissionPctFor("BUSINESS")).toBe(25);
     });
   });
 

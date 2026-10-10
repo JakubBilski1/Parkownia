@@ -7,16 +7,20 @@ import { WALK_DETOUR_FACTOR, WALK_SPEED_M_PER_MIN, estimateWalk } from "@/lib/fo
  *   - the walk model is the app's single one (estimateWalk in @/lib/format:
  *     80 m/min, ×1.3 detour), so the calculator never disagrees with the event
  *     pages, and every distance stays a hedged straight line, not a routed path;
- *   - the commission mirrors commission_rules GLOBAL_* (50% individual / 30%
- *     business), which is the source of truth at booking time.
+ *   - the commission mirrors commission_rules GLOBAL_* (25% for both since
+ *     2026-10-10), which is the source of truth at booking time.
  * Money is grosze (integer), like everywhere else in the database.
  */
 
 /** Farthest a spot can be from a venue and still count as "in reach". */
 export const MAX_REACH_MINUTES = 15;
 
-/** Mirrors commission_rules GLOBAL_INDIVIDUAL / GLOBAL_BUSINESS. Display only. */
-export const COMMISSION_PCT = { individual: 50, business: 30 } as const;
+/**
+ * Mirrors commission_rules GLOBAL_INDIVIDUAL / GLOBAL_BUSINESS. Display only.
+ * Was 50 / 30 until the owner set one rate for everybody on 2026-10-10 (the
+ * analysis behind it is on /admin/akwizycja). Change it together with the seed.
+ */
+export const COMMISSION_PCT = { individual: 25, business: 25 } as const;
 
 export type OwnerKind = "INDIVIDUAL" | "BUSINESS";
 

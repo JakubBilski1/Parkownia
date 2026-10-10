@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { COMMISSION_PCT } from "@/modules/leads/calc";
 import { SectionHead } from "./section-head";
 
 export type FaqItem = { q: string; a: string };
@@ -31,7 +32,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     q: "Jak się rozliczamy — jaka prowizja i kiedy wypłata?",
     // TODO(finanse): dokumenty rozliczeniowe dla właścicieli (poza MVP wg docs/PAYMENTS.md).
-    a: "Prowizja Parkowni to 50% od osób prywatnych i 30% od firm — potrącana automatycznie z płatności kierowcy; resztę dostajesz Ty. Wypłata trafia do Ciebie po wydarzeniu. Szczegóły dokumentów rozliczeniowych domykamy.",
+    a: `Prowizja Parkowni to ${COMMISSION_PCT.business}% — tyle samo dla osób prywatnych i firm — potrącana automatycznie z płatności kierowcy; resztę dostajesz Ty. Wypłata trafia do Ciebie po wydarzeniu. Szczegóły dokumentów rozliczeniowych domykamy.`,
   },
   {
     q: "Czy muszę być na miejscu fizycznie?",

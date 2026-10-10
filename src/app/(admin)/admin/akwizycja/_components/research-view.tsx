@@ -58,6 +58,7 @@ import {
   RECOMMENDATION,
   SCENARIO_RESULTS,
   CURRENT,
+  DECIDED,
   PROPOSED,
 } from "@/modules/acquisition/economics";
 import type { Segment, Tier } from "@/modules/acquisition";
@@ -689,7 +690,7 @@ export function ResearchView({ params }: { params: ResearchParams }) {
 
       <Section
         title="Czy 30% od firmy i 50% od osoby prywatnej ma sens"
-        hint={`Stawki w mocy dziś: ${CURRENT.business}% od firm, ${CURRENT.individual}% od osób prywatnych (commission_rules GLOBAL_*). Poniżej arytmetyka na stawkach z modules/leads/calc.`}
+        hint={`Analiza stawek ${CURRENT.business}% od firm i ${CURRENT.individual}% od osób prywatnych, obowiązujących do 10.10.2026. Decyzja po niej: ${DECIDED.business}% dla wszystkich (commission_rules GLOBAL_*). Poniżej arytmetyka na pasach stawek z modules/leads/calc.`}
       >
         <Note tone="warn" title="Wniosek: wyższa stawka trafia w segment z lepszą alternatywą">
           <p>

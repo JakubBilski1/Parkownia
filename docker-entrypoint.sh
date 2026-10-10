@@ -25,7 +25,7 @@ if [ "${RUN_MIGRATIONS:-true}" != "false" ]; then
   node scripts/migrate.mjs
 fi
 
-# Reference data: commission rules (50% private / 30% business), the default
+# Reference data: commission rules (25% for everybody since 2026-10-10), the default
 # refund policy, venues and events. Not optional dev noise — resolveCommissionRatePct
 # throws when no rule matches, so on a fresh database every booking would fail.
 #

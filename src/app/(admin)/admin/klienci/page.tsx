@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { formatDatePL, formatParkings } from "@/lib/format";
 import { listClients } from "@/modules/admin/clients";
+import { COMMISSION_PCT } from "@/modules/leads/calc";
 import { getAdminSession } from "@/modules/admin/session";
 import { AccessDenied } from "../_components/access-denied";
 import { CreateClientDialog } from "../_components/client-forms";
@@ -151,7 +152,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
 
                   <Td>
                     <Badge icon={client.isBusiness ? Building2 : User} tone="neutral">
-                      {client.isBusiness ? "Firma · 30%" : "Osoba · 50%"}
+                      {client.isBusiness
+                        ? `Firma · ${COMMISSION_PCT.business}%`
+                        : `Osoba · ${COMMISSION_PCT.individual}%`}
                     </Badge>
                     {client.nip ? (
                       <>

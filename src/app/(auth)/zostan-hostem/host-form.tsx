@@ -6,6 +6,7 @@ import { Button, Field, Input, RadioGroup } from "@/components/ui";
 import { ApiClientError, getJson, postJson } from "@/modules/auth/api-client";
 import { isValidNip, normalizeNip } from "@/modules/auth/nip";
 import type { NipLookupResult } from "@/modules/auth/service";
+import { COMMISSION_PCT } from "@/modules/leads/calc";
 import { FormError } from "../form-error";
 
 type HostType = "INDIVIDUAL" | "BUSINESS";
@@ -148,12 +149,12 @@ export function HostForm({
           {
             value: "INDIVIDUAL",
             label: "Prywatnie",
-            hint: "Podjazd, garaż, miejsce w bloku. Prowizja 50%.",
+            hint: `Podjazd, garaż, miejsce w bloku. Prowizja ${COMMISSION_PCT.individual}%.`,
           },
           {
             value: "BUSINESS",
             label: "Firma",
-            hint: "Parking firmowy, plac, operator. Prowizja 30%.",
+            hint: `Parking firmowy, plac, operator. Prowizja ${COMMISSION_PCT.business}%.`,
           },
         ]}
       />

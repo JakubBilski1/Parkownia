@@ -8,7 +8,7 @@ Ten plik jest czytany na starcie każdej sesji. Trzymaj go krótkim i aktualnym.
 
 Marketplace parkingowy. Agreguje niewykorzystaną podaż miejsc parkingowych (firmy po godzinach, osoby prywatne, komercyjni operatorzy) i sprzedaje rezerwacje kierowcom — ze szczególnym naciskiem na wydarzenia masowe w Poznaniu (mecze Lecha na Enea Stadionie, targi na MTP).
 
-**Model przychodowy:** prowizja od transakcji. Domyślnie 50% od osób prywatnych, 30% od firm.
+**Model przychodowy:** prowizja od transakcji. Od 2026-10-10 **25% dla wszystkich** (wcześniej 50% od osób prywatnych, 30% od firm). Stawka jest w `commission_rules` (seed) i w `COMMISSION_PCT` (`src/modules/leads/calc.ts`); zmieniasz jedno, zmień drugie.
 
 **Kim jest użytkownik:** kierowca stojący na deszczu pod stadionem z telefonem w jednej ręce, 8 minut przed gwizdkiem. Projektuj wszystko dla niego.
 

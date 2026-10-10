@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { COMMISSION_PCT } from "@/modules/leads/calc";
 import { IDLE, type ActionResult } from "../action-result";
 import {
   createClientAction,
@@ -114,8 +115,8 @@ export function CreateClientDialog() {
             </Select>
             <p className="mt-1 text-ui text-muted">
               {kind === "BUSINESS"
-                ? "Prowizja 30%. Potrzebny NIP i nazwa do faktury."
-                : "Prowizja 50%. Bez NIP-u."}
+                ? `Prowizja ${COMMISSION_PCT.business}%. Potrzebny NIP i nazwa do faktury.`
+                : `Prowizja ${COMMISSION_PCT.individual}%. Bez NIP-u.`}
             </p>
           </div>
 

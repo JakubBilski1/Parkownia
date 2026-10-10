@@ -1,6 +1,6 @@
 # PAYMENTS.md — Parkownia
 
-Najtrudniejszy moduł systemu. To są **marketplace payments (split payments)**, nie zwykły checkout: platforma pobiera prowizję (50% INDIVIDUAL / 30% BUSINESS), resztę dostaje host. Research: lipiec 2026, źródła przy każdej liczbie.
+Najtrudniejszy moduł systemu. To są **marketplace payments (split payments)**, nie zwykły checkout: platforma pobiera prowizję (25% od wszystkich od 2026-10-10; wcześniej 50% INDIVIDUAL / 30% BUSINESS), resztę dostaje host. Research: lipiec 2026, źródła przy każdej liczbie.
 
 **Status decyzji: REKOMENDACJA ZŁOŻONA (opcja A — Stripe Connect Express), czeka na akceptację właściciela projektu.**
 
@@ -41,8 +41,8 @@ Prawnie: operator wchodzący w posiadanie cudzych środków „choćby na chwil�
 ```
 kierowca płaci:            30,00 zł
 Stripe (1,6% + 1 zł):      −1,48 zł
-prowizja platformy (50%):  15,00 zł  → my (z tego pokrywamy koszt Stripe)
-host (INDIVIDUAL):         15,00 zł  → payout (koszt payoutu: 0,25% + 1,35 zł
+prowizja platformy (25%):   7,50 zł  → my (z tego pokrywamy koszt Stripe)
+host:                      22,50 zł  → payout (koszt payoutu: 0,25% + 1,35 zł
                                         amortyzowany przy wypłatach zbiorczych)
 ```
 Przy 30 aktywnych hostach: +270 zł/mies. opłat za konta. Przewaga kosztowa polskich PSP ≈ 200–400 zł/mies. przy setkach transakcji — mniej niż koszt tygodni opóźnienia startu.
@@ -155,7 +155,7 @@ Wzorzec obowiązkowy (DESIGN_PRINCIPLES §6.10): **co się stało → czy koszto
 ## 4. Wypłaty i rozliczenia
 
 - W opcji A payouty realizuje Stripe (automatyczne, tygodniowe). Tabele `payouts`/`payout_items` **istnieją mimo to** — jako lustro rozliczeń do raportowania (admin: „kto ile dostał"), zasilane webhookami `payout.paid` z kont connected (Connect events).
-- Prowizja: `commission_rules` (GLOBAL 50/30, nadpisania per user/parking przez admina), stawka **kopiowana do bookingu** w momencie rezerwacji — zmiany reguł nie dotykają historii.
+- Prowizja: `commission_rules` (GLOBAL 25/25 od 2026-10-10, wcześniej 50/30; nadpisania per user/parking przez admina), stawka **kopiowana do bookingu** w momencie rezerwacji — zmiany reguł nie dotykają historii.
 - Faktury/rachunki dla hostów za prowizję: poza MVP, ale `payout_items` daje dane do ich wystawienia.
 
 ## 5. Bezpieczeństwo — podsumowanie twardych zasad

@@ -305,7 +305,7 @@ INSERT z `ON CONFLICT DO NOTHING` — duplikat webhooka kończy się 200 bez sku
 | rate_pct | integer NOT NULL | prowizja platformy |
 | valid_from | timestamptz | |
 
-Rozstrzyganie: PARKING > USER > GLOBAL_(owner_type). Seed: GLOBAL_INDIVIDUAL=50, GLOBAL_BUSINESS=30. Stawka **kopiowana do booking** w chwili rezerwacji.
+Rozstrzyganie: PARKING > USER > GLOBAL_(owner_type). Seed: GLOBAL_INDIVIDUAL=50, GLOBAL_BUSINESS=30 od 2026-01-01 oraz 25/25 od 2026-10-10 (wygrywa najnowsze `valid_from`). Stawka **kopiowana do booking** w chwili rezerwacji.
 
 ### `refund_policies`
 | kolumna | typ | uwagi |
@@ -353,5 +353,5 @@ Feature flags (SMS on/off) w konfiguracji aplikacji (`.env`), nie w bazie.
 
 - **Venues:** Enea Stadion (Bułgarska 17, 52.3977 N, 16.8581 E), MTP (Głogowska 14, 52.4022 N, 16.9128 E).
 - **Events H2 2026:** mecze Lecha: 25.07 Cracovia, 08.08 Piast, 22.08 Jagiellonia, 05.09 Raków, 19.09 Radomiak, 17.10 Korona, 31.10 Wisła Kraków, 07.11 Zagłębie, 28.11 Pogoń; MTP: DREMA 8–11.09, Retro Motor Show 18–20.09, Polagra 23–25.09, Poznań Maraton 04.10, Caravans Salon 8–11.10, Tour Salon 9–11.10, Poznań Game Arena 13–15.11, Cavaliada 10–13.12.
-- `commission_rules` globalne (50/30), domyślna `refund_policies`.
+- `commission_rules` globalne (25/25 od 2026-10-10, historycznie 50/30), domyślna `refund_policies`.
 - Dev-only: ~20 parkingów testowych wokół obu venues, konta testowe per rola.

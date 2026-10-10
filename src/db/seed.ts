@@ -33,6 +33,7 @@ function seedId(namespace: string, key: string): string {
 }
 
 const RULES_VALID_FROM = new Date("2026-01-01T00:00:00Z");
+const RATE_CUT_VALID_FROM = new Date("2026-10-10T00:00:00Z");
 
 const ENEA = {
   id: seedId("venue", "enea-stadion"),
@@ -283,6 +284,21 @@ async function seedCommissionRules(): Promise<void> {
         scope: "GLOBAL_BUSINESS",
         ratePct: 30,
         validFrom: RULES_VALID_FROM,
+      },
+      // One rate for everybody from 2026-10-10. Added as new rows rather than by
+      // editing the ones above: resolveCommissionRatePct takes the newest
+      // valid_from, bookings copy their rate, and the old rows stay as history.
+      {
+        id: seedId("commission", "GLOBAL_INDIVIDUAL:2026-10-10"),
+        scope: "GLOBAL_INDIVIDUAL",
+        ratePct: 25,
+        validFrom: RATE_CUT_VALID_FROM,
+      },
+      {
+        id: seedId("commission", "GLOBAL_BUSINESS:2026-10-10"),
+        scope: "GLOBAL_BUSINESS",
+        ratePct: 25,
+        validFrom: RATE_CUT_VALID_FROM,
       },
     ])
     .onConflictDoNothing({ target: commissionRules.id });
@@ -859,7 +875,7 @@ export async function seed(): Promise<void> {
   await seedCommissionRules();
   await seedRefundPolicy();
 
-  console.log(`Seeded 2 venues, ${eventCount} events, 2 commission rules, 1 refund policy.`);
+  console.log(`Seeded 2 venues, ${eventCount} events, 4 commission rules, 1 refund policy.`);
 
   if (process.env.SEED_DEV === "1") {
     const dev = await seedDevFixtures();

@@ -61,8 +61,9 @@ async function ensureDatabaseExists(url: string): Promise<void> {
  * is correct, and which would otherwise turn every test in this suite into the
  * same unhelpful failure.
  *
- * Values mirror docs/PAYMENTS.md and src/db/seed.ts: 50% from individuals, 30%
- * from businesses, 100/50/0 refunds.
+ * Fixture values: the 2026-01-01 seed rules (50% from individuals, 30% from
+ * businesses) and 100/50/0 refunds. The suite asserts against these; production
+ * has charged one 25% rate since 2026-10-10 (src/db/seed.ts).
  */
 async function ensureReferenceData(client: postgres.Sql): Promise<void> {
   await client.unsafe(`

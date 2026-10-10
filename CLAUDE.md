@@ -238,7 +238,7 @@ co innego i były nieaktualne):
 | migracje | `0000`–`0005`, **wszystkie zaaplikowane** (ostatnia 2026-07-26 02:59 UTC) |
 | `users` | 1 — `kubabilski8@gmail.com`, role `DRIVER` + `HOST_INDIVIDUAL` + **`ADMIN`** |
 | `parkings` | 1 — „Mój dom", Racławicka 83, 5 miejsc, `ALWAYS`, 30 zł/event, status **`REJECTED`** |
-| `events` / `venues` | 17 / 2 — Enea Stadion 9 (25.07–28.11.2026), MTP 8 (08.09–10.12.2026) |
+| `events` / `venues` | 25 / 2 — Enea Stadion 13 (25.07.2026–21.01.2027, z Ligą Europy), MTP 12 (08.09.2026–20.06.2027). Stan po `161032b` (2026-10-10), sprawdzony przez `/wydarzenia` i `/api/dla-wlascicieli/potencjal`, nie `psql`. Wiosenne mecze Ekstraklasy dopiero po ogłoszeniu dat; zmieniając datę w seedzie, dopisz stary termin do `RESCHEDULED` |
 | `event_parking_availability` | 0 |
 | `leads` | 2, oba testowe |
 | `bookings` / `payments` | 0 / 0 |

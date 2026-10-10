@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button, Checkbox, Field, Input, NumberField } from "@/components/ui";
+import { leadSource } from "./lead-source";
 
 type Errors = Partial<Record<"address" | "spots" | "contactName" | "contact" | "consent", string>>;
 
@@ -94,7 +95,7 @@ export function CtaForm() {
           contactPreference: phone.trim() ? "PHONE" : "EMAIL",
           privacyConsent: true,
           website,
-          source: "cta-koniec",
+          source: leadSource("cta-koniec"),
         }),
       });
       if (!res.ok) throw new Error("submit");

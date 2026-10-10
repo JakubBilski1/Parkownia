@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { commissionPctFor, revenueEstimate } from "@/modules/leads/calc";
+import { rememberCampaign } from "../lead-source";
 import { SectionHead } from "../section-head";
 import { AddressField } from "./address-field";
 import { LeadWizard } from "./lead-wizard";
@@ -44,6 +45,7 @@ export function Calculator({ anchors = [] }: { anchors?: VenueAnchor[] }) {
     const lng = Number(searchParams.get("lng"));
     const miejsca = Number(searchParams.get("miejsca"));
     const stawka = Number(searchParams.get("stawka"));
+    rememberCampaign(searchParams.get("z") ?? searchParams.get("utm_source"));
     if (adres) setAddress(adres);
     if (Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0) {
       setPoint({ lat, lng });

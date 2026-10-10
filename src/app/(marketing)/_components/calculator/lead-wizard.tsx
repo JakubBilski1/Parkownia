@@ -5,6 +5,7 @@ import { useId, useState } from "react";
 import { Button, Checkbox, Dialog, Field, Input } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { formatMoney, formatSpots } from "@/lib/format";
+import { leadSource } from "../lead-source";
 import type { ContactPreference, ObjectType, OwnerKind } from "./types";
 
 const OBJECT_TYPES: { value: ObjectType; label: string; hint: string }[] = [
@@ -131,7 +132,7 @@ export function LeadWizard({
           marketingEmailConsent: marketingEmail,
           marketingPhoneConsent: marketingPhone,
           website,
-          source: "dla-wlascicieli",
+          source: leadSource("dla-wlascicieli"),
         }),
       });
       if (!res.ok) throw new Error("submit");

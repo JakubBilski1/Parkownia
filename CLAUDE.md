@@ -142,8 +142,10 @@ CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego sa
 - [x] Testy integracyjne i e2e istnieją i przechodzą (ostatni raz uruchomione 2026-07-16)
 - [x] Landing akwizycyjny `/dla-wlascicieli` + tabela `leads` + `/prywatnosc` i `/regulamin`
 - [x] **Panel leadów `/admin/leady`** + kafelek „Nowe leady" na pulpicie + alert e-mail na
-      `LEAD_ALERT_EMAIL` przy każdym zgłoszeniu (szablon `owner-lead` musi istnieć w pbdevs —
-      dopóki nie istnieje, wysyłka tylko ostrzega w logu, lead i tak jest w bazie i w panelu)
+      `LEAD_ALERT_EMAIL` przy każdym zgłoszeniu. **Szablon `owner-lead` stoi w pbdevs od 2026-10-11**
+      (źródło `docs/mail-templates/owner-lead.mjml`, temat `{{subject}}`); próbny mail z panelu
+      pocztowego doszedł do `kontakt@parkownia.com` jako `sent`. Na prodzie zadziała dopiero po
+      ustawieniu `EMAIL_PROVIDER` + `MAIL_API_KEY` w Coolify — patrz „Audyt produkcji" niżej
 - [x] **`/admin/akwizycja` — research podaży pod Eneą i MTP** (2026-08-11). 73 zmapowane place
       (6462 miejsca, z czego **3998 już płatnych** — APCOA stoi przy samej Enei, Grupa MTP ma swoje,
       więc do zdobycia jest 2464), 34 właścicieli bez zmapowanego placu i 12 ulic zabudowy
@@ -265,12 +267,28 @@ zapisuje historię, a treść ląduje w logu kontenera. Do naprawy: `EMAIL_PROVI
 `MAIL_API_KEY` w Coolify, plus szablon `owner-campaign` w panelu pocztowym (źródło:
 `docs/mail-templates/owner-campaign.mjml`, temat `{{subject}}`).
 
+**Stan pbdevs (2026-10-11):** w `mail.pbdevs.com` istnieje aplikacja `parkownia` (from „Parkownia",
+Reply-To `kontakt@parkownia.com`, 20/h, 100/dzień, burst 2/s) z jednym szablonem: `owner-lead`.
+Klucza API jeszcze nie ma — generuje się w `/apps/parkownia` (format `mk_live_…`, pokazywany raz)
+i idzie prosto do Coolify, nie przez czat ani repo. Pozostałych 11 (10 z `templates.ts` i `owner-campaign`)
+nadal nie ma, więc po przełączeniu na `pbdevs` tamte wysyłki dostaną 404 zamiast logu.
+**Każda poczta z pbdevs wychodzi z `support@pbdevs.com`** (wspólna skrzynka SMTP, Reply-To
+per aplikacja), więc braki DNS `parkownia.com` opisane niżej nie blokują maili z aplikacji —
+dotyczą tylko poczty wysyłanej ręcznie z `kontakt@`. Kampania przez pbdevs idzie na reputacji
+domeny `pbdevs.com`, wspólnej dla 13 innych aplikacji.
+
+**pbdevs odrzuca CAŁĄ wysyłkę (422 `missing_variables`), gdy którakolwiek zmienna z szablonu
+przyjdzie jako `null`** — a za wymaganą uznaje każdą nazwę w `{{ }}`, także w `{{#if x}}`
+i w komentarzu HTML. Payloady wysyłają `""` zamiast `null` (tak robi `templates.ts`; `notify.ts`
+do 2026-10-11 tego nie robił i alert padałby przy każdym leadzie bez telefonu albo bez MTP
+w zasięgu). `tests/unit/leads/notify.test.ts` czyta `owner-lead.mjml` i pilnuje tej zgodności.
+
 **DNS pod wysyłkę jest niekompletny** (sprawdzone `Resolve-DnsName` przez 1.1.1.1):
 `SPF = v=spf1 include:spf.spacemail.com ~all` (autoryzuje wyłącznie spacemail), DKIM tylko
 `spacemail._domainkey`, a **DMARC nie istnieje**. Gmail i Yahoo wymagają DMARC od masowych
 nadawców — bez tego wysyłka masowa nie dociera.
 
-**Aplikacja nazywa 12 szablonów, w repo jest 1** (`owner-campaign.mjml`). Pozostałe muszą
+**Aplikacja nazywa 12 szablonów, w repo są 2** (`owner-campaign.mjml`, `owner-lead.mjml`). Pozostałe muszą
 istnieć po stronie `mail.pbdevs.com`; brakujący szablon = 404 z serwisu i **cicha** nieudana
 wysyłka (patrz komentarz w `modules/notifications/email.ts`).
 

@@ -1,4 +1,4 @@
-import { formatDateTimePL, formatMoney } from "@/lib/format";
+import { formatDateTimePL, formatMoney, formatSpots } from "@/lib/format";
 import { getEmailProvider } from "@/modules/notifications";
 import { LEAD_OBJECT_TYPE_LABEL } from "@/modules/admin/labels";
 import type { LeadInput } from "./schemas";
@@ -31,33 +31,44 @@ export async function notifyNewLead(
 
   // Display-ready and pre-branched, like every other template payload: the mail
   // renderer only knows {{var}} and {{#if bool}} (modules/notifications/templates.ts).
+  //
+  // Never null: pbdevs counts every name the template mentions — {{#if x}} included —
+  // as required, and rejects the whole send with 422 when one of them is null or
+  // missing. Absent text is "" (falsy for {{#if}}), absent flags are false.
   const data = {
+    // The dashboard subject is just {{subject}}, as for owner-campaign, so the
+    // copy stays in this repo (docs/mail-templates/owner-lead.mjml).
+    subject: `Nowy lead: ${input.contactName}, ${formatSpots(input.spots)} — ${input.address}`,
     receivedAt: formatDateTimePL(new Date()),
     contactName: input.contactName,
-    phone: input.phone ?? null,
-    email: input.email ?? null,
+    phone: input.phone ?? "",
+    email: input.email ?? "",
     prefersPhone: input.contactPreference === "PHONE",
     contactLine:
       input.contactPreference === "PHONE"
         ? `Woli telefon: ${input.phone ?? "brak numeru"}`
         : `Woli e-mail: ${input.email ?? "brak adresu"}`,
-    objectName: input.objectName ?? null,
+    objectName: input.objectName ?? "",
     address: input.address,
     objectType: input.objectType ? LEAD_OBJECT_TYPE_LABEL[input.objectType] : "nie podał",
     spots: input.spots,
+    spotsLabel: formatSpots(input.spots),
     ownerKind: input.ownerKind === "BUSINESS" ? "Firma" : "Osoba prywatna",
     // "ok." because these are straight-line minutes with a detour factor, not a
     // pedestrian route (CLAUDE.md).
-    walkEnea: estimate.walkMinutesEnea === null ? null : `ok. ${estimate.walkMinutesEnea} min`,
-    walkMtp: estimate.walkMinutesMtp === null ? null : `ok. ${estimate.walkMinutesMtp} min`,
-    eventsInReach: estimate.eventsInReach,
-    estimatedRate: estimate.estimatedRateGr === null ? null : formatMoney(estimate.estimatedRateGr),
+    walkEnea: estimate.walkMinutesEnea === null ? "" : `ok. ${estimate.walkMinutesEnea} min`,
+    walkMtp: estimate.walkMinutesMtp === null ? "" : `ok. ${estimate.walkMinutesMtp} min`,
+    // A string so that a real 0 ("nothing in reach") still shows under {{#if}};
+    // "" means the address was never placed on the map, so there is no estimate.
+    eventsInReach: estimate.eventsInReach === null ? "" : String(estimate.eventsInReach),
+    estimatedRate: estimate.estimatedRateGr === null ? "" : formatMoney(estimate.estimatedRateGr),
     estimatedAnnual:
-      estimate.estimatedAnnualGrossGr === null
-        ? null
-        : formatMoney(estimate.estimatedAnnualGrossGr),
-    marketingEmailConsent: input.marketingEmailConsent,
-    marketingPhoneConsent: input.marketingPhoneConsent,
+      estimate.estimatedAnnualGrossGr === null ? "" : formatMoney(estimate.estimatedAnnualGrossGr),
+    consentsLine: `e-mail: ${input.marketingEmailConsent ? "tak" : "nie"} · telefon: ${
+      input.marketingPhoneConsent ? "tak" : "nie"
+    }`,
+    // Which page and campaign link brought them, e.g. "dla-wlascicieli?z=mail".
+    source: input.source ?? "",
     ctaUrl: `${appUrl}/admin/leady`,
     ctaLabel: "Otwórz panel leadów",
   };

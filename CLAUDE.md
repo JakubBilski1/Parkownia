@@ -143,9 +143,9 @@ CONFIRMED + kod + QR + instrukcje wjazdu. Skaner: WPUŚĆ → drugi skan tego sa
 - [x] Landing akwizycyjny `/dla-wlascicieli` + tabela `leads` + `/prywatnosc` i `/regulamin`
 - [x] **Panel leadów `/admin/leady`** + kafelek „Nowe leady" na pulpicie + alert e-mail na
       `LEAD_ALERT_EMAIL` przy każdym zgłoszeniu. **Szablon `owner-lead` stoi w pbdevs od 2026-10-11**
-      (źródło `docs/mail-templates/owner-lead.mjml`, temat `{{subject}}`); próbny mail z panelu
-      pocztowego doszedł do `kontakt@parkownia.com` jako `sent`. Na prodzie zadziała dopiero po
-      ustawieniu `EMAIL_PROVIDER` + `MAIL_API_KEY` w Coolify — patrz „Audyt produkcji" niżej
+      (źródło `docs/mail-templates/owner-lead.mjml`, temat `{{subject}}`). **Działa na prodzie
+      end-to-end od 2026-10-11:** testowy lead wysłany na `POST /api/dla-wlascicieli/leads` (201)
+      → w logu pbdevs `SMTP accepted` do `kontakt@parkownia.com`, 1 próba, diakrytyka w temacie cała
 - [x] **`/admin/akwizycja` — research podaży pod Eneą i MTP** (2026-08-11). 73 zmapowane place
       (6462 miejsca, z czego **3998 już płatnych** — APCOA stoi przy samej Enei, Grupa MTP ma swoje,
       więc do zdobycia jest 2464), 34 właścicieli bez zmapowanego placu i 12 ulic zabudowy
@@ -242,7 +242,7 @@ co innego i były nieaktualne):
 | `parkings` | 1 — „Mój dom", Racławicka 83, 5 miejsc, `ALWAYS`, 30 zł/event, status **`REJECTED`** |
 | `events` / `venues` | 25 / 2 — Enea Stadion 13 (25.07.2026–21.01.2027, z Ligą Europy), MTP 12 (08.09.2026–20.06.2027). Stan po `161032b` (2026-10-10), sprawdzony przez `/wydarzenia` i `/api/dla-wlascicieli/potencjal`, nie `psql`. Wiosenne mecze Ekstraklasy dopiero po ogłoszeniu dat; zmieniając datę w seedzie, dopisz stary termin do `RESCHEDULED` |
 | `event_parking_availability` | 0 |
-| `leads` | 2, oba testowe |
+| `leads` | 3, wszystkie testowe — trzeci to `source = 'test-alertu-2026-10-11'` (2026-10-11, test alertu e-mail) |
 | `bookings` / `payments` | 0 / 0 |
 
 **Konto z rolą ADMIN na prodzie ISTNIEJE**, więc `/admin/*` i `/admin/leady` są dostępne po
@@ -260,18 +260,21 @@ obiekty i eventy. **To nie jest awaria** — to brak zaakceptowanej podaży.
 
 ## Audyt produkcji 2026-07-28/29 — stan mailingu
 
-**POCZTA NA PRODUKCJI JEST W TRYBIE `console` — NIC NIE WYCHODZI.** Panel `/admin/mailing`
-mówi to wprost na górze ekranu. Dotyczy **wszystkiego**, nie tylko kampanii: kodu wjazdu po
-rezerwacji, resetu hasła, alertu o nowym leadzie, powiadomień o moderacji. Wysyłka „udaje się",
-zapisuje historię, a treść ląduje w logu kontenera. Do naprawy: `EMAIL_PROVIDER=pbdevs` +
-`MAIL_API_KEY` w Coolify, plus szablon `owner-campaign` w panelu pocztowym (źródło:
-`docs/mail-templates/owner-campaign.mjml`, temat `{{subject}}`).
+**Od 2026-10-11 PRODUKCJA WYSYŁA PRZEZ PBDEVS — ALE DZIAŁA TYLKO ALERT O LEADZIE.** W Coolify
+(aplikacja `parkownia`, Production) są `EMAIL_PROVIDER=pbdevs`, `MAIL_API_KEY` (tylko runtime,
+niedostępny przy buildzie) i `LEAD_ALERT_EMAIL=kontakt@parkownia.com`. Do tego dnia był tryb
+`console`: wysyłka „udawała się", a treść lądowała w logu kontenera. Teraz każdy szablon, którego
+nie ma w pbdevs, dostaje 404 — **kod wjazdu po rezerwacji, reset hasła, powiadomienia o moderacji
+i kampania nie dochodzą**, tyle że zamiast logu jest nieudana wysyłka. Do zrobienia: 10 szablonów
+z `templates.ts` i `owner-campaign` (źródło `docs/mail-templates/owner-campaign.mjml`, temat
+`{{subject}}`). **Nie zdejmuj `MAIL_API_KEY`, zostawiając `EMAIL_PROVIDER=pbdevs`:**
+`getEmailProvider()` wtedy rzuca, a `sendNotification` tego nie łapie, więc reset hasła i maile
+rezerwacji skończą się 500 (alert o leadzie łapie, `notify.ts`).
 
 **Stan pbdevs (2026-10-11):** w `mail.pbdevs.com` istnieje aplikacja `parkownia` (from „Parkownia",
 Reply-To `kontakt@parkownia.com`, 20/h, 100/dzień, burst 2/s) z jednym szablonem: `owner-lead`.
-Klucza API jeszcze nie ma — generuje się w `/apps/parkownia` (format `mk_live_…`, pokazywany raz)
-i idzie prosto do Coolify, nie przez czat ani repo. Pozostałych 11 (10 z `templates.ts` i `owner-campaign`)
-nadal nie ma, więc po przełączeniu na `pbdevs` tamte wysyłki dostaną 404 zamiast logu.
+Klucz API (`mk_live_…`, pokazywany raz) wygenerował właściciel i wkleił prosto do Coolify — nie
+ma go w czacie ani w repo; nowy generuje się w `/apps/parkownia`.
 **Każda poczta z pbdevs wychodzi z `support@pbdevs.com`** (wspólna skrzynka SMTP, Reply-To
 per aplikacja), więc braki DNS `parkownia.com` opisane niżej nie blokują maili z aplikacji —
 dotyczą tylko poczty wysyłanej ręcznie z `kontakt@`. Kampania przez pbdevs idzie na reputacji
